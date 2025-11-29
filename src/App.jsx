@@ -1,8 +1,18 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import MainLayout from "./layouts/MainLayout";
+import Home from "./pages/Home";
+import ProductList from "./pages/ProductList";
+
 function App() {
     return (
-        <>
-            <p className="text-center">Hello world!</p>
-        </>
+        <Router>
+            <MainLayout>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products" element={<ProductList />} />
+                </Routes>
+            </MainLayout>
+        </Router>
     );
 }
 
