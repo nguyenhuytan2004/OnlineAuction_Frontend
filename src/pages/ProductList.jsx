@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import apiClient from "../utils/apiClient";
+import { ROUTES } from "../constants/routes";
+import formatters from "../utils/formatters";
+import helpers from "../utils/helpers";
+
+import categoryService from "../services/categoryService";
+import productService from "../services/productService";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -8,140 +13,132 @@ const ITEMS_PER_PAGE = 6;
 
 // Product Card for List
 const ProductCard = ({ product }) => {
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(amount);
-    };
-
-    // Calculate time left
-    const getTimeLeft = (endTime) => {
-        const now = new Date();
-        const end = new Date(endTime);
-        const diff = end - now;
-
-        if (diff < 0) return "Đã kết thúc";
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / (1000 * 60)) % 60);
-
-        if (days > 0) return `${days} ngày`;
-        if (hours > 0) return `${hours}:${minutes.toString().padStart(2, "0")}`;
-        return `${minutes}p`;
-    };
-
-    // Get category display name
-    const getCategoryName = () => {
-        if (product.category.parent) {
-            return product.category.categoryName;
-        }
-        return product.category.categoryName;
-    };
-
     return (
-        <div className="bg-gray-800 rounded-lg shadow-md hover:shadow-xl hover:shadow-orange-500/20 transition-all duration-300 overflow-hidden border border-gray-700 group h-full flex flex-col">
-            {/* Image Section */}
-            <div className="relative aspect-[4/3] overflow-hidden bg-gray-700">
-                {product.mainImageUrl ? (
-                    <img
-                        src={product.mainImageUrl}
-                        alt={product.productName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-16 w-16 text-gray-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                        </svg>
+        <div className="bg-gray-800 rounded-lg shadow-md hover:shadow-xl hover:shadow-orange-500/20 transition-all duration-300 overflow-hidden border border-gray-700 group h-full flex flex-col w-80">
+            <Link to={`${ROUTES.PRODUCT}/${product.productId}`}>
+                {/* Image Section */}
+                <div className="relative aspect-square overflow-hidden bg-gray-700">
+                    {product.mainImageUrl ? (
+                        <img
+                            src={product.mainImageUrl}
+                            alt={product.productName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-16 w-16 text-gray-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                            </svg>
+                        </div>
+                    )}
+
+                    {/* Overlay Button */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <button className="bg-orange-500 text-white font-semibold py-2 px-6 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-orange-600">
+                            Xem Chi Tiết
+                        </button>
                     </div>
-                )}
-
-                {/* Overlay Button */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Link
-                        to={`/auctions/${product.productId}`}
-                        className="bg-orange-500 text-white font-semibold py-2 px-6 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-orange-600"
-                    >
-                        Xem Chi Tiết
-                    </Link>
                 </div>
-            </div>
-
+            </Link>
             {/* Content Section */}
             <div className="p-4 flex-1 flex flex-col">
-                {/* Category Badge */}
-                <p className="text-xs text-orange-400 mb-1 font-semibold uppercase">
-                    {getCategoryName()}
-                </p>
-
+                {/* Product Name */}
                 <h3
-                    className="font-semibold text-gray-100 text-sm mb-2 line-clamp-2 flex-grow"
+                    className="font-semibold text-gray-100 text-sm mb-2 line-clamp-2"
                     title={product.productName}
                 >
                     {product.productName}
                 </h3>
 
-                {/* Prices */}
-                <div className="mb-3">
+                {/* Current Price */}
+                <div className="mb-2">
                     <p className="text-xs text-gray-400 mb-1">Giá hiện tại</p>
-                    <p className="text-orange-400 font-bold text-base">
-                        {formatCurrency(product.currentPrice)}
+                    <p className="text-orange-500 font-bold text-lg">
+                        {formatters.formatCurrency(product.currentPrice)}
                     </p>
-                    {product.buyNowPrice && (
-                        <p className="text-xs text-gray-500 line-through">
-                            {formatCurrency(product.buyNowPrice)}
-                        </p>
-                    )}
                 </div>
 
-                {/* Seller Info */}
-                <div className="mb-3 p-2 bg-gray-700/50 rounded text-xs">
-                    <p className="text-gray-300">
-                        <span className="font-semibold">
-                            {product.seller.fullName}
-                        </span>
+                {/* Buy Now Price */}
+                <div className="mb-2 pb-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-400">
+                        Giá mua ngay:{" "}
+                        {product.buyNowPrice ? (
+                            <span className="text-red-600 font-bold">
+                                {formatters.formatCurrency(product.buyNowPrice)}
+                            </span>
+                        ) : (
+                            <span className="text-red-600/80 font-semibold">
+                                Không có
+                            </span>
+                        )}
                     </p>
-                    <div className="flex items-center gap-1 text-yellow-400 mt-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <svg
-                                key={i}
-                                xmlns="http://www.w3.org/2000/svg"
-                                className={`h-3 w-3 ${
-                                    i <
-                                    Math.round(
-                                        (product.seller.ratingScore * 1.0) /
-                                            product.seller.ratingCount,
-                                    )
-                                        ? "fill-yellow-400"
-                                        : "text-gray-600"
-                                }`}
-                                viewBox="0 0 20 20"
-                            >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                        ))}
-                        <span className="ml-1">
-                            ({product.seller.ratingCount})
-                        </span>
-                    </div>
                 </div>
+
+                {/* Highest Bidder Info */}
+                {product.highestBidder ? (
+                    <div className="mb-2 p-2 bg-orange-900/20 rounded border border-orange-800/50 text-xs">
+                        <p className="text-orange-300 font-semibold mb-1">
+                            Người đang đặt giá cao nhất
+                        </p>
+                        <p className="text-gray-300">
+                            {product.highestBidder.fullName}
+                        </p>
+                        <div className="flex items-center gap-1 text-yellow-400 mt-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <svg
+                                    key={i}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`h-3 w-3 ${
+                                        i <
+                                        helpers.getRatingStars(
+                                            product.highestBidder.ratingScore,
+                                            product.highestBidder.ratingCount,
+                                        )
+                                            ? "fill-yellow-400"
+                                            : "text-gray-600"
+                                    }`}
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                            ))}
+                            <span className="ml-1 text-gray-400">
+                                ({product.highestBidder.ratingCount})
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mb-2 p-2 bg-gray-700/30 rounded border border-gray-600/50 text-xs">
+                        <p className="text-gray-400">
+                            Chưa có người đặt giá nào
+                        </p>
+                    </div>
+                )}
 
                 {/* Footer Info */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-700 text-xs">
-                    <div className="flex items-center gap-1 text-gray-400">
+                <div className="flex flex-col gap-2 pt-2 border-t border-gray-700 text-xs">
+                    {/* Created Date */}
+                    <div>
+                        <p className="text-xs text-gray-400">
+                            Ngày đăng:{" "}
+                            <span className="text-gray-400 font-semibold">
+                                {formatters.formatDate(product.createdAt)}
+                            </span>
+                        </p>
+                    </div>
+                    {/* Time Left */}
+                    <div className="flex items-center gap-2 text-gray-400">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-3 w-3"
@@ -156,10 +153,18 @@ const ProductCard = ({ product }) => {
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        <span>{getTimeLeft(product.endTime)}</span>
+                        <span>Còn lại: </span>
+                        <span
+                            className={helpers.getTimeColorClass(
+                                product.endTime,
+                            )}
+                        >
+                            {formatters.getRemainingTime(product.endTime)}
+                        </span>
                     </div>
 
-                    <div className="flex items-center gap-1 text-gray-400 font-medium">
+                    {/* Bid Count */}
+                    <div className="flex items-center gap-2 text-gray-400">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-3 w-3"
@@ -180,7 +185,12 @@ const ProductCard = ({ product }) => {
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                             />
                         </svg>
-                        <span>{product.bidCount} lượt</span>
+                        <span>
+                            Lượt ra giá:{" "}
+                            <span className="font-semibold text-gray-400">
+                                {product.bidCount}
+                            </span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -330,52 +340,34 @@ const CategoryItem = ({
 const ProductList = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPageParam = parseInt(searchParams.get("page") || "1");
+    const currentSortParam = searchParams.get("sort") || "";
     const currentCategoryParam = parseInt(searchParams.get("category") || "0");
 
     const [currentPage, setCurrentPage] = useState(currentPageParam);
+    const [currentSort, setCurrentSort] = useState(currentSortParam);
     const [selectedCategory, setSelectedCategory] =
         useState(currentCategoryParam);
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
+    const [totalProducts, setTotalProducts] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Build category tree from flat list
-    const buildCategoryTree = (flatCategories) => {
-        const map = {};
-        const roots = [];
-
-        // Create map
-        flatCategories.forEach((cat) => {
-            map[cat.categoryId] = { ...cat, children: [] };
-        });
-
-        // Build tree
-        flatCategories.forEach((cat) => {
-            if (cat.parent) {
-                if (map[cat.parent.categoryId]) {
-                    map[cat.parent.categoryId].children.push(
-                        map[cat.categoryId],
-                    );
-                }
-            } else {
-                roots.push(map[cat.categoryId]);
-            }
-        });
-
-        return roots;
-    };
-
     // Fetch categories
     useEffect(() => {
         const fetchCategories = async () => {
+            setLoading(true);
+            setError(null);
             try {
-                const data = await apiClient.get("/api/categories");
-                const tree = buildCategoryTree(data);
-                setCategories(tree);
+                const categoryTree = await categoryService.getAllCategories();
+                setCategories(categoryTree);
             } catch (err) {
                 console.error("Failed to fetch categories:", err);
+                setError("Không thể tải danh mục");
+                setCategories([]);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -389,19 +381,24 @@ const ProductList = () => {
             setError(null);
             try {
                 const params = new URLSearchParams();
-                params.append("page", currentPage - 1); // API uses 0-based pagination
+                params.append("page", currentPage - 1);
                 params.append("size", ITEMS_PER_PAGE);
+                params.append("sort", currentSort);
 
+                let products;
                 if (selectedCategory > 0) {
-                    params.append("categoryId", selectedCategory);
+                    products = await productService.getProductsByCategoryId(
+                        selectedCategory,
+                        Object.fromEntries(params.entries()),
+                    );
+                } else {
+                    const options = Object.fromEntries(params.entries());
+                    products = await productService.getAllProducts(options);
                 }
 
-                const data = await apiClient.get(
-                    `/api/products?${params.toString()}`,
-                );
-
-                setProducts(data.content || []);
-                setTotalPages(data.totalPages || 1);
+                setProducts(products.content || []);
+                setTotalProducts(products.totalElements || 0);
+                setTotalPages(products.totalPages || 1);
             } catch (err) {
                 console.error("Failed to fetch products:", err);
                 setError("Không thể tải sản phẩm");
@@ -412,40 +409,65 @@ const ProductList = () => {
         };
 
         fetchProducts();
-    }, [currentPage, selectedCategory]);
+    }, [currentPage, currentSort, selectedCategory]);
 
     // Handle pagination change
     const handlePageChange = (page) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
             setSearchParams({
-                page,
                 category: selectedCategory,
+                page,
+                size: ITEMS_PER_PAGE,
+                sort: currentSort,
             });
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
+    };
+
+    // Handle sort change
+    const handleSortChange = (sort) => {
+        setCurrentSort(sort);
+        setCurrentPage(1);
+        setSearchParams({
+            category: selectedCategory,
+            page: 1,
+            size: ITEMS_PER_PAGE,
+            sort,
+        });
     };
 
     // Handle category change
     const handleCategoryChange = (categoryId) => {
         setSelectedCategory(categoryId);
         setCurrentPage(1);
+        setCurrentSort("");
         setSearchParams({
-            page: 1,
             category: categoryId,
+            page: 1,
+            size: ITEMS_PER_PAGE,
         });
     };
 
     return (
         <div className="min-h-screen bg-gray-900 py-12">
             <div className="container mx-auto px-8">
+                {/* Breadcrumb */}
+                <div className="mb-6 text-sm text-gray-400">
+                    <Link to={ROUTES.HOME} className="hover:text-orange-400">
+                        Trang chủ
+                    </Link>
+                    {" > "}
+                    <span className="text-gray-300">Sản phẩm</span>
+                </div>
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-white mb-2">
-                        Tất Cả Sản Phẩm
-                    </h1>
+                <div className="mb-8 text-2xl">
                     <p className="text-gray-400">
-                        Tìm kiếm những sản phẩm tuyệt vời từ người bán trên sàn
+                        Có{" "}
+                        <span className="font-bold text-orange-400">
+                            {totalProducts}
+                        </span>{" "}
+                        sản phẩm
                     </p>
                 </div>
 
@@ -453,10 +475,62 @@ const ProductList = () => {
                     {/* Sidebar - Filters */}
                     <div className="col-span-1">
                         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 sticky top-8">
+                            {/* Sort */}
+
+                            <div className="mb-8">
+                                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                    <i
+                                        className="fa-solid fa-list"
+                                        style={{ color: "#d1d5db" }}
+                                    ></i>
+                                    Sắp xếp
+                                </h3>
+                                <div className="relative">
+                                    <select
+                                        className="w-full px-4 py-2 bg-gray-700 font-bold text-gray-300 rounded-lg border border-gray-600 focus:outline-none focus:border-orange-500 hover:border-orange-500 transition duration-300 appearance-none cursor-pointer"
+                                        onChange={(e) =>
+                                            handleSortChange(e.target.value)
+                                        }
+                                        value={currentSort}
+                                    >
+                                        <option value="">Mặc định</option>
+                                        <option value="endTime,asc">
+                                            Thời gian kết thúc (Sớm nhất)
+                                        </option>
+                                        <option value="endTime,desc">
+                                            Thời gian kết thúc (Muộn nhất)
+                                        </option>
+                                        <option value="currentPrice,asc">
+                                            Giá (Thấp đến Cao)
+                                        </option>
+                                        <option value="currentPrice,desc">
+                                            Giá (Cao đến Thấp)
+                                        </option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center px-2 text-white">
+                                        <svg
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="2"
+                                                d="M19 9l-7 7-7-7"
+                                            />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
                             {/* Category Filter */}
                             <div className="mb-8">
                                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                                    <span className="text-orange-400">✓</span>
+                                    <i
+                                        className="fa-solid fa-sort"
+                                        style={{ color: "#d1d5db" }}
+                                    ></i>
                                     Danh Mục
                                 </h3>
 
@@ -486,8 +560,10 @@ const ProductList = () => {
                                 onClick={() => {
                                     setSelectedCategory(0);
                                     setCurrentPage(1);
+                                    setCurrentSort("");
                                     setSearchParams({
                                         page: 1,
+                                        sort: "",
                                         category: 0,
                                     });
                                 }}
@@ -522,13 +598,16 @@ const ProductList = () => {
                         {/* Products Grid */}
                         {!loading && products.length > 0 ? (
                             <>
-                                <div className="grid grid-cols-3 gap-6">
-                                    {products.map((product) => (
-                                        <ProductCard
-                                            key={product.productId}
-                                            product={product}
-                                        />
-                                    ))}
+                                <div className="grid grid-cols-3 gap-6 justify-items-center">
+                                    {products.map(
+                                        (product) =>
+                                            product.isActive && (
+                                                <ProductCard
+                                                    key={product.productId}
+                                                    product={product}
+                                                />
+                                            ),
+                                    )}
                                 </div>
 
                                 {/* Pagination */}

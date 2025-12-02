@@ -6,7 +6,9 @@ class ApiClient {
     }
 
     getHeaders() {
-        const token = localStorage.getItem("token");
+        // const token = localStorage.getItem("token");
+        const token =
+            "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX0JJRERFUiJdLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiOCIsImlhdCI6MTc2NDY0NjU4OSwiZXhwIjoxNzY0NjgyNTg5fQ.DDU_iARoJspiS6geVv6WsHx2bRB-RKnQ0dxaF89Ftb0";
         return {
             "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -22,9 +24,23 @@ class ApiClient {
 
         try {
             const response = await fetch(url, config);
+
             if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem("token");
+                    window.location.href = "/login";
+                }
+
+                let errorData = null;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    // Ignore JSON parse errors
+                }
+
                 throw new Error(
-                    `HTTP ${response.status}: ${response.statusText}`,
+                    errorData?.message ||
+                        `HTTP ${response.status}: ${response.statusText}`,
                 );
             }
             return await response.json();

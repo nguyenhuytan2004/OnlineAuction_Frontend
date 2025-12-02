@@ -1,51 +1,108 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
 
 const MainLayout = ({ children }) => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const navigate = useNavigate();
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(
+                `${ROUTES.PRODUCT}?search=${encodeURIComponent(searchQuery)}`,
+            );
+        }
+        setSearchQuery("");
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 flex flex-col">
             {/* Header */}
-            <header className="bg-gray-950/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50 ">
+            <header className="bg-gray-950/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
                 <nav className="max-w-7xl mx-auto px-8 h-20 flex items-center">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-grow items-center justify-between w-full gap-6">
+                        {/* Logo */}
                         <div className="flex-shrink-0">
-                            <a
-                                href="/"
+                            <Link
+                                to={ROUTES.HOME}
                                 className="text-2xl font-bold text-orange-400 hover:text-orange-300 transition"
                             >
                                 <img
-                                    src="src/assets/images/logo-transparent.png"
+                                    src="/assets/images/logo-transparent.png"
                                     alt="Logo Đấu Giá"
                                     className="h-20 w-auto object-contain"
                                 />
-                            </a>
+                            </Link>
                         </div>
-                        <div className="ml-10 flex items-baseline space-x-4">
-                            <a
-                                href="/"
-                                className="text-gray-300 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition"
-                            >
-                                Trang Chủ
-                            </a>
-                            <a
-                                href="/products"
-                                className="text-gray-300 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition"
-                            >
-                                Sản phẩm
-                            </a>
-                        </div>
-                        <div className="ml-10 flex items-baseline space-x-4">
-                            <a
-                                href="/login"
-                                className="bg-white/10 text-gray-300 hover:bg-white/30 px-3 py-2 rounded-md text-sm font-medium transition"
-                            >
-                                Đăng Nhập
-                            </a>
-                            <a
-                                href="/register"
-                                className="bg-orange-500 text-white hover:bg-orange-600 px-3 py-2 rounded-md text-sm font-medium transition"
-                            >
-                                Đăng Ký
-                            </a>
+
+                        {/* Search Bar */}
+                        <form
+                            onSubmit={handleSearch}
+                            className="flex-1 max-w-md flex-grow"
+                        >
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm sản phẩm, danh mục"
+                                    value={searchQuery}
+                                    onChange={(e) =>
+                                        setSearchQuery(e.target.value)
+                                    }
+                                    className="w-full pl-6 pr-10 py-2 bg-gray-800 text-gray-100 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-500 transition"
+                                />
+                                <button
+                                    type="submit"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-400 transition"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Navigation Links */}
+                        <div className="flex items-center gap-6 flex-grow">
+                            <div className="flex items-baseline space-x-4">
+                                <Link
+                                    to={ROUTES.HOME}
+                                    className="text-gray-300 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition"
+                                >
+                                    Trang Chủ
+                                </Link>
+                                <Link
+                                    to={ROUTES.PRODUCT}
+                                    className="text-gray-300 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition"
+                                >
+                                    Sản phẩm
+                                </Link>
+                            </div>
+                            <div className="flex items-baseline space-x-4 ml-auto">
+                                <Link
+                                    to={ROUTES.LOGIN}
+                                    className="bg-white/10 text-gray-300 hover:bg-white/30 px-3 py-2 rounded-md text-sm font-medium transition"
+                                >
+                                    Đăng Nhập
+                                </Link>
+                                <Link
+                                    to={ROUTES.REGISTER}
+                                    className="bg-orange-500 text-white hover:bg-orange-600 px-3 py-2 rounded-md text-sm font-medium transition"
+                                >
+                                    Đăng Ký
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </nav>
@@ -55,7 +112,7 @@ const MainLayout = ({ children }) => {
             <main className="flex-1">{children}</main>
 
             {/* Footer */}
-            <footer className="bg-gray-900 border-t border-gray-800 mt-12">
+            <footer className="bg-gray-900 border-t border-gray-800 mt-2">
                 <div className="max-w-7xl mx-auto px-8 py-8">
                     <div className="grid grid-cols-3 gap-8 mb-8">
                         <div>
@@ -73,28 +130,28 @@ const MainLayout = ({ children }) => {
                             </h3>
                             <ul className="space-y-2 text-gray-400">
                                 <li>
-                                    <a
-                                        href="/"
+                                    <Link
+                                        to={ROUTES.HOME}
                                         className="hover:text-orange-400 transition"
                                     >
                                         Trang Chủ
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
-                                        href="/auctions"
+                                    <Link
+                                        to={ROUTES.AUCTIONS}
                                         className="hover:text-orange-400 transition"
                                     >
                                         Đấu Giá
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
-                                        href="/contact"
+                                    <Link
+                                        to={ROUTES.CONTACT}
                                         className="hover:text-orange-400 transition"
                                     >
                                         Liên Hệ
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </div>
@@ -104,28 +161,28 @@ const MainLayout = ({ children }) => {
                             </h3>
                             <ul className="space-y-2 text-gray-400">
                                 <li>
-                                    <a
-                                        href="/faq"
+                                    <Link
+                                        to={ROUTES.FAQ}
                                         className="hover:text-orange-400 transition"
                                     >
                                         FAQ
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
-                                        href="/terms"
+                                    <Link
+                                        to={ROUTES.TERMS}
                                         className="hover:text-orange-400 transition"
                                     >
                                         Điều Khoản
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
-                                        href="/privacy"
+                                    <Link
+                                        to={ROUTES.PRIVACY}
                                         className="hover:text-orange-400 transition"
                                     >
                                         Chính Sách Bảo Mật
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </div>

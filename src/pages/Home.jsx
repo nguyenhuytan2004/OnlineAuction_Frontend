@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import formatters from "../utils/formatters";
 
 // --- MOCK DATA (Dữ liệu giả lập để hiển thị giao diện) ---
 const nearEndProducts = [
@@ -137,48 +138,39 @@ const highPriceProducts = [
 
 // 1. Product Card Component
 const ProductCard = ({ product, type }) => {
-    // Định dạng tiền tệ VND
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(amount);
-    };
-
     return (
         <div className="bg-gray-800 rounded-lg shadow-md hover:shadow-xl hover:shadow-orange-500/20 transition-all duration-300 overflow-hidden border border-gray-700 group">
-            {/* Image Section */}
-            <div className="relative aspect-[4/3] overflow-hidden">
-                <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+            <Link to={`/products/${product.id}`}>
+                {/* Image Section */}
+                <div className="relative aspect-[4/3] overflow-hidden">
+                    <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
 
-                {/* Badges */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    {product.isNew && (
-                        <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm animate-pulse">
-                            MỚI
-                        </span>
-                    )}
-                    {type === "nearEnd" && (
-                        <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm flex items-center gap-1">
-                            🔥 Gấp
-                        </span>
-                    )}
-                </div>
+                    {/* Badges */}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        {product.isNew && (
+                            <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm animate-pulse">
+                                MỚI
+                            </span>
+                        )}
+                        {type === "nearEnd" && (
+                            <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm flex items-center gap-1">
+                                🔥 Gấp
+                            </span>
+                        )}
+                    </div>
 
-                {/* Overlay Button */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Link
-                        to={`/auctions/${product.id}`}
-                        className="bg-orange-500 text-white font-semibold py-2 px-6 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-orange-600"
-                    >
-                        Xem Chi Tiết
-                    </Link>
+                    {/* Overlay Button */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <button className="bg-orange-500 text-white font-semibold py-2 px-6 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-orange-600">
+                            Xem Chi Tiết
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </Link>
 
             {/* Content Section */}
             <div className="p-4">
@@ -193,7 +185,7 @@ const ProductCard = ({ product, type }) => {
                     <div>
                         <p className="text-xs text-gray-400">Giá hiện tại</p>
                         <p className="text-orange-400 font-bold text-lg">
-                            {formatCurrency(product.price)}
+                            {formatters.formatCurrency(product.price)}
                         </p>
                     </div>
                 </div>
