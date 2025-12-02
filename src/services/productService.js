@@ -47,6 +47,27 @@ const productService = {
 
         return products;
     },
+
+    getTop5EndingSoon: async () => {
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}/top-5-ending-soon`;
+        const products = await apiClient.get(endpoint);
+
+        return products;
+    },
+
+    getTop5MostAuctioned: async () => {
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}/top-5-most-auctioned`;
+        const products = await apiClient.get(endpoint);
+
+        return products;
+    },
+
+    getTop5HighestPriced: async () => {
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}/top-5-highest-priced`;
+        const products = await apiClient.get(endpoint);
+
+        return products;
+    },
 };
 
 export default productService;

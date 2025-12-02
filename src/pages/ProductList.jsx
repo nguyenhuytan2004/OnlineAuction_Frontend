@@ -74,11 +74,11 @@ const ProductCard = ({ product }) => {
                     <p className="text-xs text-gray-400">
                         Giá mua ngay:{" "}
                         {product.buyNowPrice ? (
-                            <span className="text-red-600 font-bold">
+                            <span className="text-red-400 font-bold">
                                 {formatters.formatCurrency(product.buyNowPrice)}
                             </span>
                         ) : (
-                            <span className="text-red-600/80 font-semibold">
+                            <span className="text-red-400/80 font-semibold">
                                 Không có
                             </span>
                         )}

@@ -158,12 +158,16 @@ const ProductDetail = () => {
                         <div className="mb-8">
                             <p className=" text-gray-400 mb-1">
                                 Giá mua ngay:{" "}
-                                <span className="font-bold text-red-600">
-                                    {product.buyNowPrice
-                                        ? formatters.formatCurrency(
-                                              product.buyNowPrice,
-                                          )
-                                        : "Không có"}
+                                <span className="font-bold text-red-400">
+                                    {product.buyNowPrice ? (
+                                        formatters.formatCurrency(
+                                            product.buyNowPrice,
+                                        )
+                                    ) : (
+                                        <span className="text-red-400/80 font-semibold">
+                                            Không có
+                                        </span>
+                                    )}
                                 </span>
                             </p>
                         </div>
@@ -440,7 +444,7 @@ const ProductDetail = () => {
 
                 {/* Related Products */}
                 <div>
-                    <h2 className="text-2xl font-bold text-white mb-6">
+                    <h2 className="text-2xl font-bold text-gray-300 mb-6">
                         Sản phẩm liên quan
                     </h2>
                     <div className="grid grid-cols-5 gap-6">
@@ -483,7 +487,7 @@ const ProductDetail = () => {
                                             <p className="text-xs text-gray-400">
                                                 Giá hiện tại
                                             </p>
-                                            <p className="text-orange-400 font-bold text-lg">
+                                            <p className="text-orange-500 font-bold text-lg">
                                                 {formatters.formatCurrency(
                                                     relatedProduct.currentPrice,
                                                 )}

@@ -33,8 +33,8 @@ const helpers = {
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
         if (diff < 0) return "text-gray-400";
-        if (days < 1) return "text-red-400 font-semibold"; // < 1 ngày: đỏ
-        if (days <= 3) return "text-orange-400 font-semibold"; // <= 3 ngày: cam
+        if (days < 1) return "text-red-500 font-semibold"; // < 1 ngày: đỏ
+        if (days <= 3) return "text-orange-300 font-semibold"; // <= 3 ngày: cam
         return "text-white"; // > 3 ngày: trắng
     },
 
