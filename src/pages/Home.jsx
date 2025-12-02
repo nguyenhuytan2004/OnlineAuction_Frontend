@@ -305,7 +305,7 @@ const Home = () => {
                         người mua tiềm năng.
                     </p>
                     <Link
-                        to={ROUTES.REGISTER}
+                        to={ROUTES.SELLER_REGISTER}
                         className="inline-block bg-white text-orange-600 font-bold py-3 px-8 rounded-lg hover:shadow-lg hover:shadow-orange-500/50 transition"
                     >
                         Đăng Ký Bán Hàng

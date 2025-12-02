@@ -1,21 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
+import SearchBar from "../components/inputs/SearchBar";
 
 const MainLayout = ({ children }) => {
-    const [searchQuery, setSearchQuery] = useState("");
-    const navigate = useNavigate();
     const location = useLocation();
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(
-                `${ROUTES.PRODUCT}?search=${encodeURIComponent(searchQuery)}`,
-            );
-        }
-        setSearchQuery("");
-    };
 
     // Scroll to top when route changes
     useEffect(() => {
@@ -43,44 +32,12 @@ const MainLayout = ({ children }) => {
                         </div>
 
                         {/* Search Bar */}
-                        <form
-                            onSubmit={handleSearch}
-                            className="flex-1 max-w-md flex-grow"
-                        >
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Tìm kiếm sản phẩm, danh mục"
-                                    value={searchQuery}
-                                    onChange={(e) =>
-                                        setSearchQuery(e.target.value)
-                                    }
-                                    className="w-full pl-6 pr-10 py-2 bg-gray-800 text-gray-100 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-500 transition"
-                                />
-                                <button
-                                    type="submit"
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-400 transition"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                        </form>
+                        <div className="flex-grow-[1]">
+                            <SearchBar />
+                        </div>
 
                         {/* Navigation Links */}
-                        <div className="flex items-center gap-6 flex-grow">
+                        <div className="flex items-center gap-6 flex-grow-[2]">
                             <div className="flex items-baseline space-x-4">
                                 <Link
                                     to={ROUTES.HOME}

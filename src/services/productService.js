@@ -68,6 +68,32 @@ const productService = {
 
         return products;
     },
+
+    searchProducts: async (keyword, options = {}) => {
+        const queryParams = new URLSearchParams({
+            keyword,
+            ...options,
+        });
+        const endpoint = `${
+            API_ENDPOINTS.PRODUCTS
+        }/full-text-search?${queryParams.toString()}`;
+        const products = await apiClient.get(endpoint);
+
+        return products;
+    },
+
+    searchProductsWithCategoryId: async (categoryId, keyword, options = {}) => {
+        const queryParams = new URLSearchParams({
+            keyword,
+            ...options,
+        });
+        const endpoint = `${
+            API_ENDPOINTS.PRODUCTS_BY_CATEGORY
+        }/${categoryId}/full-text-search?${queryParams.toString()}`;
+        const products = await apiClient.get(endpoint);
+
+        return products;
+    },
 };
 
 export default productService;
