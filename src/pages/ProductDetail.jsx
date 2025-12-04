@@ -23,6 +23,8 @@ const ProductDetail = () => {
     const [bidError, setBidError] = useState("");
     const [notification, setNotification] = useState(null);
 
+    const [testBidderId, setTestBidderId] = useState(null); // For testing purposes
+
     // Handle bid updates from WebSocket
     const handleBidUpdate = useCallback((bidUpdate) => {
         console.log("Bid update received:", bidUpdate);
@@ -37,7 +39,7 @@ const ProductDetail = () => {
                 setProduct(updatedProduct);
                 setBidHistory((prevBidHistory) => {
                     // Nếu bidHistory đã có 5 mục thì chỉ giữ lại 4 mục mới nhất cộng với mục mới
-                    if (prevBidHistory.length >= 5) {
+                    if (prevBidHistory.length === 5) {
                         return [newBid, ...prevBidHistory.slice(0, 4)];
                     }
                     return [newBid, ...prevBidHistory];
@@ -75,18 +77,18 @@ const ProductDetail = () => {
     }, []);
 
     // Handle auction extension
-    const handleAuctionExtended = useCallback((data) => {
-        console.log("Auction extended:", data);
+    const handleAuctionExtended = useCallback((newEndTime) => {
+        console.log("Auction extended:", newEndTime);
 
         // Update product endTime
         setProduct((prev) => ({
             ...prev,
-            endTime: data.newEndTime,
+            endTime: newEndTime,
         }));
 
         // Show notification
         setNotification({
-            message: `Phiên đấu giá đã được gia hạn! ${data.reason || ""}`,
+            message: `Phiên đấu giá đã được gia hạn!`,
             type: "info",
         });
         setTimeout(() => setNotification(null), 5000);
@@ -776,10 +778,10 @@ const ProductDetail = () => {
                                         setMaxBidPrice(e.target.value);
                                         setBidError("");
                                     }}
-                                    className="w-full px-4 py-3 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-orange-500 outline-none transition appearance-none"
+                                    className="w-full px-4 py-3 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-orange-500 outline-none transition appearance-none max-h-30 overflow-y-auto"
                                 >
                                     <option value="">-- Chọn giá --</option>
-                                    {Array.from({ length: 10 }, (_, i) => {
+                                    {Array.from({ length: 20 }, (_, i) => {
                                         const price =
                                             product.currentPrice +
                                             (i + 1) * product.priceStep;
@@ -813,6 +815,20 @@ const ProductDetail = () => {
                                     {bidError}
                                 </p>
                             )}
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-gray-300 font-semibold mb-2">
+                                Nhập ID người đặt giá (chỉ để thử nghiệm)
+                            </label>
+                            <input
+                                value={testBidderId || ""}
+                                onChange={(e) =>
+                                    setTestBidderId(e.target.value)
+                                }
+                                placeholder="Nhập ID người đặt giá"
+                                className="w-full px-4 py-3 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-orange-500 outline-none transition"
+                            />
                         </div>
 
                         <div className="mb-6 p-4 bg-orange-900/20 border border-orange-700/50 rounded-lg">
@@ -849,7 +865,7 @@ const ProductDetail = () => {
                                     const bidAmount = parseFloat(maxBidPrice);
 
                                     try {
-                                        wsSendBid(bidAmount);
+                                        wsSendBid(bidAmount, testBidderId);
                                         setShowBidModal(false);
                                         setMaxBidPrice("");
                                         setBidError("");

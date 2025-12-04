@@ -9,14 +9,12 @@ class WebSocketService {
         this.connected = false;
     }
 
-    connect(onConnect, onError) {
+    connect(handleConnect, handleError) {
         if (this.connected) {
             console.log("WebSocket already connected");
-            onConnect?.();
+            handleConnect?.();
             return;
         }
-
-        const token = TOKEN_DEV;
 
         // Khởi tạo SockJS (KHÔNG truyền headers vào đây)
         const socket = new SockJS("http://localhost:8080/ws/bid", null, {
@@ -37,15 +35,10 @@ class WebSocketService {
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
 
-            // THÊM headers vào đây
-            connectHeaders: {
-                Authorization: `Bearer ${token}`,
-            },
-
             onConnect: () => {
                 console.log("WebSocket connected");
                 this.connected = true;
-                onConnect?.();
+                handleConnect?.();
             },
             onDisconnect: () => {
                 console.log("WebSocket disconnected");
@@ -53,7 +46,7 @@ class WebSocketService {
             },
             onStompError: (frame) => {
                 console.error("STOMP error:", frame);
-                onError?.(frame);
+                handleError?.(frame);
             },
         });
 
@@ -71,7 +64,7 @@ class WebSocketService {
     }
 
     // Subscribe to bid updates for a specific product
-    subscribeToBids(productId, callback) {
+    subscribeToBids(productId, handleBidUpdate) {
         if (!this.connected || !this.client) {
             console.error("WebSocket not connected");
             return null;
@@ -83,7 +76,7 @@ class WebSocketService {
             try {
                 const data = JSON.parse(message.body);
                 console.log("Received bid message:", data);
-                callback(data);
+                handleBidUpdate(data);
             } catch (error) {
                 console.error("Error parsing bid message:", error);
             }
@@ -94,7 +87,7 @@ class WebSocketService {
     }
 
     // Subscribe to auction extension notifications
-    subscribeToAuctionExtension(productId, callback) {
+    subscribeToAuctionExtension(productId, handleAuctionExtended) {
         if (!this.connected || !this.client) {
             console.error("WebSocket not connected");
             return null;
@@ -103,8 +96,8 @@ class WebSocketService {
         const destination = `/topic/product/${productId}/auction-extended`;
         const subscription = this.client.subscribe(destination, (message) => {
             try {
-                const data = JSON.parse(message.body);
-                callback(data);
+                const newEndTime = JSON.parse(message.body);
+                handleAuctionExtended(newEndTime);
             } catch (error) {
                 console.error("Error parsing extension message:", error);
             }

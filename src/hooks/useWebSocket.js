@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import websocketService from "../services/websocketService";
 
-export const useWebSocket = (productId, onBidUpdate, onAuctionExtended) => {
+export const useWebSocket = (
+    productId,
+    handleBidUpdate,
+    handleAuctionExtended,
+) => {
     const [connected, setConnected] = useState(false);
     const [error, setError] = useState(null);
     const reconnectAttempts = useRef(0);
@@ -16,14 +20,14 @@ export const useWebSocket = (productId, onBidUpdate, onAuctionExtended) => {
             if (productId) {
                 // Subscribe to bid updates
                 websocketService.subscribeToBids(productId, (data) => {
-                    onBidUpdate?.(data);
+                    handleBidUpdate?.(data);
                 });
 
                 // Subscribe to auction extensions
                 websocketService.subscribeToAuctionExtension(
                     productId,
                     (data) => {
-                        onAuctionExtended?.(data);
+                        handleAuctionExtended?.(data);
                     },
                 );
             }
@@ -55,20 +59,15 @@ export const useWebSocket = (productId, onBidUpdate, onAuctionExtended) => {
                 websocketService.unsubscribeFromProduct(productId);
             }
         };
-    }, [productId, onBidUpdate, onAuctionExtended]);
+    }, [productId, handleBidUpdate, handleAuctionExtended]);
 
     const placeBid = useCallback(
-        (maxAutoPrice) => {
+        (maxAutoPrice, bidderId /* Just for testing*/) => {
             if (!connected) {
                 throw new Error("WebSocket chưa kết nối");
             }
 
             console.log("Placing bid:", { productId, maxAutoPrice });
-            // For demo purposes, using a fixed bidderId
-            // Random số nguyên từ 1 đến 7 trừ số 2
-            do {
-                var bidderId = Math.floor(Math.random() * 7) + 1;
-            } while (bidderId === 2);
 
             websocketService.placeBid(productId, {
                 productId,
