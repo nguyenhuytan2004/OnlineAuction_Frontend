@@ -9,4 +9,10 @@ export const API_ENDPOINTS = {
     // Products
     PRODUCTS: "/products",
     PRODUCTS_BY_CATEGORY: "/products/category",
+
+    // Bids
+    BIDS: "/bids",
 };
+
+export const TOKEN_DEV =
+    "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX0JJRERFUiJdLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiNyIsImlhdCI6MTc2NDgyODg4MiwiZXhwIjoxNzY1MTg4ODgyfQ.5OZtNM6XDHSBgvBVHJudqXRLKQilyW6_VbxCrA1FJpk";

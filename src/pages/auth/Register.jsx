@@ -269,6 +269,16 @@ const Register = () => {
                         </Link>
                     </p>
                 </div>
+                {/* Return home page */}
+                <div className="mt-8">
+                    <Link
+                        to={ROUTES.HOME}
+                        className="text-gray-400 hover:text-gray-300 transition flex items-center justify-center gap-2"
+                    >
+                        <i class="fa-solid fa-left-long"></i>
+                        <span className="text-sm pb-1">Quay về trang chủ</span>
+                    </Link>
+                </div>
             </div>
         </div>
     );

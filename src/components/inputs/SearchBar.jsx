@@ -9,6 +9,7 @@ const SearchBar = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const searchRef = useRef(null);
     const navigate = useNavigate();
 
@@ -22,6 +23,7 @@ const SearchBar = () => {
 
         const delaySearch = setTimeout(async () => {
             setLoading(true);
+            setError(null);
             try {
                 const results = await productService.searchProducts(keyword, {
                     page: 0,
@@ -30,12 +32,13 @@ const SearchBar = () => {
                 setSearchResults(
                     Array.isArray(results.content) ? results.content : [],
                 );
-                setShowDropdown(true);
             } catch (err) {
                 console.error("Search error:", err);
+                setError("Đã có lỗi xảy ra khi tìm kiếm.");
                 setSearchResults([]);
             } finally {
                 setLoading(false);
+                setShowDropdown(true);
             }
         }, 800);
 
@@ -145,6 +148,12 @@ const SearchBar = () => {
                             </div>
                         )}
 
+                        {!loading && error && (
+                            <div className="p-4 text-center text-red-400 animate-in fade-in duration-200">
+                                <p className="text-sm">{error}</p>
+                            </div>
+                        )}
+
                         {!loading && searchResults.length > 0 && (
                             <>
                                 {/* Product List */}
@@ -207,7 +216,7 @@ const SearchBar = () => {
                             </>
                         )}
 
-                        {!loading && searchResults.length === 0 && (
+                        {!loading && !error && searchResults.length === 0 && (
                             <div className="p-4 text-center text-gray-400 animate-in fade-in duration-200">
                                 <p className="text-sm">
                                     Không tìm thấy sản phẩm nào

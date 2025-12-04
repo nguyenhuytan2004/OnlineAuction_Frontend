@@ -73,7 +73,7 @@ const formatters = {
         const minutes = Math.floor((diff / (1000 * 60)) % 60);
 
         let endTimeFormatted;
-        if (days >= 3) {
+        if (days > 3) {
             endTimeFormatted = formatters.formatDate(endTime);
         } else {
             if (days > 0) {

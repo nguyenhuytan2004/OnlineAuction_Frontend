@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "../constants/api";
+import { API_BASE_URL, TOKEN_DEV } from "../constants/api";
 
 class ApiClient {
     constructor(baseURL = API_BASE_URL) {
@@ -7,8 +7,7 @@ class ApiClient {
 
     getHeaders() {
         // const token = localStorage.getItem("token");
-        const token =
-            "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX0JJRERFUiJdLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiOSIsImlhdCI6MTc2NDY4MzMyMiwiZXhwIjoxNzY1MDQzMzIyfQ.kcgE5CXNXiA8rEPk_E9UhzYnp70CmTkE0VGeq8tYyHM";
+        const token = TOKEN_DEV;
         return {
             "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),

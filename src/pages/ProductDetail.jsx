@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import helpers from "../utils/helpers";
 import formatters from "../utils/formatters";
 
 import productService from "../services/productService";
+import bidService from "../services/bidService";
+import { useWebSocket } from "../hooks/useWebSocket";
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -15,6 +17,87 @@ const ProductDetail = () => {
     const [hoveredImage, setHoveredImage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [showBidModal, setShowBidModal] = useState(false);
+    const [maxBidPrice, setMaxBidPrice] = useState("");
+    const [bidError, setBidError] = useState("");
+    const [notification, setNotification] = useState(null);
+
+    // Handle bid updates from WebSocket
+    const handleBidUpdate = useCallback((bidUpdate) => {
+        console.log("Bid update received:", bidUpdate);
+
+        const fetchUpdatedData = async () => {
+            try {
+                const updatedProduct = await productService.getProductById(
+                    bidUpdate.productId,
+                );
+                const newBid = await bidService.getBid(bidUpdate.newBidId);
+
+                setProduct(updatedProduct);
+                setBidHistory((prevBidHistory) => {
+                    // Nếu bidHistory đã có 5 mục thì chỉ giữ lại 4 mục mới nhất cộng với mục mới
+                    if (prevBidHistory.length >= 5) {
+                        return [newBid, ...prevBidHistory.slice(0, 4)];
+                    }
+                    return [newBid, ...prevBidHistory];
+                });
+            } catch (error) {
+                console.error("Failed to fetch updated data:", error);
+            }
+        };
+
+        fetchUpdatedData();
+
+        // Show notification based on message type
+        let message = "";
+        let type = "info";
+
+        switch (bidUpdate.messageType) {
+            case "NEWBID":
+                message = "Có lượt đấu giá mới!";
+                type = "info";
+                break;
+            case "OUTBID":
+                message = "Bạn đã bị vượt giá!";
+                type = "warning";
+                break;
+            case "LEADING":
+                message = "Bạn đang dẫn đầu!";
+                type = "success";
+                break;
+            default:
+                message = "Cập nhật đấu giá";
+        }
+
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 5000);
+    }, []);
+
+    // Handle auction extension
+    const handleAuctionExtended = useCallback((data) => {
+        console.log("Auction extended:", data);
+
+        // Update product endTime
+        setProduct((prev) => ({
+            ...prev,
+            endTime: data.newEndTime,
+        }));
+
+        // Show notification
+        setNotification({
+            message: `Phiên đấu giá đã được gia hạn! ${data.reason || ""}`,
+            type: "info",
+        });
+        setTimeout(() => setNotification(null), 5000);
+    }, []);
+
+    // WebSocket integration
+    const {
+        connected,
+        error: wsError,
+        placeBid: wsSendBid,
+    } = useWebSocket(productId, handleBidUpdate, handleAuctionExtended);
 
     // Fetch product details
     useEffect(() => {
@@ -95,6 +178,48 @@ const ProductDetail = () => {
                     <span className="text-gray-300">{product.productName}</span>
                 </div>
 
+                {/* WebSocket Status & Notification */}
+                <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div
+                            className={`w-2 h-2 rounded-full ${
+                                connected ? "bg-green-500" : "bg-red-500"
+                            } animate-pulse`}
+                        ></div>
+                        <span className="text-sm text-gray-400">
+                            {connected
+                                ? "Kết nối trực tiếp"
+                                : "Đang kết nối lại..."}
+                        </span>
+                    </div>
+
+                    {wsError && (
+                        <div className="text-sm text-red-400">{wsError}</div>
+                    )}
+                </div>
+
+                {/* Notification Toast */}
+                {notification && (
+                    <div
+                        className={`mb-4 p-4 rounded-lg border animate-slide-down ${
+                            notification.type === "success"
+                                ? "bg-green-900/20 border-green-700 text-green-300"
+                                : notification.type === "warning"
+                                ? "bg-yellow-900/20 border-yellow-700 text-yellow-300"
+                                : "bg-blue-900/20 border-blue-700 text-blue-300"
+                        }`}
+                    >
+                        <p className="flex items-center gap-2">
+                            {notification.type === "success" && "✅"}
+                            {notification.type === "warning" && "⚠️"}
+                            {notification.type === "info" && "ℹ️"}
+                            <span className="font-semibold">
+                                {notification.message}
+                            </span>
+                        </p>
+                    </div>
+                )}
+
                 {/* Top Section: 3 Columns Layout */}
                 <div className="grid grid-cols-3 gap-8 mb-12">
                     {/* Column 1: Images */}
@@ -136,45 +261,87 @@ const ProductDetail = () => {
                     </div>
 
                     {/* Column 2: Main Information */}
-                    <div className="col-span-1 px-6 py-8 border border-gray-700 rounded-lg h-96 bg-gray-800">
-                        <div className="mb-8">
-                            <h1 className="text-3xl font-bold text-white mb-2">
-                                {product.productName}
-                            </h1>
-                            <span className="bg-orange-900/30 text-orange-300 px-3 py-1 rounded-full text-sm">
-                                {product.category.categoryName}
-                            </span>
-                        </div>
-                        <div className="mb-4">
-                            <p className="text-sm text-gray-400 mb-2">
-                                Giá hiện tại
-                            </p>
-                            <p className="text-4xl font-bold text-orange-500">
-                                {formatters.formatCurrency(
-                                    product.currentPrice,
-                                )}
-                            </p>
-                        </div>
-                        <div className="mb-8">
-                            <p className=" text-gray-400 mb-1">
-                                Giá mua ngay:{" "}
-                                <span className="font-bold text-red-400">
-                                    {product.buyNowPrice ? (
-                                        formatters.formatCurrency(
-                                            product.buyNowPrice,
-                                        )
-                                    ) : (
-                                        <span className="text-red-400/80 font-semibold">
-                                            Không có
-                                        </span>
-                                    )}
+                    <div className="relative col-span-1  flex flex-col">
+                        <div className="h-96 bg-gray-800 px-6 py-8 border border-gray-700 rounded-lg flex flex-col">
+                            <button
+                                onClick={() => setIsFavorited(!isFavorited)}
+                                className="absolute top-9 right-10 text-2xl transition-transform hover:scale-125 duration-500"
+                            >
+                                <i
+                                    className={
+                                        isFavorited
+                                            ? "fa-solid fa-heart"
+                                            : "fa-regular fa-heart"
+                                    }
+                                    style={{ color: "#fdba74" }}
+                                ></i>
+                            </button>
+                            <div className="mb-8">
+                                <h1 className="text-3xl font-bold text-white mb-2">
+                                    {product.productName}
+                                </h1>
+                                <span className="bg-orange-900/30 text-orange-300 px-3 py-1 rounded-full text-sm">
+                                    {product.category.categoryName}
                                 </span>
-                            </p>
+                            </div>
+                            <div className="mb-4">
+                                <p className="text-sm text-gray-400 mb-2">
+                                    Giá hiện tại
+                                </p>
+                                <p className="text-4xl font-bold text-orange-500">
+                                    {formatters.formatCurrency(
+                                        product.currentPrice,
+                                    )}
+                                </p>
+                            </div>
+                            <div className="mb-8">
+                                <p className=" text-gray-400 mb-1">
+                                    Giá mua ngay:{" "}
+                                    <span className="font-bold text-red-400">
+                                        {product.buyNowPrice ? (
+                                            formatters.formatCurrency(
+                                                product.buyNowPrice,
+                                            )
+                                        ) : (
+                                            <span className="text-red-400/80 font-semibold">
+                                                Không có
+                                            </span>
+                                        )}
+                                    </span>
+                                </p>
+                            </div>
+                            {/* Action Buttons */}
+                            <div className="flex gap-6 px-8 flex-grow items-center">
+                                <button
+                                    className={`flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 ${
+                                        product.buyNowPrice
+                                            ? ""
+                                            : "opacity-40 cursor-not-allowed grayscale"
+                                    }`}
+                                    disabled={!product.buyNowPrice}
+                                >
+                                    <span className="flex items-center justify-center gap-2">
+                                        Mua ngay
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => setShowBidModal(true)}
+                                    disabled={!connected}
+                                    className={`flex-1 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-orange-500/50 transition-all duration-300 hover:scale-105 ${
+                                        !connected
+                                            ? "opacity-40 cursor-not-allowed grayscale"
+                                            : ""
+                                    }`}
+                                >
+                                    <span className="flex items-center justify-center gap-2">
+                                        Đặt giá tối đa
+                                    </span>
+                                </button>
+                            </div>
                         </div>
-
                         {/* Dates Info */}
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="text-center p-4 bg-gray-900/50 rounded-lg">
+                        <div className="grid grid-cols-2 gap-6 flex-grow items-center">
+                            <div className="text-center p-4 bg-gray-800 rounded-lg">
                                 <p className="text-sm text-gray-400 mb-2">
                                     Thời điểm đăng
                                 </p>
@@ -182,7 +349,7 @@ const ProductDetail = () => {
                                     {formatters.formatDate(product.createdAt)}
                                 </p>
                             </div>
-                            <div className="text-center p-4 bg-gray-900/50 rounded-lg">
+                            <div className="text-center p-4 bg-gray-800 rounded-lg">
                                 <p className="text-sm text-gray-400 mb-2">
                                     Thời điểm kết thúc
                                 </p>
@@ -268,10 +435,14 @@ const ProductDetail = () => {
                                     </thead>
                                     <tbody>
                                         {bidHistory.length > 0 ? (
-                                            bidHistory.map((bid) => (
+                                            bidHistory.map((bid, index) => (
                                                 <tr
-                                                    key={bid.bidId}
-                                                    className="border-b border-gray-700 hover:bg-gray-700/30"
+                                                    key={index}
+                                                    className={`border-b border-gray-700 hover:bg-gray-700/30 ${
+                                                        index === 0
+                                                            ? "animate-fade-in bg-orange-900/10"
+                                                            : ""
+                                                    }`}
                                                 >
                                                     <td className="px-4 py-5">
                                                         {new Date(
@@ -555,6 +726,156 @@ const ProductDetail = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Place Max Bid Modal */}
+            {showBidModal && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+                    <div className="bg-gray-800 rounded-lg border border-gray-700 p-8 w-96 shadow-2xl">
+                        <h2 className="text-2xl font-bold text-white mb-4">
+                            Đặt giá tối đa
+                        </h2>
+                        <div className="mb-6 p-4 bg-gray-700/50 rounded-lg">
+                            <p className="text-gray-400 text-sm mb-2">
+                                Sản phẩm
+                            </p>
+                            <p className="text-white font-semibold mb-4">
+                                {product.productName}
+                            </p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-gray-400 text-sm mb-1">
+                                        Giá hiện tại
+                                    </p>
+                                    <p className="text-orange-400 font-bold">
+                                        {formatters.formatCurrency(
+                                            product.currentPrice,
+                                        )}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-gray-400 text-sm mb-1">
+                                        Bước giá
+                                    </p>
+                                    <p className="text-orange-400 font-bold">
+                                        {formatters.formatCurrency(
+                                            product.priceStep,
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-gray-300 font-semibold mb-2">
+                                Giá tối đa của bạn
+                            </label>
+                            <div className="relative">
+                                <select
+                                    value={maxBidPrice}
+                                    onChange={(e) => {
+                                        setMaxBidPrice(e.target.value);
+                                        setBidError("");
+                                    }}
+                                    className="w-full px-4 py-3 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-orange-500 outline-none transition appearance-none"
+                                >
+                                    <option value="">-- Chọn giá --</option>
+                                    {Array.from({ length: 10 }, (_, i) => {
+                                        const price =
+                                            product.currentPrice +
+                                            (i + 1) * product.priceStep;
+                                        return (
+                                            <option key={i} value={price}>
+                                                {formatters.formatCurrency(
+                                                    price,
+                                                )}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                                <div className="pointer-events-none absolute right-2 top-1/2 transform -translate-y-1/2 px-2 text-white">
+                                    <svg
+                                        className="h-4 w-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                            {bidError && (
+                                <p className="text-red-400 text-sm mt-2">
+                                    {bidError}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="mb-6 p-4 bg-orange-900/20 border border-orange-700/50 rounded-lg">
+                            <p className="text-orange-300 text-sm">
+                                <span>
+                                    <i
+                                        className="fa-solid fa-lightbulb"
+                                        style={{ color: "#fdba74" }}
+                                    ></i>
+                                </span>{" "}
+                                Hệ thống sẽ tự động tăng giá theo các mức tăng
+                                để giúp bạn thắng đấu giá.
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowBidModal(false);
+                                    setMaxBidPrice("");
+                                    setBidError("");
+                                }}
+                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (!maxBidPrice) {
+                                        setBidError("Vui lòng chọn giá tối đa");
+                                        return;
+                                    }
+
+                                    const bidAmount = parseFloat(maxBidPrice);
+
+                                    try {
+                                        wsSendBid(bidAmount);
+                                        setShowBidModal(false);
+                                        setMaxBidPrice("");
+                                        setBidError("");
+                                        setNotification({
+                                            message: "Đã gửi yêu cầu đấu giá!",
+                                            type: "info",
+                                        });
+                                        setTimeout(
+                                            () => setNotification(null),
+                                            3000,
+                                        );
+                                    } catch (err) {
+                                        setBidError(
+                                            err.message ||
+                                                "Không thể gửi yêu cầu đấu giá",
+                                        );
+                                    }
+                                }}
+                                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                            >
+                                Đặt giá
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

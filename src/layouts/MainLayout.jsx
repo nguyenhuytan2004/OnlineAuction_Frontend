@@ -16,7 +16,7 @@ const MainLayout = ({ children }) => {
             {/* Header */}
             <header className="bg-gray-950/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
                 <nav className="max-w-7xl mx-auto px-8 h-20 flex items-center">
-                    <div className="flex flex-grow items-center justify-between w-full gap-6">
+                    <div className="flex flex-grow items-center justify-between w-full gap-16">
                         {/* Logo */}
                         <div className="flex-shrink-0">
                             <Link
@@ -26,7 +26,7 @@ const MainLayout = ({ children }) => {
                                 <img
                                     src="/assets/images/logo-transparent.png"
                                     alt="Logo Đấu Giá"
-                                    className="h-20 w-auto object-contain"
+                                    className="h-16 w-auto object-contain"
                                 />
                             </Link>
                         </div>
