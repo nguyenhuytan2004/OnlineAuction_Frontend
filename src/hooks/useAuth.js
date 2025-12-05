@@ -1,52 +1,44 @@
-import { useState } from "react";
-import { authService } from "../services/authService";
+import { useState, useEffect, useCallback } from "react";
+import { useTokenStatus } from "./useTokenStatus";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
 
+/**
+ * Custom hook để theo dõi user authentication status
+ * @returns {Object} - { isAuthenticated, user, tokenStatus, logout }
+ */
 export const useAuth = () => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [user, setUser] = useState(() => {
+        const userStr = localStorage.getItem("user");
+        return userStr ? JSON.parse(userStr) : null;
+    });
+    const navigate = useNavigate();
 
-    const login = async (email, password) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await authService.login(email, password);
-            return response;
-        } catch (err) {
-            setError(err.message);
-            throw err;
-        } finally {
-            setLoading(false);
+    const tokenStatus = useTokenStatus();
+
+    const logout = useCallback(() => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        setUser(null);
+        navigate(ROUTES.HOME);
+    }, [navigate]);
+
+    // Listen for token expiration
+    useEffect(() => {
+        if (tokenStatus.isExpired && user) {
+            // Use setTimeout để tránh update state trong lúc render
+            const timer = setTimeout(() => {
+                logout();
+            }, 0);
+            return () => clearTimeout(timer);
         }
-    };
-
-    const register = async (userData) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await authService.register(userData);
-            return response;
-        } catch (err) {
-            setError(err.message);
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const logout = () => {
-        authService.logout();
-    };
-
-    const currentUser = authService.getCurrentUser();
-    const isAuthenticated = authService.isAuthenticated();
+    }, [tokenStatus.isExpired, user, logout]);
 
     return {
-        login,
-        register,
+        isAuthenticated: !!user && !tokenStatus.isExpired,
+        user,
+        tokenStatus,
         logout,
-        currentUser,
-        isAuthenticated,
-        loading,
-        error,
     };
 };

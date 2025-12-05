@@ -24,29 +24,29 @@ class ApiClient {
             const response = await fetch(url, config);
 
             if (!response.ok) {
-                if (response.status === 401) {
+                if (
+                    response.status === 401 &&
+                    !endpoint.includes("/auth/login")
+                ) {
                     localStorage.removeItem("accessToken");
                     localStorage.removeItem("refreshToken");
                     localStorage.removeItem("user");
                     window.location.href = "/login";
                 }
 
-                let errorData = null;
+                let errorMessage = null;
                 try {
-                    errorData = await response.json();
-                    console.log("Error data:", errorData);
+                    errorMessage = await response.text();
+                    console.error("Error message:", errorMessage);
                 } catch {
                     // Ignore JSON parse errors
                 }
 
-                throw new Error(
-                    errorData?.message ||
-                        `HTTP ${response.status}: ${response.statusText}`,
-                );
+                throw errorMessage || `HTTP error! status: ${response.status}`;
             }
             return await response.json();
         } catch (error) {
-            console.error("API Error:", error);
+            console.error("Error occurred:", error);
             throw error;
         }
     }

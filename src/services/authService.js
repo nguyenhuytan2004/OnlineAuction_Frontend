@@ -2,7 +2,6 @@ import apiClient from "../utils/apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 export const authService = {
-    // Đăng ký tài khoản
     register: async (userData) => {
         try {
             const endpoint = `${API_ENDPOINTS.AUTH}/register`;
@@ -23,11 +22,11 @@ export const authService = {
 
             return response;
         } catch (error) {
-            throw new Error(error);
+            console.error("Registration error:", error);
+            throw error;
         }
     },
 
-    // Đăng nhập
     login: async (email, password) => {
         try {
             const endpoint = `${API_ENDPOINTS.AUTH}/login`;
@@ -47,29 +46,26 @@ export const authService = {
 
             return response;
         } catch (error) {
-            throw new Error(error);
+            console.error("Login error:", error);
+            throw error;
         }
     },
 
-    // Đăng xuất
     logout: () => {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
     },
 
-    // Lấy thông tin user hiện tại
     getCurrentUser: () => {
         const userStr = localStorage.getItem("user");
         return userStr ? JSON.parse(userStr) : null;
     },
 
-    // Kiểm tra xác thực
     isAuthenticated: () => {
         return !!localStorage.getItem("accessToken");
     },
 
-    // Refresh token
     refreshToken: async () => {
         const refreshToken = localStorage.getItem("refreshToken");
         if (!refreshToken) {

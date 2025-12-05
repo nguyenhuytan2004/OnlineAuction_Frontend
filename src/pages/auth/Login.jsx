@@ -59,7 +59,7 @@ const Login = () => {
             await authService.login(formData.email, formData.password);
             navigate(ROUTES.HOME);
         } catch (error) {
-            setErrors({ general: error.message || "Lỗi đăng nhập" });
+            setErrors({ general: error || "Lỗi đăng nhập" });
         } finally {
             setLoading(false);
         }
@@ -206,7 +206,7 @@ const Login = () => {
                         to={ROUTES.HOME}
                         className="text-gray-400 hover:text-gray-300 transition flex items-center justify-center gap-2"
                     >
-                        <i class="fa-solid fa-left-long"></i>
+                        <i className="fa-solid fa-left-long"></i>
                         <span className="text-sm pb-1">Quay về trang chủ</span>
                     </Link>
                 </div>
