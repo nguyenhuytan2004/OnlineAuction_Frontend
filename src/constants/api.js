@@ -3,6 +3,9 @@ export const API_BASE_URL =
 
 // API Endpoints
 export const API_ENDPOINTS = {
+    // Auth
+    AUTH: "/auth",
+
     // Categories
     CATEGORIES: "/categories",
 
@@ -13,6 +16,3 @@ export const API_ENDPOINTS = {
     // Bids
     BIDS: "/bids",
 };
-
-export const TOKEN_DEV =
-    "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX0JJRERFUiJdLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoiNyIsImlhdCI6MTc2NDg1MTgxNywiZXhwIjoxNzY1MjExODE3fQ.JZeoCL1q1efh4uma0roeYTF_ZFgkyO-Fmqet9KgzdLU";

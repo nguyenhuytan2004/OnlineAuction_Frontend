@@ -1,6 +1,5 @@
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
-import { TOKEN_DEV } from "../constants/api";
 
 class WebSocketService {
     constructor() {

@@ -1,15 +1,24 @@
-import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import SearchBar from "../components/inputs/SearchBar";
+import authService from "../services/authService";
 
 const MainLayout = ({ children }) => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
 
     // Scroll to top when route changes
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, [location.pathname]);
+
+    const handleLogout = () => {
+        authService.logout();
+        setUser(null);
+        navigate(ROUTES.HOME);
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 flex flex-col">
@@ -53,18 +62,34 @@ const MainLayout = ({ children }) => {
                                 </Link>
                             </div>
                             <div className="flex items-baseline space-x-4 ml-auto">
-                                <Link
-                                    to={ROUTES.LOGIN}
-                                    className="bg-white/10 text-gray-300 hover:bg-white/30 px-3 py-2 rounded-md text-sm font-medium transition"
-                                >
-                                    Đăng Nhập
-                                </Link>
-                                <Link
-                                    to={ROUTES.REGISTER}
-                                    className="bg-orange-500 text-white hover:bg-orange-600 px-3 py-2 rounded-md text-sm font-medium transition"
-                                >
-                                    Đăng Ký
-                                </Link>
+                                {user ? (
+                                    <>
+                                        <span className="text-gray-300 text-sm">
+                                            {user.fullName}
+                                        </span>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="bg-red-600 text-white hover:bg-red-700 px-3 py-2 rounded-md text-sm font-medium transition"
+                                        >
+                                            Đăng Xuất
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link
+                                            to={ROUTES.LOGIN}
+                                            className="bg-white/10 text-gray-300 hover:bg-white/30 px-3 py-2 rounded-md text-sm font-medium transition"
+                                        >
+                                            Đăng Nhập
+                                        </Link>
+                                        <Link
+                                            to={ROUTES.REGISTER}
+                                            className="bg-orange-500 text-white hover:bg-orange-600 px-3 py-2 rounded-md text-sm font-medium transition"
+                                        >
+                                            Đăng Ký
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

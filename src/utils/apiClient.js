@@ -1,4 +1,4 @@
-import { API_BASE_URL, TOKEN_DEV } from "../constants/api";
+import { API_BASE_URL } from "../constants/api";
 
 class ApiClient {
     constructor(baseURL = API_BASE_URL) {
@@ -6,8 +6,7 @@ class ApiClient {
     }
 
     getHeaders() {
-        // const token = localStorage.getItem("token");
-        const token = TOKEN_DEV;
+        const token = localStorage.getItem("accessToken");
         return {
             "Content-Type": "application/json",
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -26,13 +25,16 @@ class ApiClient {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    localStorage.removeItem("token");
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem("user");
                     window.location.href = "/login";
                 }
 
                 let errorData = null;
                 try {
                     errorData = await response.json();
+                    console.log("Error data:", errorData);
                 } catch {
                     // Ignore JSON parse errors
                 }

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
+import authService from "../../services/authService";
 
 const Register = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -68,10 +70,12 @@ const Register = () => {
 
         setLoading(true);
         try {
-            // TODO: Gọi API register
-            console.log("Register:", formData);
-            // Sau khi register thành công
-            // navigate(ROUTES.LOGIN);
+            await authService.register({
+                fullName: formData.fullName,
+                email: formData.email,
+                password: formData.password,
+            });
+            navigate(ROUTES.HOME);
         } catch (error) {
             setErrors({ general: error.message || "Lỗi đăng ký" });
         } finally {

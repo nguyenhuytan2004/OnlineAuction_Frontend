@@ -401,29 +401,29 @@ const ProductList = () => {
                 params.append("sort", currentSort);
 
                 let products;
-                const option = Object.fromEntries(params.entries());
+                const options = Object.fromEntries(params.entries());
                 if (currentKeyword) {
                     if (selectedCategory > 0) {
                         products =
                             await productService.searchProductsWithCategoryId(
                                 selectedCategory,
                                 currentKeyword,
-                                option,
+                                options,
                             );
                     } else {
                         products = await productService.searchProducts(
                             currentKeyword,
-                            option,
+                            options,
                         );
                     }
                 } else {
                     if (selectedCategory > 0) {
                         products = await productService.getProductsByCategoryId(
                             selectedCategory,
-                            option,
+                            options,
                         );
                     } else {
-                        products = await productService.getAllProducts(option);
+                        products = await productService.getAllProducts(options);
                     }
                 }
 

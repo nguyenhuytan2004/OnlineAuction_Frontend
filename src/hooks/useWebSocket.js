@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import websocketService from "../services/websocketService";
+import authService from "../services/authService";
 
 export const useWebSocket = (
     productId,
@@ -62,13 +63,14 @@ export const useWebSocket = (
     }, [productId, handleBidUpdate, handleAuctionExtended]);
 
     const placeBid = useCallback(
-        (maxAutoPrice, bidderId /* Just for testing*/) => {
+        (maxAutoPrice) => {
             if (!connected) {
                 throw new Error("WebSocket chưa kết nối");
             }
 
             console.log("Placing bid:", { productId, maxAutoPrice });
 
+            const bidderId = authService.getCurrentUser().userId;
             websocketService.placeBid(productId, {
                 productId,
                 bidderId,

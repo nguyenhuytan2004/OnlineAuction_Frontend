@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
+import authService from "../../services/authService";
 
 const Login = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -54,10 +56,8 @@ const Login = () => {
 
         setLoading(true);
         try {
-            // TODO: Gọi API login
-            console.log("Login:", formData);
-            // Sau khi login thành công
-            // navigate(ROUTES.HOME);
+            await authService.login(formData.email, formData.password);
+            navigate(ROUTES.HOME);
         } catch (error) {
             setErrors({ general: error.message || "Lỗi đăng nhập" });
         } finally {
