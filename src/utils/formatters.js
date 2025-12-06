@@ -80,7 +80,10 @@ const formatters = {
                 endTimeFormatted = `${days} ngày`;
             } else if (hours > 0) {
                 endTimeFormatted = `${hours} giờ`;
-            } else if (minutes > 0) {
+            } else if (minutes >= 0) {
+                if (minutes === 0) {
+                    return "Dưới 1 phút nữa";
+                }
                 endTimeFormatted = `${minutes} phút`;
             }
             endTimeFormatted += " nữa";

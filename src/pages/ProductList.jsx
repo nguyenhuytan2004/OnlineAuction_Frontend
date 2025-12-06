@@ -338,11 +338,11 @@ const CategoryItem = ({
 
 // --- MAIN COMPONENT ---
 const ProductList = () => {
-    const [queryParams, setSearchParams] = useSearchParams();
-    const currentPageParam = parseInt(queryParams.get("page") || "1");
-    const currentSortParam = queryParams.get("sort") || "";
-    const currentCategoryParam = parseInt(queryParams.get("category") || "0");
-    const searchQueryParam = queryParams.get("keyword") || "";
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPageParam = parseInt(searchParams.get("page") || "1");
+    const currentSortParam = searchParams.get("sort") || "";
+    const currentCategoryParam = parseInt(searchParams.get("category") || "0");
+    const searchQueryParam = searchParams.get("keyword") || "";
 
     const [currentPage, setCurrentPage] = useState(currentPageParam);
     const [currentSort, setCurrentSort] = useState(currentSortParam);
@@ -358,16 +358,16 @@ const ProductList = () => {
 
     // Sync state with URL parameters whenever URL changes
     useEffect(() => {
-        const newCategory = parseInt(queryParams.get("category") || "0");
-        const newKeyword = queryParams.get("keyword") || "";
-        const newPage = parseInt(queryParams.get("page") || "1");
-        const newSort = queryParams.get("sort") || "";
+        const newCategory = parseInt(searchParams.get("category") || "0");
+        const newKeyword = searchParams.get("keyword") || "";
+        const newPage = parseInt(searchParams.get("page") || "1");
+        const newSort = searchParams.get("sort") || "";
 
         setSelectedCategory(newCategory);
         setCurrentKeyword(newKeyword);
         setCurrentPage(newPage);
         setCurrentSort(newSort);
-    }, [queryParams]);
+    }, [searchParams]);
 
     // Fetch categories
     useEffect(() => {
@@ -448,7 +448,6 @@ const ProductList = () => {
             setCurrentPage(page);
             setSearchParams({
                 category: selectedCategory,
-                keyword: currentKeyword,
                 page,
                 size: ITEMS_PER_PAGE,
                 sort: currentSort,
@@ -463,7 +462,6 @@ const ProductList = () => {
         setCurrentPage(1);
         setSearchParams({
             category: selectedCategory,
-            keyword: currentKeyword,
             page: 1,
             size: ITEMS_PER_PAGE,
             sort,
@@ -474,12 +472,13 @@ const ProductList = () => {
     const handleCategoryChange = (categoryId) => {
         setSelectedCategory(categoryId);
         setCurrentPage(1);
+        setCurrentSort("");
         setSearchParams({
             category: categoryId,
             keyword: currentKeyword,
             page: 1,
             size: ITEMS_PER_PAGE,
-            sort: currentSort,
+            sort: "",
         });
     };
 

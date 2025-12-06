@@ -63,7 +63,7 @@ class WebSocketService {
     }
 
     // Subscribe to bid updates for a specific product
-    subscribeToBids(productId, handleBidUpdate) {
+    subscribeToBids(productId, handleAuctionUpdate) {
         if (!this.connected || !this.client) {
             console.error("WebSocket not connected");
             return null;
@@ -75,7 +75,7 @@ class WebSocketService {
             try {
                 const data = JSON.parse(message.body);
                 console.log("Received bid message:", data);
-                handleBidUpdate(data);
+                handleAuctionUpdate(data);
             } catch (error) {
                 console.error("Error parsing bid message:", error);
             }
@@ -106,6 +106,27 @@ class WebSocketService {
         return subscription;
     }
 
+    // Subscribe to auction end notifications
+    subscribeToAuctionEnd(productId, handleAuctionEnd) {
+        if (!this.connected || !this.client) {
+            console.error("WebSocket not connected");
+            return null;
+        }
+
+        const destination = `/topic/product/${productId}/auction-end`;
+        const subscription = this.client.subscribe(destination, (message) => {
+            try {
+                const data = message.body;
+                handleAuctionEnd(data);
+            } catch (error) {
+                console.error("Error parsing auction end message:", error);
+            }
+        });
+
+        this.subscriptions.set(`auctionEnd-${productId}`, subscription);
+        return subscription;
+    }
+
     // Place a bid
     placeBid(productId, bidData) {
         if (!this.connected || !this.client) {
@@ -123,6 +144,7 @@ class WebSocketService {
     unsubscribeFromProduct(productId) {
         const bidsSub = this.subscriptions.get(`bids-${productId}`);
         const extensionSub = this.subscriptions.get(`extension-${productId}`);
+        const auctionEndSub = this.subscriptions.get(`auctionEnd-${productId}`);
 
         if (bidsSub) {
             bidsSub.unsubscribe();
@@ -132,6 +154,11 @@ class WebSocketService {
         if (extensionSub) {
             extensionSub.unsubscribe();
             this.subscriptions.delete(`extension-${productId}`);
+        }
+
+        if (auctionEndSub) {
+            auctionEndSub.unsubscribe();
+            this.subscriptions.delete(`auctionEnd-${productId}`);
         }
     }
 

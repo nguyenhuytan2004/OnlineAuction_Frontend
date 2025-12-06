@@ -19,15 +19,17 @@ const ProductDetail = () => {
     const [error, setError] = useState(null);
     const [isFavorited, setIsFavorited] = useState(false);
     const [showBidModal, setShowBidModal] = useState(false);
+    const [showBuyNowModal, setShowBuyNowModal] = useState(false);
     const [maxBidPrice, setMaxBidPrice] = useState("");
     const [bidError, setBidError] = useState("");
+    const [buyNowLoading, setBuyNowLoading] = useState(false);
+    const [buyNowError, setBuyNowError] = useState("");
     const [notification, setNotification] = useState(null);
+    const [isEligible, setIsEligible] = useState(false);
+    const [isAuctionEnded, setIsAuctionEnded] = useState(false);
 
-    const [testBidderId, setTestBidderId] = useState(null); // For testing purposes
-
-    // Handle bid updates from WebSocket
-    const handleBidUpdate = useCallback((bidUpdate) => {
-        console.log("Bid update received:", bidUpdate);
+    const handleAuctionUpdate = useCallback((bidUpdate) => {
+        console.log("Handling bid update:", bidUpdate);
 
         const fetchUpdatedData = async () => {
             try {
@@ -52,33 +54,15 @@ const ProductDetail = () => {
         fetchUpdatedData();
 
         // Show notification based on message type
-        let message = "";
-        let type = "info";
-
-        switch (bidUpdate.messageType) {
-            case "NEWBID":
-                message = "Có lượt đấu giá mới!";
-                type = "info";
-                break;
-            case "OUTBID":
-                message = "Bạn đã bị vượt giá!";
-                type = "warning";
-                break;
-            case "LEADING":
-                message = "Bạn đang dẫn đầu!";
-                type = "success";
-                break;
-            default:
-                message = "Cập nhật đấu giá";
-        }
-
-        setNotification({ message, type });
+        setNotification({
+            message: "Có lượt đặt giá mới!",
+            type: "info",
+        });
         setTimeout(() => setNotification(null), 5000);
     }, []);
 
-    // Handle auction extension
     const handleAuctionExtended = useCallback((newEndTime) => {
-        console.log("Auction extended:", newEndTime);
+        console.log("Handling auction extension:", newEndTime);
 
         // Update product endTime
         setProduct((prev) => ({
@@ -94,12 +78,55 @@ const ProductDetail = () => {
         setTimeout(() => setNotification(null), 5000);
     }, []);
 
+    const handleAuctionEnd = useCallback((message) => {
+        console.log("Handling auction end:", message);
+
+        setIsAuctionEnded(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        // Show notification
+        setNotification({
+            message,
+            type: "info",
+        });
+        setTimeout(() => setNotification(null), 5000);
+    }, []);
+
+    const handleBuyNowAction = async () => {
+        // Simulate delay for better UX
+        setTimeout(async () => {
+            try {
+                await productService.buyNowProduct(productId);
+                setShowBuyNowModal(false);
+
+                // Reload product info
+                const updatedProduct = await productService.getProductById(
+                    productId,
+                );
+                setProduct(updatedProduct);
+                setIsAuctionEnded(true);
+            } catch (err) {
+                setBuyNowError(
+                    err.response?.data?.message ||
+                        err.message ||
+                        "Không thể hoàn tất mua ngay",
+                );
+            } finally {
+                setBuyNowLoading(false);
+            }
+        }, 2000);
+    };
+
     // WebSocket integration
     const {
         connected,
         error: wsError,
         placeBid: wsSendBid,
-    } = useWebSocket(productId, handleBidUpdate, handleAuctionExtended);
+    } = useWebSocket(
+        productId,
+        handleAuctionUpdate,
+        handleAuctionExtended,
+        handleAuctionEnd,
+    );
 
     // Fetch product details
     useEffect(() => {
@@ -115,6 +142,7 @@ const ProductDetail = () => {
                         productService.getRelatedProducts(productId),
                     ]);
                 setProduct(productData);
+                setIsAuctionEnded(!productData.isActive);
                 setBidHistory(Array.isArray(bidsData) ? bidsData : []);
                 setQnaData(Array.isArray(qnaData) ? qnaData : []);
                 setRelatedProducts(
@@ -132,6 +160,22 @@ const ProductDetail = () => {
 
         fetchProduct();
     }, [productId]);
+
+    // Check eligibility to place bid
+    useEffect(() => {
+        const fetchEligibility = async () => {
+            try {
+                const isEligible = await productService.checkBiddingEligibility(
+                    product.productId,
+                );
+                setIsEligible(isEligible);
+            } catch (error) {
+                console.error("Failed to check bidding eligibility:", error);
+            }
+        };
+
+        if (product && !product.allowUnderratedBidder) fetchEligibility();
+    }, [product]);
 
     if (loading) {
         return (
@@ -315,22 +359,51 @@ const ProductDetail = () => {
                             {/* Action Buttons */}
                             <div className="flex gap-6 px-8 flex-grow items-center">
                                 <button
+                                    onClick={() => {
+                                        if (
+                                            product.buyNowPrice &&
+                                            isEligible &&
+                                            !isAuctionEnded
+                                        ) {
+                                            setShowBuyNowModal(true);
+                                        }
+                                    }}
+                                    disabled={
+                                        !product.buyNowPrice ||
+                                        !isEligible ||
+                                        isAuctionEnded
+                                    }
                                     className={`flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 ${
-                                        product.buyNowPrice
-                                            ? ""
-                                            : "opacity-40 cursor-not-allowed grayscale"
+                                        !product.buyNowPrice ||
+                                        !isEligible ||
+                                        isAuctionEnded
+                                            ? "opacity-40 cursor-not-allowed grayscale"
+                                            : ""
                                     }`}
-                                    disabled={!product.buyNowPrice}
                                 >
                                     <span className="flex items-center justify-center gap-2">
                                         Mua ngay
                                     </span>
                                 </button>
                                 <button
-                                    onClick={() => setShowBidModal(true)}
-                                    disabled={!connected}
+                                    onClick={() => {
+                                        if (
+                                            connected &&
+                                            isEligible &&
+                                            !isAuctionEnded
+                                        ) {
+                                            setShowBidModal(true);
+                                        }
+                                    }}
+                                    disabled={
+                                        !connected ||
+                                        !isEligible ||
+                                        isAuctionEnded
+                                    }
                                     className={`flex-1 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-orange-500/50 transition-all duration-300 hover:scale-105 ${
-                                        !connected
+                                        !connected ||
+                                        !isEligible ||
+                                        isAuctionEnded
                                             ? "opacity-40 cursor-not-allowed grayscale"
                                             : ""
                                     }`}
@@ -817,20 +890,6 @@ const ProductDetail = () => {
                             )}
                         </div>
 
-                        <div className="mb-6">
-                            <label className="block text-gray-300 font-semibold mb-2">
-                                Nhập ID người đặt giá (chỉ để thử nghiệm)
-                            </label>
-                            <input
-                                value={testBidderId || ""}
-                                onChange={(e) =>
-                                    setTestBidderId(e.target.value)
-                                }
-                                placeholder="Nhập ID người đặt giá"
-                                className="w-full px-4 py-3 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-orange-500 outline-none transition"
-                            />
-                        </div>
-
                         <div className="mb-6 p-4 bg-orange-900/20 border border-orange-700/50 rounded-lg">
                             <p className="text-orange-300 text-sm">
                                 <span>
@@ -865,7 +924,7 @@ const ProductDetail = () => {
                                     const bidAmount = parseFloat(maxBidPrice);
 
                                     try {
-                                        wsSendBid(bidAmount, testBidderId);
+                                        wsSendBid(bidAmount);
                                         setShowBidModal(false);
                                         setMaxBidPrice("");
                                         setBidError("");
@@ -887,6 +946,92 @@ const ProductDetail = () => {
                                 className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition"
                             >
                                 Đặt giá
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Buy Now Confirmation Modal */}
+            {showBuyNowModal && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+                    <div className="bg-gray-800 rounded-lg border border-gray-700 p-8 w-96 shadow-2xl">
+                        <h2 className="text-2xl font-bold text-white mb-4">
+                            Xác nhận mua ngay
+                        </h2>
+                        <div className="mb-6 p-4 bg-gray-700/50 rounded-lg">
+                            <p className="text-gray-400 text-sm mb-2">
+                                Sản phẩm
+                            </p>
+                            <p className="text-white font-semibold mb-4">
+                                {product.productName}
+                            </p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-gray-400 text-sm mb-1">
+                                        Giá mua ngay
+                                    </p>
+                                    <p className="text-red-400 font-bold">
+                                        {formatters.formatCurrency(
+                                            product.buyNowPrice,
+                                        )}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-gray-400 text-sm mb-1">
+                                        Giá hiện tại
+                                    </p>
+                                    <p className="text-orange-400 font-bold">
+                                        {formatters.formatCurrency(
+                                            product.currentPrice,
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mb-6 p-4 bg-orange-900/20 border border-orange-700/50 rounded-lg">
+                            <p className="text-orange-300 text-sm">
+                                <span>
+                                    <i
+                                        className="fa-solid fa-lightbulb"
+                                        style={{ color: "#fdba74" }}
+                                    ></i>
+                                </span>{" "}
+                                Phiên đấu giá sẽ kết thúc ngay lập tức và bạn sẽ
+                                trở thành người chiến thắng.
+                            </p>
+                        </div>
+
+                        {buyNowError && (
+                            <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
+                                <p className="text-red-400 text-sm">
+                                    {buyNowError}
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowBuyNowModal(false);
+                                    setBuyNowError("");
+                                }}
+                                disabled={buyNowLoading}
+                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition disabled:opacity-50"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    handleBuyNowAction();
+                                    setBuyNowLoading(true);
+                                    setBuyNowError("");
+                                }}
+                                disabled={buyNowLoading}
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:opacity-50"
+                            >
+                                {buyNowLoading ? "Đang xử lý..." : "Mua ngay"}
                             </button>
                         </div>
                     </div>

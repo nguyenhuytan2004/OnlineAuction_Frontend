@@ -4,8 +4,9 @@ import authService from "../services/authService";
 
 export const useWebSocket = (
     productId,
-    handleBidUpdate,
+    handleAuctionUpdate,
     handleAuctionExtended,
+    handleAuctionEnd,
 ) => {
     const [connected, setConnected] = useState(false);
     const [error, setError] = useState(null);
@@ -21,7 +22,7 @@ export const useWebSocket = (
             if (productId) {
                 // Subscribe to bid updates
                 websocketService.subscribeToBids(productId, (data) => {
-                    handleBidUpdate?.(data);
+                    handleAuctionUpdate?.(data);
                 });
 
                 // Subscribe to auction extensions
@@ -31,6 +32,11 @@ export const useWebSocket = (
                         handleAuctionExtended?.(data);
                     },
                 );
+
+                // Subscribe to auction end
+                websocketService.subscribeToAuctionEnd(productId, (data) => {
+                    handleAuctionEnd?.(data);
+                });
             }
         };
 
@@ -60,7 +66,12 @@ export const useWebSocket = (
                 websocketService.unsubscribeFromProduct(productId);
             }
         };
-    }, [productId, handleBidUpdate, handleAuctionExtended]);
+    }, [
+        productId,
+        handleAuctionUpdate,
+        handleAuctionExtended,
+        handleAuctionEnd,
+    ]);
 
     const placeBid = useCallback(
         (maxAutoPrice) => {

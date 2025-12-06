@@ -94,6 +94,20 @@ const productService = {
 
         return products;
     },
+
+    checkBiddingEligibility: async (productId) => {
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}/${productId}/bidding-eligibility`;
+        const isEligible = await apiClient.get(endpoint);
+
+        return isEligible;
+    },
+
+    buyNowProduct: async (productId) => {
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}/${productId}/buy-now`;
+        const result = await apiClient.patch(endpoint);
+
+        return result;
+    },
 };
 
 export default productService;
