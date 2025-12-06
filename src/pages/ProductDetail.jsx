@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import helpers from "../utils/helpers";
 import formatters from "../utils/formatters";
@@ -7,6 +8,11 @@ import formatters from "../utils/formatters";
 import productService from "../services/productService";
 import bidService from "../services/bidService";
 import { useWebSocket } from "../hooks/useWebSocket";
+import { useAuction } from "../hooks/useAuction";
+import { useBid } from "../hooks/useBid";
+import { useQnA } from "../hooks/useQnA";
+import websocketService from "../services/websocketService";
+import { useAuth } from "../hooks/useAuth";
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -27,6 +33,13 @@ const ProductDetail = () => {
     const [notification, setNotification] = useState(null);
     const [isEligible, setIsEligible] = useState(false);
     const [isAuctionEnded, setIsAuctionEnded] = useState(false);
+    const [questionText, setQuestionText] = useState("");
+    const [answerTexts, setAnswerTexts] = useState({});
+    const navigate = useNavigate();
+
+    const { isAuthenticated, user } = useAuth();
+    const isCurrentUserSeller =
+        isAuthenticated && user.userId === product?.seller?.userId;
 
     const handleAuctionUpdate = useCallback((bidUpdate) => {
         console.log("Handling bid update:", bidUpdate);
@@ -92,7 +105,6 @@ const ProductDetail = () => {
     }, []);
 
     const handleBuyNowAction = async () => {
-        // Simulate delay for better UX
         setTimeout(async () => {
             try {
                 await productService.buyNowProduct(productId);
@@ -116,17 +128,67 @@ const ProductDetail = () => {
         }, 2000);
     };
 
-    // WebSocket integration
-    const {
-        connected,
-        error: wsError,
-        placeBid: wsSendBid,
-    } = useWebSocket(
+    const handleNewQuestion = useCallback((newQuestion) => {
+        console.log("New question received:", newQuestion);
+        setQnaData((prev) => [newQuestion, ...prev]);
+        setNotification({
+            message: "Có câu hỏi mới!",
+            type: "info",
+        });
+        setTimeout(() => setNotification(null), 3000);
+    }, []);
+
+    const handleNewAnswer = useCallback((newAnswer, questionId) => {
+        console.log("New answer received:", newAnswer);
+
+        setQnaData((prev) =>
+            prev.map((qa) => {
+                if (qa.questionId === questionId) {
+                    return {
+                        ...qa,
+                        answers: [...(qa.answers || []), newAnswer],
+                    };
+                }
+                return qa;
+            }),
+        );
+        setNotification({
+            message: "Có câu trả lời mới!",
+            type: "info",
+        });
+        setTimeout(() => setNotification(null), 3000);
+    }, []);
+
+    // WebSocket connection
+    const { connected, error: wsError } = useWebSocket();
+
+    // Q&A hook
+    const { askQuestion, answerQuestion, subscribeToAnswers } = useQnA(
+        productId,
+        product?.seller?.userId,
+        handleNewQuestion,
+        handleNewAnswer,
+    );
+
+    // Subscribe to answers for each question when Q&A data updates
+    useEffect(() => {
+        if (product && websocketService.isConnected()) {
+            qnaData.forEach((qa) => {
+                subscribeToAnswers(qa.questionId);
+            });
+        }
+    }, [qnaData, product, subscribeToAnswers]);
+
+    // Auction hook
+    useAuction(
         productId,
         handleAuctionUpdate,
         handleAuctionExtended,
         handleAuctionEnd,
     );
+
+    // Bid hook
+    const { placeBid: wsSendBid } = useBid(productId);
 
     // Fetch product details
     useEffect(() => {
@@ -174,8 +236,9 @@ const ProductDetail = () => {
             }
         };
 
-        if (product && !product.allowUnderratedBidder) fetchEligibility();
-    }, [product]);
+        if (isAuthenticated && product && !product.allowUnderratedBidder)
+            fetchEligibility();
+    }, [isAuthenticated, product]);
 
     if (loading) {
         return (
@@ -252,7 +315,7 @@ const ProductDetail = () => {
                                 ? "bg-green-900/20 border-green-700 text-green-300"
                                 : notification.type === "warning"
                                 ? "bg-yellow-900/20 border-yellow-700 text-yellow-300"
-                                : "bg-blue-900/20 border-blue-700 text-blue-300"
+                                : "bg-orange-900/20 border-orange-700 text-orange-300"
                         }`}
                     >
                         <p className="flex items-center gap-2">
@@ -360,6 +423,10 @@ const ProductDetail = () => {
                             <div className="flex gap-6 px-8 flex-grow items-center">
                                 <button
                                     onClick={() => {
+                                        if (!isAuthenticated) {
+                                            navigate(ROUTES.LOGIN);
+                                            return;
+                                        }
                                         if (
                                             product.buyNowPrice &&
                                             isEligible &&
@@ -369,14 +436,16 @@ const ProductDetail = () => {
                                         }
                                     }}
                                     disabled={
-                                        !product.buyNowPrice ||
-                                        !isEligible ||
-                                        isAuctionEnded
+                                        (!product.buyNowPrice ||
+                                            !isEligible ||
+                                            isAuctionEnded) &&
+                                        isAuthenticated
                                     }
                                     className={`flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 ${
-                                        !product.buyNowPrice ||
-                                        !isEligible ||
-                                        isAuctionEnded
+                                        (!product.buyNowPrice ||
+                                            !isEligible ||
+                                            isAuctionEnded) &&
+                                        isAuthenticated
                                             ? "opacity-40 cursor-not-allowed grayscale"
                                             : ""
                                     }`}
@@ -387,6 +456,10 @@ const ProductDetail = () => {
                                 </button>
                                 <button
                                     onClick={() => {
+                                        if (!isAuthenticated) {
+                                            navigate(ROUTES.LOGIN);
+                                            return;
+                                        }
                                         if (
                                             connected &&
                                             isEligible &&
@@ -396,14 +469,16 @@ const ProductDetail = () => {
                                         }
                                     }}
                                     disabled={
-                                        !connected ||
-                                        !isEligible ||
-                                        isAuctionEnded
+                                        (!connected ||
+                                            !isEligible ||
+                                            isAuctionEnded) &&
+                                        isAuthenticated
                                     }
                                     className={`flex-1 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-orange-500/50 transition-all duration-300 hover:scale-105 ${
-                                        !connected ||
-                                        !isEligible ||
-                                        isAuctionEnded
+                                        (!connected ||
+                                            !isEligible ||
+                                            isAuctionEnded) &&
+                                        isAuthenticated
                                             ? "opacity-40 cursor-not-allowed grayscale"
                                             : ""
                                     }`}
@@ -630,6 +705,101 @@ const ProductDetail = () => {
                         ></i>{" "}
                         Câu hỏi & Trả lời
                     </h2>
+
+                    {/* Ask Question Form - Only for authenticated users */}
+                    {isAuthenticated && !isCurrentUserSeller && (
+                        <div className="mb-8 p-4 border border-orange-700/50 rounded-lg">
+                            <label className="block text-orange-300 font-semibold mb-3">
+                                <i className="fa-solid fa-question-circle"></i>{" "}
+                                Đặt câu hỏi
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={questionText}
+                                    onChange={(e) =>
+                                        setQuestionText(e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !e.shiftKey) {
+                                            e.preventDefault();
+                                            if (!questionText.trim()) {
+                                                setNotification({
+                                                    message:
+                                                        "Vui lòng nhập câu hỏi",
+                                                    type: "warning",
+                                                });
+                                                return;
+                                            }
+                                            try {
+                                                askQuestion(
+                                                    user.userId,
+                                                    productId,
+                                                    questionText,
+                                                );
+                                                setQuestionText("");
+                                                setNotification({
+                                                    message:
+                                                        "Gửi câu hỏi thành công!",
+                                                    type: "success",
+                                                });
+                                            } catch (err) {
+                                                setNotification({
+                                                    message: err.message,
+                                                    type: "warning",
+                                                });
+                                            }
+                                            setTimeout(
+                                                () => setNotification(null),
+                                                3000,
+                                            );
+                                        }
+                                    }}
+                                    placeholder="Nhập câu hỏi của bạn..."
+                                    className="flex-1 px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-orange-500 outline-none"
+                                />
+                                <button
+                                    onClick={() => {
+                                        if (!questionText.trim()) {
+                                            setNotification({
+                                                message:
+                                                    "Vui lòng nhập câu hỏi",
+                                                type: "warning",
+                                            });
+                                            return;
+                                        }
+                                        try {
+                                            askQuestion(
+                                                user.userId,
+                                                productId,
+                                                questionText,
+                                            );
+                                            setQuestionText("");
+                                            setNotification({
+                                                message:
+                                                    "Gửi câu hỏi thành công!",
+                                                type: "success",
+                                            });
+                                        } catch (err) {
+                                            setNotification({
+                                                message: err.message,
+                                                type: "warning",
+                                            });
+                                        }
+                                        setTimeout(
+                                            () => setNotification(null),
+                                            3000,
+                                        );
+                                    }}
+                                    className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition"
+                                >
+                                    Gửi
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Q&A List */}
                     <div className="space-y-4">
                         {qnaData.length === 0 ? (
                             <p className="text-gray-400">
@@ -642,7 +812,7 @@ const ProductDetail = () => {
                                     className="p-6 bg-gray-700/50 rounded-lg border border-gray-700"
                                 >
                                     {/* Question */}
-                                    <div className="mb-3">
+                                    <div className="mb-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="text-sm text-orange-400 font-semibold">
                                                 {qa.questionUser.fullName}
@@ -658,30 +828,177 @@ const ProductDetail = () => {
                                         </p>
                                     </div>
 
-                                    {/* Answer */}
-                                    {qa.answers &&
-                                        qa.answers.map((answer) => (
-                                            <div
-                                                key={answer.answerId}
-                                                className="ml-4 pl-4 border-l-2 border-gray-700"
-                                            >
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-sm text-green-400 font-semibold">
-                                                        Trả lời
-                                                    </span>
-                                                    <span className="text-xs text-gray-500">
-                                                        {new Date(
-                                                            answer.answerAt,
-                                                        ).toLocaleDateString(
-                                                            "vi-VN",
-                                                        )}
-                                                    </span>
+                                    {/* Answers */}
+                                    {qa.answers && qa.answers.length > 0 && (
+                                        <div className="mb-4 pl-4 border-l-2 border-green-600 space-y-3">
+                                            {qa.answers.map((answer) => (
+                                                <div
+                                                    key={answer.answerId}
+                                                    className="bg-gray-800/50 p-3 rounded"
+                                                >
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="text-sm text-green-400 font-semibold">
+                                                            <i className="fa-solid fa-check-circle mr-1"></i>
+                                                            {
+                                                                answer
+                                                                    .answerUser
+                                                                    .fullName
+                                                            }
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">
+                                                            {new Date(
+                                                                answer.answerAt,
+                                                            ).toLocaleDateString(
+                                                                "vi-VN",
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-gray-300 text-sm">
+                                                        {answer.answerText}
+                                                    </p>
                                                 </div>
-                                                <p className="text-gray-300">
-                                                    {answer.answerText}
-                                                </p>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Answer Form - Only for seller */}
+                                    {isCurrentUserSeller && (
+                                        <div className="pt-4 border-t border-gray-600">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={
+                                                        answerTexts[
+                                                            qa.questionId
+                                                        ] || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setAnswerTexts({
+                                                            ...answerTexts,
+                                                            [qa.questionId]:
+                                                                e.target.value,
+                                                        })
+                                                    }
+                                                    onKeyDown={(e) => {
+                                                        if (
+                                                            e.key === "Enter" &&
+                                                            !e.shiftKey
+                                                        ) {
+                                                            e.preventDefault();
+                                                            const answerText =
+                                                                answerTexts[
+                                                                    qa
+                                                                        .questionId
+                                                                ];
+                                                            if (
+                                                                !answerText ||
+                                                                !answerText.trim()
+                                                            ) {
+                                                                setNotification(
+                                                                    {
+                                                                        message:
+                                                                            "Vui lòng nhập câu trả lời",
+                                                                        type: "warning",
+                                                                    },
+                                                                );
+                                                                return;
+                                                            }
+                                                            try {
+                                                                answerQuestion(
+                                                                    user.userId,
+                                                                    productId,
+                                                                    qa.questionId,
+                                                                    answerText,
+                                                                );
+                                                                setAnswerTexts({
+                                                                    ...answerTexts,
+                                                                    [qa.questionId]:
+                                                                        "",
+                                                                });
+                                                                setNotification(
+                                                                    {
+                                                                        message:
+                                                                            "Gửi câu trả lời thành công!",
+                                                                        type: "success",
+                                                                    },
+                                                                );
+                                                            } catch (err) {
+                                                                setNotification(
+                                                                    {
+                                                                        message:
+                                                                            err.message,
+                                                                        type: "warning",
+                                                                    },
+                                                                );
+                                                            }
+                                                            setTimeout(
+                                                                () =>
+                                                                    setNotification(
+                                                                        null,
+                                                                    ),
+                                                                3000,
+                                                            );
+                                                        }
+                                                    }}
+                                                    placeholder="Nhập câu trả lời..."
+                                                    className="flex-1 px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-green-500 outline-none text-sm"
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        const answerText =
+                                                            answerTexts[
+                                                                qa.questionId
+                                                            ];
+                                                        if (
+                                                            !answerText ||
+                                                            !answerText.trim()
+                                                        ) {
+                                                            setNotification({
+                                                                message:
+                                                                    "Vui lòng nhập câu trả lời",
+                                                                type: "warning",
+                                                            });
+                                                            return;
+                                                        }
+                                                        try {
+                                                            answerQuestion(
+                                                                user.userId,
+                                                                productId,
+                                                                qa.questionId,
+                                                                answerText,
+                                                            );
+                                                            setAnswerTexts({
+                                                                ...answerTexts,
+                                                                [qa.questionId]:
+                                                                    "",
+                                                            });
+                                                            setNotification({
+                                                                message:
+                                                                    "Gửi câu trả lời thành công!",
+                                                                type: "success",
+                                                            });
+                                                        } catch (err) {
+                                                            setNotification({
+                                                                message:
+                                                                    err.message,
+                                                                type: "warning",
+                                                            });
+                                                        }
+                                                        setTimeout(
+                                                            () =>
+                                                                setNotification(
+                                                                    null,
+                                                                ),
+                                                            3000,
+                                                        );
+                                                    }}
+                                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-lg transition"
+                                                >
+                                                    Trả lời
+                                                </button>
                                             </div>
-                                        ))}
+                                        </div>
+                                    )}
                                 </div>
                             ))
                         )}

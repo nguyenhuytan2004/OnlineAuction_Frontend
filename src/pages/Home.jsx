@@ -5,6 +5,7 @@ import formatters from "../utils/formatters";
 import helpers from "../utils/helpers";
 
 import productService from "../services/productService";
+import { useAuth } from "../hooks/useAuth";
 
 // Product Card Component
 const ProductCard = ({ product }) => {
@@ -102,21 +103,19 @@ const ProductCard = ({ product }) => {
 };
 
 // Section Component
-const ProductSection = ({
-    title,
-    icon,
-    products,
-    type,
-    bgColor = "bg-gray-850",
-}) => {
+const ProductSection = ({ title, icon, products, type }) => {
     return (
-        <section className={`py-10 ${bgColor}`}>
-            <div className="container mx-auto px-8">
+        <section className={"p-5"}>
+            <div
+                className={
+                    "px-16 py-12 rounded-3xl container mx-auto bg-gradient-to-b from-gray-800 to-gray-850"
+                }
+            >
                 {/* Section Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                         <span className="text-2xl">{icon}</span>
-                        <h2 className="text-2xl font-bold text-gray-100 uppercase tracking-wide border-l-4 border-orange-500 pl-3">
+                        <h2 className="text-2xl font-bold text-orange-400 uppercase tracking-wide border-l-4 border-orange-500 pl-3">
                             {title}
                         </h2>
                     </div>
@@ -200,25 +199,39 @@ const Home = () => {
         fetchProducts();
     }, []);
 
+    const { isAuthenticated } = useAuth();
+
     return (
-        <div className="min-h-screen bg-gray-800">
-            {/* Banner / Hero Section */}
+        <div className="min-h-screen bg-gray-900">
+            {/* Banner Section */}
             <div className="bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 text-white py-20">
                 <div className="container mx-auto px-8 text-center">
                     <h1 className="text-6xl font-bold mb-4">
                         Sàn Đấu Giá Trực Tuyến
                     </h1>
-                    <p className="text-orange-200 text-xl mb-8 max-w-2xl mx-auto">
+                    <p className="text-orange-200 text-xl max-w-2xl mx-auto">
                         Nơi bạn tìm thấy những món đồ độc đáo với giá tốt nhất.
-                        Tham gia đấu giá ngay hôm nay!
+                    </p>
+                    <p className="text-orange-200 text-xl mb-8 max-w-2xl mx-auto">
+                        {" "}
+                        Tham gia đấu giá ngay hôm nay!{" "}
                     </p>
                     <div className="flex justify-center gap-4">
-                        <Link
-                            to={ROUTES.REGISTER}
-                            className="bg-orange-500 text-white font-bold py-3 px-8 rounded-full hover:bg-orange-600 transition shadow-lg shadow-orange-500/50"
-                        >
-                            Đăng Ký Ngay
-                        </Link>
+                        {!isAuthenticated ? (
+                            <Link
+                                to={ROUTES.REGISTER}
+                                className="bg-orange-500 text-white font-bold py-3 px-8 rounded-full hover:bg-orange-600 transition shadow-lg shadow-orange-500/50"
+                            >
+                                Đăng Ký Ngay
+                            </Link>
+                        ) : (
+                            <Link
+                                to={ROUTES.SELLER_REGISTER}
+                                className="bg-orange-500 text-white font-bold py-3 px-8 rounded-full hover:bg-orange-600 transition shadow-lg shadow-orange-500/50"
+                            >
+                                Đăng Ký Bán Hàng
+                            </Link>
+                        )}
                         <Link
                             to={ROUTES.PRODUCT}
                             className="bg-white/10 backdrop-blur-sm border border-orange-400 text-white font-semibold py-3 px-8 rounded-full hover:bg-white/20 transition"
@@ -243,20 +256,16 @@ const Home = () => {
             )}
 
             {!loading && !error && (
-                <>
+                <div className="mt-10">
                     {/* Top 5 Sản phẩm gần kết thúc */}
                     {endingSoonProducts.length > 0 && (
                         <ProductSection
                             title="Sắp Kết Thúc"
-                            icon={
-                                <i
-                                    className="fa-solid fa-hourglass-half"
-                                    style={{ color: "#fb923c" }}
-                                ></i>
-                            }
+                            // icon={
+                            //     <i className="fa-solid fa-hourglass-half text-orange-400"></i>
+                            // }
                             products={endingSoonProducts}
                             type="nearEnd"
-                            bgColor="bg-gray-900"
                         />
                     )}
 
@@ -264,15 +273,11 @@ const Home = () => {
                     {mostAuctionedProducts.length > 0 && (
                         <ProductSection
                             title="Sôi Động Nhất"
-                            icon={
-                                <i
-                                    className="fa-solid fa-fire"
-                                    style={{ color: "#fb923c" }}
-                                ></i>
-                            }
+                            // icon={
+                            //     <i className="fa-solid fa-fire text-orange-400"></i>
+                            // }
                             products={mostAuctionedProducts}
                             type="mostBids"
-                            bgColor="bg-gray-900"
                         />
                     )}
 
@@ -280,38 +285,15 @@ const Home = () => {
                     {highestPriceProducts.length > 0 && (
                         <ProductSection
                             title="Giá Trị Cao"
-                            icon={
-                                <i
-                                    className="fa-solid fa-coins"
-                                    style={{ color: "#fb923c" }}
-                                ></i>
-                            }
+                            // icon={
+                            //     <i className="fa-solid fa-coins text-orange-400"></i>
+                            // }
                             products={highestPriceProducts}
                             type="highPrice"
-                            bgColor="bg-gray-900"
                         />
                     )}
-                </>
-            )}
-
-            {/* Call to Action Bottom */}
-            <div className="bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 py-16">
-                <div className="container mx-auto px-8 text-center">
-                    <h2 className="text-3xl font-bold text-white mb-2">
-                        Bạn có món đồ muốn bán?
-                    </h2>
-                    <p className="text-orange-100 mb-8 text-lg">
-                        Trở thành người bán ngay hôm nay để tiếp cận hàng ngàn
-                        người mua tiềm năng.
-                    </p>
-                    <Link
-                        to={ROUTES.SELLER_REGISTER}
-                        className="inline-block bg-white text-orange-600 font-bold py-3 px-8 rounded-lg hover:shadow-lg hover:shadow-orange-500/50 transition"
-                    >
-                        Đăng Ký Bán Hàng
-                    </Link>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

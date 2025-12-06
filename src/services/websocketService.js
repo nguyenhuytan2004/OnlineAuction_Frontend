@@ -62,6 +62,10 @@ class WebSocketService {
         }
     }
 
+    isConnected() {
+        return this.connected;
+    }
+
     // Subscribe to bid updates for a specific product
     subscribeToBids(productId, handleAuctionUpdate) {
         if (!this.connected || !this.client) {
@@ -83,6 +87,19 @@ class WebSocketService {
 
         this.subscriptions.set(`bids-${productId}`, subscription);
         return subscription;
+    }
+
+    // Place a bid
+    placeBid(productId, bidData) {
+        if (!this.connected || !this.client) {
+            throw new Error("WebSocket chưa kết nối");
+        }
+
+        console.log("Send bid data to server:", bidData);
+        this.client.publish({
+            destination: `/app/product/${productId}/place-bid`,
+            body: JSON.stringify(bidData),
+        });
     }
 
     // Subscribe to auction extension notifications
@@ -127,16 +144,78 @@ class WebSocketService {
         return subscription;
     }
 
-    // Place a bid
-    placeBid(productId, bidData) {
+    // Subscribe to questions for a specific product
+    subscribeToQuestions(productId, handleNewQuestion) {
+        if (!this.connected || !this.client) {
+            console.error("WebSocket not connected");
+            return null;
+        }
+
+        const destination = `/topic/products/${productId}/questions`;
+        const subscription = this.client.subscribe(destination, (message) => {
+            try {
+                const data = JSON.parse(message.body);
+                console.log("Received question:", data);
+                handleNewQuestion(data);
+            } catch (error) {
+                console.error("Error parsing question message:", error);
+            }
+        });
+
+        this.subscriptions.set(`questions-${productId}`, subscription);
+        return subscription;
+    }
+
+    // Ask a question
+    askQuestion(userId, productId, questionText) {
         if (!this.connected || !this.client) {
             throw new Error("WebSocket chưa kết nối");
         }
 
-        console.log("Send bid data to server:", bidData);
+        console.log("Sending question:", { userId, productId, questionText });
         this.client.publish({
-            destination: `/app/product/${productId}/place-bid`,
-            body: JSON.stringify(bidData),
+            destination: `/app/products/${productId}/questions`,
+            body: JSON.stringify({ userId, productId, questionText }),
+        });
+    }
+
+    // Subscribe to answers for a specific question
+    subscribeToAnswers(productId, questionId, handleNewAnswer) {
+        if (!this.connected || !this.client) {
+            console.error("WebSocket not connected");
+            return null;
+        }
+
+        const destination = `/topic/products/${productId}/questions/${questionId}/answers`;
+        const subscription = this.client.subscribe(destination, (message) => {
+            try {
+                const data = JSON.parse(message.body);
+                console.log("Received answer:", data);
+                handleNewAnswer(data, questionId);
+            } catch (error) {
+                console.error("Error parsing answer message:", error);
+            }
+        });
+
+        this.subscriptions.set(`answers-${questionId}`, subscription);
+        return subscription;
+    }
+
+    // Answer a question
+    answerQuestion(userId, productId, questionId, answerText) {
+        if (!this.connected || !this.client) {
+            throw new Error("WebSocket chưa kết nối");
+        }
+
+        console.log("Sending answer:", {
+            userId,
+            productId,
+            questionId,
+            answerText,
+        });
+        this.client.publish({
+            destination: `/app/products/${productId}/questions/${questionId}/answers`,
+            body: JSON.stringify({ userId, productId, questionId, answerText }),
         });
     }
 
@@ -145,6 +224,7 @@ class WebSocketService {
         const bidsSub = this.subscriptions.get(`bids-${productId}`);
         const extensionSub = this.subscriptions.get(`extension-${productId}`);
         const auctionEndSub = this.subscriptions.get(`auctionEnd-${productId}`);
+        const questionsSub = this.subscriptions.get(`questions-${productId}`);
 
         if (bidsSub) {
             bidsSub.unsubscribe();
@@ -160,10 +240,20 @@ class WebSocketService {
             auctionEndSub.unsubscribe();
             this.subscriptions.delete(`auctionEnd-${productId}`);
         }
-    }
 
-    isConnected() {
-        return this.connected;
+        if (questionsSub) {
+            questionsSub.unsubscribe();
+            this.subscriptions.delete(`questions-${productId}`);
+        }
+
+        // Unsubscribe from all answers for this product
+        for (const key of this.subscriptions.keys()) {
+            if (key.startsWith(`answers`)) {
+                const sub = this.subscriptions.get(key);
+                sub.unsubscribe();
+                this.subscriptions.delete(key);
+            }
+        }
     }
 }
 

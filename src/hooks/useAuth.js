@@ -21,7 +21,7 @@ export const useAuth = () => {
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
         setUser(null);
-        navigate(ROUTES.HOME);
+        navigate(ROUTES.LOGIN);
     }, [navigate]);
 
     // Listen for token expiration

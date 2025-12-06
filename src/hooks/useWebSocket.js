@@ -1,13 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import websocketService from "../services/websocketService";
-import authService from "../services/authService";
 
-export const useWebSocket = (
-    productId,
-    handleAuctionUpdate,
-    handleAuctionExtended,
-    handleAuctionEnd,
-) => {
+export const useWebSocket = () => {
     const [connected, setConnected] = useState(false);
     const [error, setError] = useState(null);
     const reconnectAttempts = useRef(0);
@@ -18,26 +12,6 @@ export const useWebSocket = (
             setConnected(true);
             setError(null);
             reconnectAttempts.current = 0;
-
-            if (productId) {
-                // Subscribe to bid updates
-                websocketService.subscribeToBids(productId, (data) => {
-                    handleAuctionUpdate?.(data);
-                });
-
-                // Subscribe to auction extensions
-                websocketService.subscribeToAuctionExtension(
-                    productId,
-                    (data) => {
-                        handleAuctionExtended?.(data);
-                    },
-                );
-
-                // Subscribe to auction end
-                websocketService.subscribeToAuctionEnd(productId, (data) => {
-                    handleAuctionEnd?.(data);
-                });
-            }
         };
 
         const handleError = () => {
@@ -62,34 +36,9 @@ export const useWebSocket = (
 
         // Cleanup
         return () => {
-            if (productId) {
-                websocketService.unsubscribeFromProduct(productId);
-            }
+            // WebSocket connection stays alive until app closes
         };
-    }, [
-        productId,
-        handleAuctionUpdate,
-        handleAuctionExtended,
-        handleAuctionEnd,
-    ]);
+    }, []);
 
-    const placeBid = useCallback(
-        (maxAutoPrice) => {
-            if (!connected) {
-                throw new Error("WebSocket chưa kết nối");
-            }
-
-            console.log("Placing bid:", { productId, maxAutoPrice });
-
-            const bidderId = authService.getCurrentUser().userId;
-            websocketService.placeBid(productId, {
-                productId,
-                bidderId,
-                maxAutoPrice,
-            });
-        },
-        [connected, productId],
-    );
-
-    return { connected, error, placeBid };
+    return { connected, error };
 };
