@@ -1,18 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@300;400;600;700;800;900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-    font-family: system-ui, Helvetica, Arial, sans-serif;
+    font-family: "Montserrat", system-ui, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
 
-    color-scheme: light dark;
+    color-scheme: dark;
     color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    background-color: #0f172a;
 }
 
-/* WebSocket Animations */
+/* Premium Animations */
 @keyframes fade-in {
     from {
         opacity: 0;
@@ -35,10 +37,106 @@
     }
 }
 
+@keyframes slide-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-20px) scale(1.05);
+    }
+}
+
+@keyframes float-delayed {
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(20px) scale(1.05);
+    }
+}
+
+@keyframes gradient {
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
 .animate-fade-in {
     animation: fade-in 1s ease-out;
 }
 
 .animate-slide-down {
     animation: slide-down 0.3s ease-out;
+}
+
+.animate-slide-in-up {
+    animation: slide-in-up 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: float-delayed 8s ease-in-out infinite;
+}
+
+.animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e293b;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f59e0b, #ea580c);
+    border-radius: 10px;
+    border: 2px solid #1e293b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #fbbf24, #df9920);
+    cursor: pointer;
+}
+
+/* Selection Styling */
+::selection {
+    background-color: rgba(251, 146, 60, 0.3);
+    color: #fbbf24;
 }

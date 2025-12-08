@@ -7,50 +7,61 @@ import helpers from "../utils/helpers";
 import productService from "../services/productService";
 import { useAuth } from "../hooks/useAuth";
 
-// Product Card Component
+// Product Card Component with Premium Dark Mode Design
 const ProductCard = ({ product }) => {
     return (
-        <div className="bg-gray-800 rounded-lg shadow-md hover:shadow-xl hover:shadow-orange-500/20 transition-all duration-300 overflow-hidden border border-gray-700 group">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-amber-500/30 transition-all duration-500 overflow-hidden border border-slate-700/50 group relative backdrop-blur-sm hover:-translate-y-2">
+            {/* Gradient Overlay Border Effect */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/0 via-orange-500/0 to-amber-500/0 group-hover:from-amber-500/20 group-hover:via-orange-500/10 group-hover:to-amber-500/20 transition-all duration-500 pointer-events-none"></div>
+
             <Link to={`${ROUTES.PRODUCT}/${product.productId}`}>
                 {/* Image Section */}
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden bg-slate-950">
+                    {/* Shimmer Effect Background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+
                     <img
                         src={product.mainImageUrl || null}
                         alt={product.productName || "Product Image"}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                     />
 
-                    {/* Overlay Button */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <button className="bg-orange-500 text-white font-semibold py-2 px-6 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-orange-600">
+                    {/* Premium Overlay with Blur */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-[2px]">
+                        <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3 px-8 rounded-full transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 hover:shadow-lg hover:shadow-amber-500/50 hover:scale-105 tracking-wide uppercase text-sm">
                             Xem Chi Tiết
                         </button>
                     </div>
+
+                    {/* Corner Accent */}
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-amber-500/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
             </Link>
 
             {/* Content Section */}
-            <div className="p-4">
+            <div className="p-5 relative z-10">
                 <h3
-                    className="font-semibold text-gray-100 text-base mb-1 line-clamp-2 min-h-[3rem]"
+                    className="font-bold text-slate-100 text-base mb-3 line-clamp-2 min-h-[3rem] tracking-wide leading-relaxed group-hover:text-amber-100 transition-colors duration-300"
                     title={product.productName}
                 >
                     {product.productName}
                 </h3>
 
-                <div className="flex items-end justify-between mb-3">
-                    <div>
-                        <p className="text-xs text-gray-400">Giá hiện tại</p>
-                        <p className="text-orange-500 font-bold text-lg">
+                <div className="flex items-end justify-between mb-4">
+                    <div className="space-y-1">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+                            Giá hiện tại
+                        </p>
+                        <p className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-black text-xl tracking-tight">
                             {formatters.formatCurrency(product.currentPrice)}
                         </p>
                     </div>
                 </div>
 
-                {/* Footer Info */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-700 text-sm">
+                {/* Footer Info with Enhanced Style */}
+                <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 text-sm">
                     <div
-                        className={`flex items-center gap-1 ${helpers.getTimeColorClass(
+                        className={`flex items-center gap-2 font-semibold ${helpers.getTimeColorClass(
                             product.endTime,
                         )}`}
                     >
@@ -60,41 +71,42 @@ const ProductCard = ({ product }) => {
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
+                            strokeWidth={2.5}
                         >
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        <span>
+                        <span className="tracking-wide">
                             {formatters.getRemainingTime(product.endTime)}
                         </span>
                     </div>
 
-                    <div className="flex items-center gap-1 text-gray-400 font-medium">
+                    <div className="flex items-center gap-2 text-slate-400 font-semibold bg-slate-800/50 px-3 py-1.5 rounded-full">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-4 w-4"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
+                            strokeWidth={2.5}
                         >
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                             />
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                             />
                         </svg>
-                        <span>{product.bidCount} lượt</span>
+                        <span className="tracking-wide">
+                            {product.bidCount} lượt
+                        </span>
                     </div>
                 </div>
             </div>
@@ -102,39 +114,47 @@ const ProductCard = ({ product }) => {
     );
 };
 
-// Section Component
+// Section Component with Premium Design
 const ProductSection = ({ title, icon, products, type }) => {
     return (
-        <section className={"p-5"}>
-            <div
-                className={
-                    "px-16 py-12 rounded-3xl container mx-auto bg-gradient-to-b from-gray-800 to-gray-850"
-                }
-            >
+        <section className="p-8 animate-fade-in">
+            <div className="px-16 py-14 rounded-[2rem] container mx-auto bg-gradient-to-br from-slate-900/80 via-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/30 shadow-2xl relative overflow-hidden">
+                {/* Animated Background Pattern */}
+                <div className="absolute inset-0 opacity-5">
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-transparent to-orange-500/20 animate-pulse"></div>
+                </div>
+
+                {/* Decorative Corner Elements */}
+                <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-amber-500/10 to-transparent rounded-br-full"></div>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-orange-500/10 to-transparent rounded-tl-full"></div>
+
                 {/* Section Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
-                        <span className="text-2xl">{icon}</span>
-                        <h2 className="text-2xl font-bold text-orange-400 uppercase tracking-wide border-l-4 border-orange-500 pl-3">
-                            {title}
-                        </h2>
+                <div className="flex items-center justify-between mb-10 relative z-10">
+                    <div className="flex items-center gap-4">
+                        <span className="text-3xl">{icon}</span>
+                        <div className="flex flex-col">
+                            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 uppercase tracking-wider">
+                                {title}
+                            </h2>
+                            <div className="h-1 w-24 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full mt-2"></div>
+                        </div>
                     </div>
                     <Link
                         to={ROUTES.PRODUCT}
-                        className="text-orange-400 hover:text-orange-300 font-medium text-sm flex items-center gap-1 hover:underline transition"
+                        className="group flex items-center gap-2 bg-gradient-to-r from-slate-800 to-slate-700 hover:from-amber-600 hover:to-orange-600 text-slate-200 hover:text-white font-bold text-sm px-6 py-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-amber-500/50 border border-slate-600 hover:border-amber-500"
                     >
-                        Xem tất cả
+                        <span className="tracking-wider">Xem tất cả</span>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
+                            className="h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
+                            strokeWidth={2.5}
                         >
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
                                 d="M9 5l7 7-7 7"
                             />
                         </svg>
@@ -142,13 +162,15 @@ const ProductSection = ({ title, icon, products, type }) => {
                 </div>
 
                 {/* Product Grid */}
-                <div className="grid grid-cols-5 gap-6">
-                    {products.map((product) => (
-                        <ProductCard
+                <div className="grid grid-cols-5 gap-7 relative z-10">
+                    {products.map((product, index) => (
+                        <div
                             key={product.productId}
-                            product={product}
-                            type={type}
-                        />
+                            className="animate-slide-in-up"
+                            style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                            <ProductCard product={product} type={type} />
+                        </div>
                     ))}
                 </div>
             </div>
@@ -202,43 +224,86 @@ const Home = () => {
     const { isAuthenticated } = useAuth();
 
     return (
-        <div className="min-h-screen bg-gray-900">
-            {/* Banner Section */}
-            <div className="bg-gradient-to-r from-gray-900 via-orange-900 to-gray-900 text-white py-20">
-                <div className="container mx-auto px-8 text-center">
-                    <h1 className="text-6xl font-bold mb-4">
-                        Sàn Đấu Giá Trực Tuyến
+        <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+            {/* Hero Banner Section with Premium Design */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white py-28 border-b border-slate-800/50">
+                {/* Animated Background Layers */}
+                <div className="absolute inset-0">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(251,146,60,0.1),transparent_50%)] animate-pulse"></div>
+                    <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-float"></div>
+                    <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-float-delayed"></div>
+                    {/* Grid Pattern Overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20"></div>
+                </div>
+
+                {/* Content */}
+                <div className="container mx-auto px-8 text-center relative z-10">
+                    {/* Main Heading with Gradient */}
+                    <h1 className="text-7xl font-black mb-6 tracking-tight">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 animate-gradient">
+                            Sàn Đấu Giá
+                        </span>
+                        <br />
+                        <span className="text-slate-100">Trực Tuyến</span>
                     </h1>
-                    <p className="text-orange-200 text-xl max-w-2xl mx-auto">
+
+                    {/* Decorative Line */}
+                    <div className="flex items-center justify-center gap-4 mb-6">
+                        <div className="h-px w-16 bg-gradient-to-r from-transparent to-amber-500"></div>
+                        <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                        <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-500"></div>
+                    </div>
+
+                    {/* Subtitle */}
+                    <p className="text-slate-300 text-xl max-w-2xl mx-auto mb-2 leading-relaxed font-light tracking-wide">
                         Nơi bạn tìm thấy những món đồ độc đáo với giá tốt nhất.
                     </p>
-                    <p className="text-orange-200 text-xl mb-8 max-w-2xl mx-auto">
-                        {" "}
-                        Tham gia đấu giá ngay hôm nay!{" "}
+                    <p className="text-amber-400 text-xl mb-10 max-w-2xl mx-auto font-semibold tracking-wide">
+                        Tham gia đấu giá ngay hôm nay!
                     </p>
-                    <div className="flex justify-center gap-4">
+
+                    {/* CTA Buttons */}
+                    <div className="flex justify-center gap-5">
                         {!isAuthenticated ? (
                             <Link
                                 to={ROUTES.REGISTER}
-                                className="bg-orange-500 text-white font-bold py-3 px-8 rounded-full hover:bg-orange-600 transition shadow-lg shadow-orange-500/50"
+                                className="group relative bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-10 rounded-full hover:shadow-2xl hover:shadow-amber-500/50 transition-all duration-300 transform hover:scale-105 uppercase tracking-wider text-sm overflow-hidden"
                             >
-                                Đăng Ký Ngay
+                                <span className="relative z-10">
+                                    Đăng Ký Ngay
+                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </Link>
                         ) : (
                             <Link
                                 to={ROUTES.SELLER_REGISTER}
-                                className="bg-orange-500 text-white font-bold py-3 px-8 rounded-full hover:bg-orange-600 transition shadow-lg shadow-orange-500/50"
+                                className="group relative bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-10 rounded-full hover:shadow-2xl hover:shadow-amber-500/50 transition-all duration-300 transform hover:scale-105 uppercase tracking-wider text-sm overflow-hidden"
                             >
-                                Đăng Ký Bán Hàng
+                                <span className="relative z-10">
+                                    Đăng Ký Bán Hàng
+                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </Link>
                         )}
                         <Link
                             to={ROUTES.PRODUCT}
-                            className="bg-white/10 backdrop-blur-sm border border-orange-400 text-white font-semibold py-3 px-8 rounded-full hover:bg-white/20 transition"
+                            className="group relative bg-slate-800/50 backdrop-blur-lg border-2 border-amber-500/50 hover:border-amber-400 text-slate-100 hover:text-white font-black py-4 px-10 rounded-full hover:bg-slate-800/80 transition-all duration-300 transform hover:scale-105 uppercase tracking-wider text-sm overflow-hidden"
                         >
-                            Khám Phá
+                            <span className="relative z-10">Khám Phá</span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </Link>
                     </div>
+                </div>
+
+                {/* Bottom Wave Decoration */}
+                <div className="absolute bottom-0 left-0 right-0">
+                    <svg
+                        className="w-full h-16 fill-slate-950"
+                        viewBox="0 0 1200 120"
+                        preserveAspectRatio="none"
+                    >
+                        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+                    </svg>
                 </div>
             </div>
 
@@ -254,6 +319,9 @@ const Home = () => {
                     <div className="text-red-400">{error}</div>
                 </div>
             )}
+
+            {/* Decorative Border */}
+            <div className="h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
 
             {!loading && !error && (
                 <div className="mt-10">

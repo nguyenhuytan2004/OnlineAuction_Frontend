@@ -67,30 +67,56 @@ const Login = () => {
 
     return (
         <div className="w-full max-w-md">
-            <div className="bg-gray-800 rounded-lg p-8 shadow-2xl border border-gray-700">
+            <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 rounded-3xl p-10 shadow-2xl border border-slate-700/50 backdrop-blur-xl relative overflow-hidden">
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full"></div>
+
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-orange-400 mb-2">
+                <div className="text-center mb-10 relative z-10">
+                    <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 mb-3 tracking-tight">
                         OnlineAuction
                     </h1>
-                    <h2 className="text-2xl font-bold text-white">Đăng Nhập</h2>
-                    <p className="text-gray-400 text-sm mt-2">
+                    <div className="h-1 w-24 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full mx-auto mb-4"></div>
+                    <h2 className="text-3xl font-black text-slate-100 tracking-wide">
+                        Đăng Nhập
+                    </h2>
+                    <p className="text-slate-400 text-sm mt-3 font-semibold">
                         Chào mừng quay lại sàn đấu giá
                     </p>
                 </div>
 
                 {/* General Error */}
                 {errors.general && (
-                    <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded text-red-300 text-sm">
-                        {errors.general}
+                    <div className="mb-6 p-4 bg-gradient-to-r from-red-900/30 to-red-800/30 border-2 border-red-700/50 rounded-xl text-red-300 text-sm font-semibold backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-center gap-2">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2.5}
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                            {errors.general}
+                        </div>
                     </div>
                 )}
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-5 relative z-10"
+                >
                     {/* Email */}
                     <div>
-                        <label className="block text-gray-300 text-sm font-semibold mb-2">
+                        <label className="block text-slate-300 text-sm font-black mb-2 uppercase tracking-wider">
                             Email
                         </label>
                         <input
@@ -99,14 +125,28 @@ const Login = () => {
                             value={formData.email}
                             onChange={handleChange}
                             placeholder="Nhập email của bạn"
-                            className={`w-full px-4 py-2 bg-gray-700 text-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition ${
+                            className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.email
-                                    ? "border-red-500"
-                                    : "border-gray-600"
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-slate-700 hover:border-slate-600"
                             }`}
                         />
                         {errors.email && (
-                            <p className="text-red-400 text-xs mt-1">
+                            <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-3 w-3"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={3}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
                                 {errors.email}
                             </p>
                         )}
@@ -114,7 +154,7 @@ const Login = () => {
 
                     {/* Password */}
                     <div>
-                        <label className="block text-gray-300 text-sm font-semibold mb-2">
+                        <label className="block text-slate-300 text-sm font-black mb-2 uppercase tracking-wider">
                             Mật Khẩu
                         </label>
                         <input
@@ -123,31 +163,47 @@ const Login = () => {
                             value={formData.password}
                             onChange={handleChange}
                             placeholder="Nhập mật khẩu của bạn"
-                            className={`w-full px-4 py-2 bg-gray-700 text-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition ${
+                            className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.password
-                                    ? "border-red-500"
-                                    : "border-gray-600"
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-slate-700 hover:border-slate-600"
                             }`}
                         />
                         {errors.password && (
-                            <p className="text-red-400 text-xs mt-1">
+                            <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-3 w-3"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={3}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
                                 {errors.password}
                             </p>
                         )}
                     </div>
 
                     {/* Remember Me & Forgot Password */}
-                    <div className="flex items-center justify-between text-xs">
-                        <label className="flex items-center text-gray-400 hover:text-gray-300 cursor-pointer">
+                    <div className="flex items-center justify-between text-xs pt-2">
+                        <label className="flex items-center text-slate-400 hover:text-slate-300 cursor-pointer group">
                             <input
                                 type="checkbox"
-                                className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-orange-500 focus:ring-2 focus:ring-orange-500"
+                                className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-2 focus:ring-amber-500 transition-all duration-300"
                             />
-                            <span className="ml-2">Ghi nhớ tôi</span>
+                            <span className="ml-2 font-semibold">
+                                Ghi nhớ tôi
+                            </span>
                         </label>
                         <Link
                             to="#"
-                            className="text-orange-400 hover:text-orange-300 transition"
+                            className="text-amber-400 hover:text-amber-300 transition-colors duration-300 font-bold"
                         >
                             Quên mật khẩu?
                         </Link>
@@ -157,24 +213,55 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-2 mt-6 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group relative w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-6 rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-amber-500/50 hover:scale-[1.02] uppercase tracking-wider text-sm overflow-hidden mt-6"
                     >
-                        {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
+                        <span className="relative z-10">
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <svg
+                                        className="animate-spin h-5 w-5"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        ></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                    Đang xử lý...
+                                </span>
+                            ) : (
+                                "Đăng Nhập"
+                            )}
+                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </button>
                 </form>
 
                 {/* Divider */}
-                <div className="my-6 flex items-center">
-                    <div className="flex-1 border-t border-gray-600"></div>
-                    <span className="px-3 text-gray-400 text-sm">Hoặc</span>
-                    <div className="flex-1 border-t border-gray-600"></div>
+                <div className="my-8 flex items-center gap-4 relative z-10">
+                    <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
+                    <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+                        Hoặc
+                    </span>
+                    <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
                 </div>
 
                 {/* Social Login */}
-                <div className="space-y-3">
-                    <button className="w-full py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition flex items-center justify-center gap-2 border border-gray-600">
+                <div className="space-y-3 relative z-10">
+                    <button className="group w-full py-3.5 bg-slate-800/50 text-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-600 transition-all duration-300 flex items-center justify-center gap-3 border border-slate-700 hover:border-slate-600 font-bold">
                         <svg
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             viewBox="0 0 24 24"
                             fill="currentColor"
                         >
@@ -188,12 +275,12 @@ const Login = () => {
                 </div>
 
                 {/* Register Link */}
-                <div className="mt-6 text-center">
-                    <p className="text-gray-400 text-sm">
+                <div className="mt-8 text-center relative z-10">
+                    <p className="text-slate-400 text-sm font-semibold">
                         Chưa có tài khoản?{" "}
                         <Link
                             to={ROUTES.REGISTER}
-                            className="text-orange-400 hover:text-orange-300 font-semibold transition"
+                            className="text-amber-400 hover:text-amber-300 font-black transition-colors duration-300"
                         >
                             Đăng ký ngay
                         </Link>
@@ -201,13 +288,28 @@ const Login = () => {
                 </div>
 
                 {/* Return home page */}
-                <div className="mt-8">
+                <div className="mt-6 relative z-10">
                     <Link
                         to={ROUTES.HOME}
-                        className="text-gray-400 hover:text-gray-300 transition flex items-center justify-center gap-2"
+                        className="text-slate-400 hover:text-amber-400 transition-colors duration-300 flex items-center justify-center gap-2 group"
                     >
-                        <i className="fa-solid fa-left-long"></i>
-                        <span className="text-sm pb-1">Quay về trang chủ</span>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform duration-300"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                            />
+                        </svg>
+                        <span className="text-sm font-bold">
+                            Quay về trang chủ
+                        </span>
                     </Link>
                 </div>
             </div>

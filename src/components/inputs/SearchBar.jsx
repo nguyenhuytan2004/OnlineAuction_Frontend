@@ -95,19 +95,19 @@ const SearchBar = () => {
     return (
         <div className="flex-1 max-w-lg mx-auto px-4" ref={searchRef}>
             <div className="relative">
-                {/* Search Input */}
-                <div className="flex items-center bg-gray-800 rounded-lg border border-gray-600 focus-within:border-orange-500 transition">
+                {/* Premium Search Input */}
+                <div className="flex items-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 focus-within:border-amber-500 focus-within:shadow-lg focus-within:shadow-amber-500/20 transition-all duration-300 backdrop-blur-sm">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-400 ml-3"
+                        className="h-5 w-5 text-slate-400 ml-4"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
+                        strokeWidth={2.5}
                     >
                         <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth={2}
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                         />
                     </svg>
@@ -122,7 +122,7 @@ const SearchBar = () => {
                             searchResults.length > 0 &&
                             setShowDropdown(true)
                         }
-                        className="flex-1 bg-transparent text-white placeholder-gray-400 px-3 py-3 outline-none"
+                        className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 px-3 py-3 outline-none font-semibold"
                     />
                     {keyword && (
                         <button
@@ -131,26 +131,28 @@ const SearchBar = () => {
                                 setSearchResults([]);
                                 setShowDropdown(false);
                             }}
-                            className="text-gray-400 hover:text-gray-300 pr-3"
+                            className="text-slate-400 hover:text-amber-400 pr-4 font-bold text-lg transition-colors duration-300"
                         >
                             ✕
                         </button>
                     )}
                 </div>
 
-                {/* Dropdown Results */}
+                {/* Premium Dropdown Results */}
                 {showDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg shadow-lg z-50 border border-gray-700 animate-in fade-in slide-in-from-top-2 duration-500">
+                    <div className="absolute top-full left-0 right-0 mt-3 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-2xl shadow-slate-950/50 z-50 border border-slate-700/50 backdrop-blur-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-500">
                         {loading && (
-                            <div className="p-4 text-center text-gray-400">
-                                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
-                                <p className="mt-2 text-sm">Đang tìm kiếm...</p>
+                            <div className="p-6 text-center text-slate-400">
+                                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500"></div>
+                                <p className="mt-3 text-sm font-semibold">
+                                    Đang tìm kiếm...
+                                </p>
                             </div>
                         )}
 
                         {!loading && error && (
-                            <div className="p-4 text-center text-red-400 animate-in fade-in duration-200">
-                                <p className="text-sm">{error}</p>
+                            <div className="p-6 text-center text-red-400 animate-in fade-in duration-200">
+                                <p className="text-sm font-semibold">{error}</p>
                             </div>
                         )}
 
@@ -166,22 +168,23 @@ const SearchBar = () => {
                                                     product.productId,
                                                 )
                                             }
-                                            className="w-full px-4 py-3 hover:bg-gray-700 transition text-left border-b border-gray-700 last:border-b-0 flex gap-3 animate-in fade-in slide-in-from-left-4 duration-200"
+                                            className="w-full px-5 py-4 hover:bg-slate-800/70 transition-all duration-300 text-left border-b border-slate-700/50 last:border-b-0 flex gap-4 animate-in fade-in slide-in-from-left-4 group"
                                             style={{
                                                 animationDelay: `${
                                                     index * 50
                                                 }ms`,
                                             }}
                                         >
-                                            {/* Product Image */}
-                                            <div className="w-12 h-12 flex-shrink-0">
+                                            {/* Product Image with Gradient Border */}
+                                            <div className="w-14 h-14 flex-shrink-0 relative">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                                 <img
                                                     src={
                                                         product.mainImageUrl ||
                                                         null
                                                     }
                                                     alt={product.productName}
-                                                    className="w-full h-full object-cover rounded"
+                                                    className="w-full h-full object-cover rounded-lg border border-slate-700 group-hover:border-amber-500/50 transition-all duration-300 relative z-10"
                                                     onError={(e) => {
                                                         e.target.src =
                                                             "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' class='h-12 w-12 text-gray-600' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' /%3E%3C/svg%3E";
@@ -191,11 +194,11 @@ const SearchBar = () => {
 
                                             {/* Product Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-gray-100 font-medium line-clamp-2 text-sm">
+                                                <h4 className="text-slate-100 font-bold line-clamp-2 text-sm mb-2 group-hover:text-amber-100 transition-colors duration-300">
                                                     {product.productName}
                                                 </h4>
-                                                <div className="flex items-center justify-between mt-1">
-                                                    <p className="text-orange-400 font-semibold text-sm">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-black text-sm">
                                                         {formatters.formatCurrency(
                                                             product.currentPrice,
                                                         )}
@@ -209,7 +212,7 @@ const SearchBar = () => {
                                 {/* View All Results Button */}
                                 <button
                                     onClick={handleViewAllResults}
-                                    className="w-full px-4 py-3 text-center text-orange-400 hover:text-orange-300 font-semibold text-sm border-t border-gray-700 hover:bg-gray-700 transition animate-in fade-in slide-in-from-bottom-2 duration-300"
+                                    className="w-full px-5 py-4 text-center text-amber-400 hover:text-amber-300 font-black text-sm border-t border-slate-700/50 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/10 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 uppercase tracking-wider"
                                 >
                                     Xem toàn bộ kết quả →
                                 </button>
@@ -217,8 +220,8 @@ const SearchBar = () => {
                         )}
 
                         {!loading && !error && searchResults.length === 0 && (
-                            <div className="p-4 text-center text-gray-400 animate-in fade-in duration-200">
-                                <p className="text-sm">
+                            <div className="p-6 text-center text-slate-400 animate-in fade-in duration-200">
+                                <p className="text-sm font-semibold">
                                     Không tìm thấy sản phẩm nào
                                 </p>
                             </div>

@@ -15,21 +15,21 @@ const MainLayout = ({ children }) => {
     const { isAuthenticated, user, logout } = useAuth();
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 flex flex-col">
-            {/* Header */}
-            <header className="bg-gray-950/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
+        <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
+            {/* Header with Premium Dark Mode */}
+            <header className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 backdrop-blur-xl border-b border-slate-800/50 sticky top-0 z-50 shadow-xl shadow-slate-950/50">
                 <nav className="max-w-7xl mx-auto px-8 h-20 flex items-center">
                     <div className="flex flex-grow items-center justify-between w-full gap-16">
                         {/* Logo */}
                         <div className="flex-shrink-0">
                             <Link
                                 to={ROUTES.HOME}
-                                className="text-2xl font-bold text-orange-400 hover:text-orange-300 transition"
+                                className="group relative text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 transition-all duration-300"
                             >
                                 <img
                                     src="/assets/images/logo-transparent.png"
                                     alt="Logo Đấu Giá"
-                                    className="h-16 w-auto object-contain"
+                                    className="h-16 w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(251,146,60,0.5)]"
                                 />
                             </Link>
                         </div>
@@ -41,29 +41,39 @@ const MainLayout = ({ children }) => {
 
                         {/* Navigation Links */}
                         <div className="flex items-center gap-6 flex-grow-[2]">
-                            <div className="flex items-baseline space-x-4">
+                            <div className="flex items-baseline space-x-6">
                                 <Link
                                     to={ROUTES.HOME}
-                                    className="text-gray-300 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition"
+                                    className="relative text-slate-300 hover:text-amber-400 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 group uppercase tracking-wider"
                                 >
-                                    Trang Chủ
+                                    <span className="relative z-10">
+                                        Trang Chủ
+                                    </span>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 to-orange-500/0 group-hover:to-orange-500/10 rounded-lg transition-all duration-300"></div>
                                 </Link>
                                 <Link
                                     to={ROUTES.PRODUCT}
-                                    className="text-gray-300 hover:text-orange-400 px-3 py-2 rounded-md text-sm font-medium transition"
+                                    className="relative text-slate-300 hover:text-amber-400 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 group uppercase tracking-wider"
                                 >
-                                    Sản phẩm
+                                    <span className="relative z-10">
+                                        Sản phẩm
+                                    </span>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 to-orange-500/0 group-hover:to-orange-500/10 rounded-lg transition-all duration-300"></div>
                                 </Link>
                             </div>
-                            <div className="flex items-baseline space-x-8 ml-auto">
+                            <div className="flex items-baseline space-x-6 ml-auto">
                                 {isAuthenticated ? (
                                     <>
-                                        <span className="text-gray-300 text-sm">
-                                            Chào, {user.fullName}!
+                                        <span className="text-slate-300 text-sm font-semibold bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700/50">
+                                            Chào,{" "}
+                                            <span className="text-amber-400">
+                                                {user.fullName}
+                                            </span>
+                                            !
                                         </span>
                                         <button
                                             onClick={logout}
-                                            className="bg-red-600 text-white hover:bg-red-700 px-3 py-2 rounded-md text-sm font-medium transition"
+                                            className="bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 shadow-lg hover:shadow-red-500/50 uppercase tracking-wide"
                                         >
                                             Đăng Xuất
                                         </button>
@@ -72,13 +82,13 @@ const MainLayout = ({ children }) => {
                                     <div className="flex items-baseline space-x-4 ml-auto">
                                         <Link
                                             to={ROUTES.LOGIN}
-                                            className="bg-white/10 text-gray-300 hover:bg-white/30 px-3 py-2 rounded-md text-sm font-medium transition"
+                                            className="bg-slate-800/50 border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-amber-400 hover:border-amber-500/50 px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 uppercase tracking-wide"
                                         >
                                             Đăng Nhập
                                         </Link>
                                         <Link
                                             to={ROUTES.REGISTER}
-                                            className="bg-orange-500 text-white hover:bg-orange-600 px-3 py-2 rounded-md text-sm font-medium transition"
+                                            className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 shadow-lg hover:shadow-amber-500/50 uppercase tracking-wide"
                                         >
                                             Đăng Ký
                                         </Link>
@@ -93,86 +103,106 @@ const MainLayout = ({ children }) => {
             {/* Main Content */}
             <main className="flex-1">{children}</main>
 
-            {/* Footer */}
-            <footer className="bg-gray-900 border-t border-gray-800 mt-2">
-                <div className="max-w-7xl mx-auto px-8 py-8">
-                    <div className="grid grid-cols-3 gap-8 mb-8">
+            {/* Premium Footer */}
+            <footer className="bg-gradient-to-b from-slate-900 to-slate-950 border-t border-slate-800/50 mt-2 relative overflow-hidden">
+                {/* Decorative Border */}
+                <div className="h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-5">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-8 py-12 relative z-10">
+                    <div className="grid grid-cols-3 gap-12 mb-10">
                         <div>
-                            <h3 className="text-lg font-bold mb-4 text-orange-400">
+                            <h3 className="text-xl font-black mb-5 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 uppercase tracking-wider">
                                 OnlineAuction
                             </h3>
-                            <p className="text-gray-400">
+                            <p className="text-slate-400 leading-relaxed font-light">
                                 Sàn đấu giá trực tuyến hàng đầu, nơi bạn tìm
                                 thấy những món đồ độc đáo.
                             </p>
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold mb-4 text-orange-400">
+                            <h3 className="text-lg font-black mb-5 text-amber-400 uppercase tracking-wider">
                                 Liên Kết
                             </h3>
-                            <ul className="space-y-2 text-gray-400">
+                            <ul className="space-y-3 text-slate-400">
                                 <li>
                                     <Link
                                         to={ROUTES.HOME}
-                                        className="hover:text-orange-400 transition"
+                                        className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2 group font-semibold"
                                     >
+                                        <span className="w-0 h-px bg-amber-500 group-hover:w-4 transition-all duration-300"></span>
                                         Trang Chủ
                                     </Link>
                                 </li>
                                 <li>
                                     <Link
                                         to={ROUTES.AUCTIONS}
-                                        className="hover:text-orange-400 transition"
+                                        className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2 group font-semibold"
                                     >
+                                        <span className="w-0 h-px bg-amber-500 group-hover:w-4 transition-all duration-300"></span>
                                         Đấu Giá
                                     </Link>
                                 </li>
                                 <li>
                                     <Link
                                         to={ROUTES.CONTACT}
-                                        className="hover:text-orange-400 transition"
+                                        className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2 group font-semibold"
                                     >
+                                        <span className="w-0 h-px bg-amber-500 group-hover:w-4 transition-all duration-300"></span>
                                         Liên Hệ
                                     </Link>
                                 </li>
                             </ul>
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold mb-4 text-orange-400">
+                            <h3 className="text-lg font-black mb-5 text-amber-400 uppercase tracking-wider">
                                 Hỗ Trợ
                             </h3>
-                            <ul className="space-y-2 text-gray-400">
+                            <ul className="space-y-3 text-slate-400">
                                 <li>
                                     <Link
                                         to={ROUTES.FAQ}
-                                        className="hover:text-orange-400 transition"
+                                        className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2 group font-semibold"
                                     >
+                                        <span className="w-0 h-px bg-amber-500 group-hover:w-4 transition-all duration-300"></span>
                                         FAQ
                                     </Link>
                                 </li>
                                 <li>
                                     <Link
                                         to={ROUTES.TERMS}
-                                        className="hover:text-orange-400 transition"
+                                        className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2 group font-semibold"
                                     >
+                                        <span className="w-0 h-px bg-amber-500 group-hover:w-4 transition-all duration-300"></span>
                                         Điều Khoản
                                     </Link>
                                 </li>
                                 <li>
                                     <Link
                                         to={ROUTES.PRIVACY}
-                                        className="hover:text-orange-400 transition"
+                                        className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2 group font-semibold"
                                     >
+                                        <span className="w-0 h-px bg-amber-500 group-hover:w-4 transition-all duration-300"></span>
                                         Chính Sách Bảo Mật
                                     </Link>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                    <div className="border-t border-gray-800 pt-8">
-                        <p className="text-center text-gray-500">
-                            &copy; 2025 OnlineAuction. All rights reserved.
-                        </p>
+
+                    {/* Divider with Gradient */}
+                    <div className="border-t border-slate-800/50 pt-8 flex items-center justify-center">
+                        <div className="flex items-center gap-3">
+                            <div className="h-px w-20 bg-gradient-to-r from-transparent to-amber-500/50"></div>
+                            <p className="text-center text-slate-500 font-semibold tracking-wide">
+                                &copy; 2025 OnlineAuction. All rights reserved.
+                            </p>
+                            <div className="h-px w-20 bg-gradient-to-l from-transparent to-amber-500/50"></div>
+                        </div>
                     </div>
                 </div>
             </footer>
