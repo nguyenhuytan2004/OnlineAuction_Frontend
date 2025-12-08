@@ -8,6 +8,10 @@ import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import UserInfo from "./pages/profile/UserInfo";
+import Favorites from "./pages/profile/Favorites";
+import AccountSettings from "./pages/profile/AccountSettings";
+import ChangePassword from "./pages/profile/ChangePassword";
 
 function App() {
     return (
@@ -45,6 +49,22 @@ function App() {
                                 <Route
                                     path={`${ROUTES.PRODUCT}/:productId`}
                                     element={<ProductDetail />}
+                                />
+                                <Route
+                                    path={`${ROUTES.PROFILE}/info`}
+                                    element={<UserInfo />}
+                                />
+                                <Route
+                                    path={`${ROUTES.PROFILE}/favorites`}
+                                    element={<Favorites />}
+                                />
+                                <Route
+                                    path={`${ROUTES.PROFILE}/account`}
+                                    element={<AccountSettings />}
+                                />
+                                <Route
+                                    path={`${ROUTES.PROFILE}/password`}
+                                    element={<ChangePassword />}
                                 />
                             </Routes>
                         </MainLayout>

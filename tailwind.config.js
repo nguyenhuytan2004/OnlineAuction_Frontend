@@ -26,7 +26,6 @@ export default {
                 "float-delayed": "float-delayed 8s ease-in-out infinite",
                 gradient: "gradient 3s ease infinite",
                 shimmer: "shimmer 2s infinite",
-                "slide-in-up": "slide-in-up 0.6s ease-out forwards",
             },
             boxShadow: {
                 glow: "0 0 20px rgba(251, 146, 60, 0.5)",

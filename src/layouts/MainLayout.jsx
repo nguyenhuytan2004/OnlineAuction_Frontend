@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import SearchBar from "../components/inputs/SearchBar";
+import AvatarDropdown from "../components/AvatarDropdown";
 import { useAuth } from "../hooks/useAuth";
 
 const MainLayout = ({ children }) => {
@@ -12,7 +13,7 @@ const MainLayout = ({ children }) => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, [location.pathname]);
 
-    const { isAuthenticated, user, logout } = useAuth();
+    const { isAuthenticated } = useAuth();
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
@@ -63,21 +64,7 @@ const MainLayout = ({ children }) => {
                             </div>
                             <div className="flex items-baseline space-x-6 ml-auto">
                                 {isAuthenticated ? (
-                                    <>
-                                        <span className="text-slate-300 text-sm font-semibold bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700/50">
-                                            Chào,{" "}
-                                            <span className="text-amber-400">
-                                                {user.fullName}
-                                            </span>
-                                            !
-                                        </span>
-                                        <button
-                                            onClick={logout}
-                                            className="bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 shadow-lg hover:shadow-red-500/50 uppercase tracking-wide"
-                                        >
-                                            Đăng Xuất
-                                        </button>
-                                    </>
+                                    <AvatarDropdown />
                                 ) : (
                                     <div className="flex items-baseline space-x-4 ml-auto">
                                         <Link

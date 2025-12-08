@@ -43,6 +43,15 @@ const helpers = {
         if (ratingCount === 0) return 0;
         return Math.round((ratingScore * 5) / ratingCount);
     },
+
+    // Mask name
+    // Nguyễn Huy Tấn -> ****Tấn
+    maskName: (fullName) => {
+        const nameParts = fullName.trim().split(" ");
+        if (nameParts.length === 0) return "";
+        const lastName = nameParts[nameParts.length - 1];
+        return "* * * * " + lastName;
+    },
 };
 
 export default helpers;

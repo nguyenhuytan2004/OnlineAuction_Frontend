@@ -3,15 +3,15 @@ import { useParams, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
     CheckCircle,
-    XCircle,
-    AlertTriangle,
     Info,
+    TriangleAlert,
+    XCircle,
     ChevronDown,
 } from "lucide-react";
 import { ROUTES } from "../constants/routes";
 import helpers from "../utils/helpers";
 import formatters from "../utils/formatters";
-
+import ProductCard from "../components/ProductCard_LessInfo";
 import productService from "../services/productService";
 import bidService from "../services/bidService";
 import { useWebSocket } from "../hooks/useWebSocket";
@@ -61,7 +61,7 @@ const ProductDetail = () => {
 
                 setProduct(updatedProduct);
                 setBidHistory((prevBidHistory) => {
-                    // Nếu bidHistory đã có 5 mục thì chỉ giữ lại 4 mục mới nhất cộng với mục mới
+                    // If history already has 5 bids, remove the oldest one
                     if (prevBidHistory.length === 5) {
                         return [newBid, ...prevBidHistory.slice(0, 4)];
                     }
@@ -79,7 +79,7 @@ const ProductDetail = () => {
             message: "Có lượt đặt giá mới!",
             type: "info",
         });
-        setTimeout(() => setNotification(null), 5000);
+        setTimeout(() => setNotification(null), 3000);
     }, []);
 
     const handleAuctionExtended = useCallback((newEndTime) => {
@@ -96,7 +96,7 @@ const ProductDetail = () => {
             message: `Phiên đấu giá đã được gia hạn!`,
             type: "info",
         });
-        setTimeout(() => setNotification(null), 5000);
+        setTimeout(() => setNotification(null), 3000);
     }, []);
 
     const handleAuctionEnd = useCallback((message) => {
@@ -109,7 +109,7 @@ const ProductDetail = () => {
             message,
             type: "info",
         });
-        setTimeout(() => setNotification(null), 5000);
+        setTimeout(() => setNotification(null), 3000);
     }, []);
 
     const handleBuyNowAction = async () => {
@@ -139,11 +139,6 @@ const ProductDetail = () => {
     const handleNewQuestion = useCallback((newQuestion) => {
         console.log("New question received:", newQuestion);
         setQnaData((prev) => [newQuestion, ...prev]);
-        setNotification({
-            message: "Có câu hỏi mới!",
-            type: "info",
-        });
-        setTimeout(() => setNotification(null), 3000);
     }, []);
 
     const handleNewAnswer = useCallback((newAnswer, questionId) => {
@@ -160,19 +155,10 @@ const ProductDetail = () => {
                 return qa;
             }),
         );
-        setNotification({
-            message: "Có câu trả lời mới!",
-            type: "info",
-        });
-        setTimeout(() => setNotification(null), 3000);
     }, []);
 
     // WebSocket connection
-    const {
-        connected,
-        error: wsError,
-        unsubscribeFromProduct,
-    } = useWebSocket();
+    const { connected, unsubscribeFromProduct } = useWebSocket();
 
     // Q&A hook
     const { askQuestion, answerQuestion, subscribeToAnswers } = useQnA(
@@ -334,17 +320,25 @@ const ProductDetail = () => {
                 ></div>
             </div>
 
-            {/* Notification */}
+            {/* Notification Toast */}
             {notification && (
                 <div
-                    className={`fixed bottom-8 right-8 z-50 px-8 py-5 rounded-xl shadow-2xl flex items-center gap-4 transition-all backdrop-blur-xl border animate-slide-in-up ${
+                    className={`fixed top-16 right-16 z-50 px-8 py-5 rounded-xl shadow-2xl flex items-center gap-4 transition-all backdrop-blur-xl border animate-slide-down ${
                         notification.type === "success"
                             ? "bg-gradient-to-br from-emerald-900/95 via-emerald-800/95 to-emerald-900/95 border-emerald-500/50 shadow-emerald-500/30"
+                            : notification.type === "info"
+                            ? "bg-gradient-to-br from-blue-900/95 via-blue-800/95 to-blue-900/95 border-blue-500/50 shadow-blue-500/30"
+                            : notification.type === "warning"
+                            ? "bg-gradient-to-br from-yellow-900/95 via-yellow-800/95 to-yellow-900/95 border-yellow-500/50 shadow-yellow-500/30"
                             : "bg-gradient-to-br from-red-900/95 via-red-800/95 to-red-900/95 border-red-500/50 shadow-red-500/30"
                     } text-white`}
                 >
                     {notification.type === "success" ? (
                         <CheckCircle className="w-6 h-6 text-emerald-300" />
+                    ) : notification.type === "info" ? (
+                        <Info className="w-6 h-6 text-blue-300" />
+                    ) : notification.type === "warning" ? (
+                        <TriangleAlert className="w-6 h-6 text-yellow-300" />
                     ) : (
                         <XCircle className="w-6 h-6 text-red-300" />
                     )}
@@ -375,58 +369,6 @@ const ProductDetail = () => {
                         {product.productName}
                     </span>
                 </div>
-
-                {/* WebSocket Status & Notification */}
-                <div className="mb-6 flex items-center justify-between p-4 bg-gradient-to-r from-slate-900/80 via-slate-800/60 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl">
-                    <div className="flex items-center gap-3">
-                        <div
-                            className={`w-3 h-3 rounded-full ${
-                                connected
-                                    ? "bg-emerald-500 shadow-lg shadow-emerald-500/50"
-                                    : "bg-red-500 shadow-lg shadow-red-500/50"
-                            } animate-pulse`}
-                        ></div>
-                        <span className="text-sm font-['Montserrat'] font-medium ${connected ? 'text-emerald-400' : 'text-red-400'}">
-                            {connected
-                                ? "Kết nối trực tiếp"
-                                : "Đang kết nối lại..."}
-                        </span>
-                    </div>
-
-                    {wsError && (
-                        <div className="text-sm text-red-400 font-['Montserrat']">
-                            {wsError}
-                        </div>
-                    )}
-                </div>
-
-                {/* Notification Toast */}
-                {notification && (
-                    <div
-                        className={`mb-6 p-5 rounded-xl border animate-slide-in-up backdrop-blur-xl font-['Montserrat'] ${
-                            notification.type === "success"
-                                ? "bg-gradient-to-r from-emerald-900/40 via-emerald-800/30 to-emerald-900/40 border-emerald-500/50 text-emerald-200 shadow-lg shadow-emerald-500/20"
-                                : notification.type === "warning"
-                                ? "bg-gradient-to-r from-amber-900/40 via-amber-800/30 to-amber-900/40 border-amber-500/50 text-amber-200 shadow-lg shadow-amber-500/20"
-                                : "bg-gradient-to-r from-orange-900/40 via-orange-800/30 to-orange-900/40 border-orange-500/50 text-orange-200 shadow-lg shadow-orange-500/20"
-                        }`}
-                    >
-                        <p className="flex items-center gap-3">
-                            {notification.type === "success" && (
-                                <CheckCircle className="w-5 h-5" />
-                            )}
-                            {notification.type === "warning" && (
-                                <AlertTriangle className="w-5 h-5" />
-                            )}
-                            {notification.type === "info" && (
-                                <Info className="w-5 h-5" />
-                            )}
-                            <span className="font-semibold text-base">
-                                {notification.message}
-                            </span>
-                        </p>
-                    </div>
-                )}
 
                 {/* Top Section: 3 Columns Layout */}
                 <div className="grid grid-cols-3 gap-8 mb-12">
@@ -477,7 +419,7 @@ const ProductDetail = () => {
 
                     {/* Column 2: Main Information */}
                     <div className="relative col-span-1 flex flex-col">
-                        <div className="h-96 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 px-8 py-8 border border-slate-700/50 rounded-2xl flex flex-col backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden">
+                        <div className="h-96 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 px-8 py-8 border border-slate-700/50 rounded-2xl flex flex-col backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden hover:shadow-amber-500/20 transition-all duration-300">
                             {/* Decorative corner elements */}
                             <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-amber-500/10 to-transparent rounded-br-full"></div>
                             <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-orange-500/10 to-transparent rounded-tl-full"></div>
@@ -630,8 +572,8 @@ const ProductDetail = () => {
                         </div>
                     </div>
 
-                    {/* Column 3: Bid History Table */}
-                    <div className="col-span-1 flex flex-col justify-start space-y-6">
+                    {/* Column 3: Highest Bidder and Bid History Table */}
+                    <div className="col-span-1 flex flex-col justify-start space-y-6 ">
                         {/* Highest Bidder Info Box */}
                         {product.highestBidder ? (
                             <div className="p-6 bg-gradient-to-br from-amber-900/30 via-orange-900/20 to-amber-900/30 border border-amber-500/50 rounded-2xl backdrop-blur-xl shadow-lg shadow-amber-500/20">
@@ -643,7 +585,9 @@ const ProductDetail = () => {
                                     Người đặt giá cao nhất
                                 </h3>
                                 <p className="text-white font-semibold mb-3 text-lg font-['Montserrat']">
-                                    {product.highestBidder.fullName}
+                                    {helpers.maskName(
+                                        product.highestBidder.fullName,
+                                    )}
                                 </p>
                                 <div className="flex items-center gap-2">
                                     {Array.from({ length: 5 }).map((_, i) => (
@@ -678,7 +622,7 @@ const ProductDetail = () => {
                                 </p>
                             </div>
                         )}
-                        <div className="bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl border border-slate-700/50 overflow-hidden flex flex-col backdrop-blur-xl shadow-2xl shadow-amber-500/10">
+                        <div className="bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl border border-slate-700/50 overflow-hidden flex flex-col backdrop-blur-xl shadow-2xl shadow-amber-500/10 hover:shadow-amber-500/20 transition-all duration-300">
                             <div className="p-5 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/50 to-slate-800/30">
                                 <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-['Playfair_Display']">
                                     Lịch sử đấu giá
@@ -702,10 +646,10 @@ const ProductDetail = () => {
                                             bidHistory.map((bid, index) => (
                                                 <tr
                                                     key={index}
-                                                    className={`border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors duration-200 ${
+                                                    className={`border-b border-slate-700/50 transition-colors duration-200 ${
                                                         index === 0
-                                                            ? "animate-slide-in-up bg-amber-900/10"
-                                                            : ""
+                                                            ? "animate-slide-in-up bg-amber-900/20 hover:bg-amber-900/50"
+                                                            : "hover:bg-slate-700/20 "
                                                     }`}
                                                 >
                                                     <td className="px-4 py-5 text-gray-300">
@@ -723,7 +667,9 @@ const ProductDetail = () => {
                                                         )}
                                                     </td>
                                                     <td className="px-4 py-3 font-medium text-white">
-                                                        {bid.bidder.fullName}
+                                                        {helpers.maskName(
+                                                            bid.bidder.fullName,
+                                                        )}
                                                     </td>
                                                     <td className="px-4 py-3 text-right text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-bold text-base">
                                                         {formatters.formatCurrency(
@@ -752,7 +698,7 @@ const ProductDetail = () => {
                 {/* Middle Section: Seller & Dates */}
                 <div className="grid grid-cols-3 gap-8 mb-12">
                     {/* Seller Info */}
-                    <div className="col-span-1 p-8 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl border border-slate-700/50 backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden">
+                    <div className="col-span-1 p-8 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl border border-slate-700/50 backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden hover:shadow-amber-500/20 transition-all duration-300">
                         {/* Decorative element */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/10 to-transparent rounded-bl-full"></div>
 
@@ -799,14 +745,14 @@ const ProductDetail = () => {
                     </div>
 
                     {/* Description */}
-                    <div className="col-span-2 mb-12 p-8 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl border border-slate-700/50 h-full backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden">
+                    <div className="col-span-2 mb-12 p-8 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl border border-slate-700/50 h-full backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden hover:shadow-amber-500/20 transition-all duration-300">
                         {/* Decorative element */}
-                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full "></div>
 
                         <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 mb-6 font-['Playfair_Display'] flex items-center gap-2 relative z-10">
                             <i
                                 className="fa-solid fa-circle-info"
-                                style={{ color: "#fb923c" }}
+                                style={{ color: "#fbbf24" }}
                             ></i>
                             Mô tả chi tiết
                         </h2>
@@ -826,7 +772,7 @@ const ProductDetail = () => {
                             className="fa-solid fa-comments"
                             style={{ color: "#fbbf24" }}
                         ></i>
-                        Câu hỏi & Trả lời
+                        Câu hỏi
                     </h2>
 
                     {/* Ask Question Form - Only for authenticated users */}
@@ -852,25 +798,20 @@ const ProductDetail = () => {
                                                         "Vui lòng nhập câu hỏi",
                                                     type: "warning",
                                                 });
-                                                return;
-                                            }
-                                            try {
-                                                askQuestion(
-                                                    user.userId,
-                                                    productId,
-                                                    questionText,
-                                                );
-                                                setQuestionText("");
-                                                setNotification({
-                                                    message:
-                                                        "Gửi câu hỏi thành công!",
-                                                    type: "success",
-                                                });
-                                            } catch (err) {
-                                                setNotification({
-                                                    message: err.message,
-                                                    type: "warning",
-                                                });
+                                            } else {
+                                                try {
+                                                    askQuestion(
+                                                        user.userId,
+                                                        productId,
+                                                        questionText,
+                                                    );
+                                                    setQuestionText("");
+                                                } catch (err) {
+                                                    setNotification({
+                                                        message: err.message,
+                                                        type: "warning",
+                                                    });
+                                                }
                                             }
                                             setTimeout(
                                                 () => setNotification(null),
@@ -889,25 +830,20 @@ const ProductDetail = () => {
                                                     "Vui lòng nhập câu hỏi",
                                                 type: "warning",
                                             });
-                                            return;
-                                        }
-                                        try {
-                                            askQuestion(
-                                                user.userId,
-                                                productId,
-                                                questionText,
-                                            );
-                                            setQuestionText("");
-                                            setNotification({
-                                                message:
-                                                    "Gửi câu hỏi thành công!",
-                                                type: "success",
-                                            });
-                                        } catch (err) {
-                                            setNotification({
-                                                message: err.message,
-                                                type: "warning",
-                                            });
+                                        } else {
+                                            try {
+                                                askQuestion(
+                                                    user.userId,
+                                                    productId,
+                                                    questionText,
+                                                );
+                                                setQuestionText("");
+                                            } catch (err) {
+                                                setNotification({
+                                                    message: err.message,
+                                                    type: "warning",
+                                                });
+                                            }
                                         }
                                         setTimeout(
                                             () => setNotification(null),
@@ -1024,35 +960,30 @@ const ProductDetail = () => {
                                                                         type: "warning",
                                                                     },
                                                                 );
-                                                                return;
-                                                            }
-                                                            try {
-                                                                answerQuestion(
-                                                                    user.userId,
-                                                                    productId,
-                                                                    qa.questionId,
-                                                                    answerText,
-                                                                );
-                                                                setAnswerTexts({
-                                                                    ...answerTexts,
-                                                                    [qa.questionId]:
-                                                                        "",
-                                                                });
-                                                                setNotification(
-                                                                    {
-                                                                        message:
-                                                                            "Gửi câu trả lời thành công!",
-                                                                        type: "success",
-                                                                    },
-                                                                );
-                                                            } catch (err) {
-                                                                setNotification(
-                                                                    {
-                                                                        message:
-                                                                            err.message,
-                                                                        type: "warning",
-                                                                    },
-                                                                );
+                                                            } else {
+                                                                try {
+                                                                    answerQuestion(
+                                                                        user.userId,
+                                                                        productId,
+                                                                        qa.questionId,
+                                                                        answerText,
+                                                                    );
+                                                                    setAnswerTexts(
+                                                                        {
+                                                                            ...answerTexts,
+                                                                            [qa.questionId]:
+                                                                                "",
+                                                                        },
+                                                                    );
+                                                                } catch (err) {
+                                                                    setNotification(
+                                                                        {
+                                                                            message:
+                                                                                err.message,
+                                                                            type: "warning",
+                                                                        },
+                                                                    );
+                                                                }
                                                             }
                                                             setTimeout(
                                                                 () =>
@@ -1081,31 +1012,28 @@ const ProductDetail = () => {
                                                                     "Vui lòng nhập câu trả lời",
                                                                 type: "warning",
                                                             });
-                                                            return;
-                                                        }
-                                                        try {
-                                                            answerQuestion(
-                                                                user.userId,
-                                                                productId,
-                                                                qa.questionId,
-                                                                answerText,
-                                                            );
-                                                            setAnswerTexts({
-                                                                ...answerTexts,
-                                                                [qa.questionId]:
-                                                                    "",
-                                                            });
-                                                            setNotification({
-                                                                message:
-                                                                    "Gửi câu trả lời thành công!",
-                                                                type: "success",
-                                                            });
-                                                        } catch (err) {
-                                                            setNotification({
-                                                                message:
-                                                                    err.message,
-                                                                type: "warning",
-                                                            });
+                                                        } else {
+                                                            try {
+                                                                answerQuestion(
+                                                                    user.userId,
+                                                                    productId,
+                                                                    qa.questionId,
+                                                                    answerText,
+                                                                );
+                                                                setAnswerTexts({
+                                                                    ...answerTexts,
+                                                                    [qa.questionId]:
+                                                                        "",
+                                                                });
+                                                            } catch (err) {
+                                                                setNotification(
+                                                                    {
+                                                                        message:
+                                                                            err.message,
+                                                                        type: "warning",
+                                                                    },
+                                                                );
+                                                            }
                                                         }
                                                         setTimeout(
                                                             () =>
@@ -1134,109 +1062,9 @@ const ProductDetail = () => {
                         Sản phẩm liên quan
                     </h2>
                     <div className="grid grid-cols-5 gap-6">
-                        {relatedProducts.map((relatedProduct, index) => (
-                            <div
-                                key={relatedProduct.productId}
-                                className="bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl hover:shadow-2xl hover:shadow-amber-500/30 transition-all duration-500 overflow-hidden border border-slate-700/50 group hover:scale-105 hover:-translate-y-2 backdrop-blur-xl animate-fade-in"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                                <Link
-                                    to={`${ROUTES.PRODUCT}/${relatedProduct.productId}`}
-                                >
-                                    {/* Image Section */}
-                                    <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900">
-                                        <img
-                                            src={
-                                                relatedProduct.mainImageUrl ||
-                                                null
-                                            }
-                                            alt={relatedProduct.productName}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                        />
-
-                                        {/* Overlay Button */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                            <button className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-white font-bold py-3 px-8 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-105 shadow-2xl shadow-amber-500/50 font-['Montserrat']">
-                                                Xem Chi Tiết
-                                            </button>
-                                        </div>
-                                    </div>
-                                </Link>
-
-                                {/* Content Section */}
-                                <div className="p-5">
-                                    <h3 className="font-semibold text-gray-100 text-base mb-2 line-clamp-2 min-h-[3rem] font-['Montserrat'] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-amber-400 group-hover:to-orange-500 transition-all duration-300">
-                                        {relatedProduct.productName}
-                                    </h3>
-
-                                    <div className="flex items-end justify-between mb-4">
-                                        <div>
-                                            <p className="text-xs text-gray-400 mb-1 font-['Montserrat']">
-                                                Giá hiện tại
-                                            </p>
-                                            <p className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-bold text-lg font-['Montserrat']">
-                                                {formatters.formatCurrency(
-                                                    relatedProduct.currentPrice,
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Footer Info */}
-                                    <div className="flex items-center justify-between pt-3 border-t border-slate-700/50 text-sm">
-                                        <div
-                                            className={`flex items-center gap-1 font-medium font-['Montserrat'] ${helpers.getTimeColorClass(
-                                                relatedProduct.endTime,
-                                            )}`}
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-4 w-4"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                />
-                                            </svg>
-                                            <span>
-                                                {formatters.getRemainingTime(
-                                                    relatedProduct.endTime,
-                                                )}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center gap-1 text-gray-400 font-medium">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-4 w-4"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                />
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                />
-                                            </svg>
-                                            <span>
-                                                {relatedProduct.bidCount} lượt
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                        {relatedProducts.map((relatedProduct) => (
+                            <div>
+                                <ProductCard product={relatedProduct} />
                             </div>
                         ))}
                     </div>
@@ -1319,7 +1147,7 @@ const ProductDetail = () => {
                                 </button>
 
                                 {isBidDropdownOpen && (
-                                    <ul className="absolute z-[70] w-full mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl shadow-amber-500/20 overflow-hidden max-h-64 overflow-y-auto animate-slide-in-up">
+                                    <ul className="absolute z-[70] w-full bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl shadow-amber-500/20 overflow-hidden max-h-52 overflow-y-auto animate-slide-down">
                                         <li
                                             onClick={() => {
                                                 setMaxBidPrice("");
@@ -1334,7 +1162,7 @@ const ProductDetail = () => {
                                         >
                                             -- Chọn giá --
                                         </li>
-                                        {Array.from({ length: 20 }, (_, i) => {
+                                        {Array.from({ length: 50 }, (_, i) => {
                                             const price =
                                                 product.currentPrice +
                                                 (i + 1) * product.priceStep;
@@ -1405,20 +1233,19 @@ const ProductDetail = () => {
                                     }
 
                                     const bidAmount = parseFloat(maxBidPrice);
+                                    if (bidAmount >= product.buyNowPrice) {
+                                        setShowBuyNowModal(true);
+                                        setShowBidModal(false);
+                                        setMaxBidPrice("");
+                                        setBidError("");
+                                        return;
+                                    }
 
                                     try {
                                         wsSendBid(bidAmount);
                                         setShowBidModal(false);
                                         setMaxBidPrice("");
                                         setBidError("");
-                                        setNotification({
-                                            message: "Đã gửi yêu cầu đấu giá!",
-                                            type: "info",
-                                        });
-                                        setTimeout(
-                                            () => setNotification(null),
-                                            3000,
-                                        );
                                     } catch (err) {
                                         setBidError(
                                             err.message ||

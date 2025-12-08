@@ -14,4 +14,7 @@ export const API_ENDPOINTS = {
 
     // Bids
     BIDS: "/bids",
+
+    // Profile
+    USER_PROFILE: "/user-profile",
 };
