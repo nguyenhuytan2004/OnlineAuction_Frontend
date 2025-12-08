@@ -5,17 +5,20 @@ import authService from "../services/authService";
 export const useQnA = (
     productId,
     sellerId,
+    connected,
     handleNewQuestion,
     handleNewAnswer,
 ) => {
     // Subscribe to questions when product loads
     useEffect(() => {
-        if (websocketService.isConnected() && productId) {
+        if (productId && connected) {
+            console.log("Subscribing to questions for product:", productId);
+
             websocketService.subscribeToQuestions(productId, (data) => {
                 handleNewQuestion?.(data);
             });
         }
-    }, [productId, handleNewQuestion]);
+    }, [connected, productId, handleNewQuestion]);
 
     // Ask a question
     const askQuestion = useCallback(
@@ -69,8 +72,11 @@ export const useQnA = (
     // Subscribe to answers for a specific question
     const subscribeToAnswers = useCallback(
         (questionId) => {
-            if (!websocketService.isConnected()) {
-                console.warn("WebSocket not connected");
+            if (
+                !websocketService.isConnected() ||
+                !websocketService.isActive()
+            ) {
+                console.warn("WebSocket not connected or not active");
                 return;
             }
 

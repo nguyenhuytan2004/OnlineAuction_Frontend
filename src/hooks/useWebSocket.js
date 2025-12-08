@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import websocketService from "../services/websocketService";
 
 export const useWebSocket = () => {
@@ -9,7 +9,7 @@ export const useWebSocket = () => {
 
     useEffect(() => {
         const handleConnect = () => {
-            setConnected(true);
+            setConnected(websocketService.isConnected());
             setError(null);
             reconnectAttempts.current = 0;
         };
@@ -28,17 +28,22 @@ export const useWebSocket = () => {
         };
 
         // Connect WebSocket
-        if (!websocketService.isConnected()) {
+        if (!websocketService.isConnected() || !websocketService.isActive()) {
             websocketService.connect(handleConnect, handleError);
         } else {
             handleConnect();
         }
-
-        // Cleanup
-        return () => {
-            // WebSocket connection stays alive until app closes
-        };
     }, []);
 
-    return { connected, error };
+    const unsubscribeFromProduct = useCallback((productId) => {
+        if (productId) {
+            websocketService.unsubscribeFromProduct(productId);
+        }
+    }, []);
+
+    return {
+        connected,
+        error,
+        unsubscribeFromProduct,
+    };
 };

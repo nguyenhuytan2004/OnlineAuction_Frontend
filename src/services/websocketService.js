@@ -15,7 +15,6 @@ class WebSocketService {
             return;
         }
 
-        // Khởi tạo SockJS (KHÔNG truyền headers vào đây)
         const socket = new SockJS("http://localhost:8080/ws/bid", null, {
             onOpen: () => {
                 console.log("SockJS connection opened");
@@ -49,7 +48,6 @@ class WebSocketService {
             },
         });
 
-        // Bạn không cần truyền headers vào activate() nữa nếu đã khai báo ở trên.
         this.client.activate();
     }
 
@@ -59,6 +57,8 @@ class WebSocketService {
             this.subscriptions.clear();
             this.client.deactivate();
             this.connected = false;
+
+            console.log("WebSocket disconnected");
         }
     }
 
@@ -66,14 +66,17 @@ class WebSocketService {
         return this.connected;
     }
 
+    isActive() {
+        return this.client && this.client.active;
+    }
+
     // Subscribe to bid updates for a specific product
     subscribeToBids(productId, handleAuctionUpdate) {
-        if (!this.connected || !this.client) {
-            console.error("WebSocket not connected");
+        if (!this.isConnected() || !this.isActive()) {
+            console.error("WebSocket not connected or STOMP client not active");
             return null;
         }
 
-        console.log("Subscribing to bids for product:", productId);
         const destination = `/topic/product/${productId}/place-bid`;
         const subscription = this.client.subscribe(destination, (message) => {
             try {
@@ -91,7 +94,7 @@ class WebSocketService {
 
     // Place a bid
     placeBid(productId, bidData) {
-        if (!this.connected || !this.client) {
+        if (!this.isConnected() || !this.isActive()) {
             throw new Error("WebSocket chưa kết nối");
         }
 
@@ -104,8 +107,8 @@ class WebSocketService {
 
     // Subscribe to auction extension notifications
     subscribeToAuctionExtension(productId, handleAuctionExtended) {
-        if (!this.connected || !this.client) {
-            console.error("WebSocket not connected");
+        if (!this.isConnected() || !this.isActive()) {
+            console.error("WebSocket not connected or STOMP client not active");
             return null;
         }
 
@@ -125,12 +128,12 @@ class WebSocketService {
 
     // Subscribe to auction end notifications
     subscribeToAuctionEnd(productId, handleAuctionEnd) {
-        if (!this.connected || !this.client) {
-            console.error("WebSocket not connected");
+        if (!this.isConnected() || !this.isActive()) {
+            console.error("WebSocket not connected or STOMP client not active");
             return null;
         }
 
-        const destination = `/topic/product/${productId}/auction-end`;
+        const destination = `/topic/product/${productId}/auction-ended`;
         const subscription = this.client.subscribe(destination, (message) => {
             try {
                 const data = message.body;
@@ -146,8 +149,8 @@ class WebSocketService {
 
     // Subscribe to questions for a specific product
     subscribeToQuestions(productId, handleNewQuestion) {
-        if (!this.connected || !this.client) {
-            console.error("WebSocket not connected");
+        if (!this.isConnected() || !this.isActive()) {
+            console.error("WebSocket not connected or STOMP client not active");
             return null;
         }
 
@@ -168,7 +171,7 @@ class WebSocketService {
 
     // Ask a question
     askQuestion(userId, productId, questionText) {
-        if (!this.connected || !this.client) {
+        if (!this.isConnected() || !this.isActive()) {
             throw new Error("WebSocket chưa kết nối");
         }
 
@@ -181,8 +184,8 @@ class WebSocketService {
 
     // Subscribe to answers for a specific question
     subscribeToAnswers(productId, questionId, handleNewAnswer) {
-        if (!this.connected || !this.client) {
-            console.error("WebSocket not connected");
+        if (!this.isConnected() || !this.isActive()) {
+            console.error("WebSocket not connected or STOMP client not active");
             return null;
         }
 
@@ -197,13 +200,16 @@ class WebSocketService {
             }
         });
 
-        this.subscriptions.set(`answers-${questionId}`, subscription);
+        this.subscriptions.set(
+            `answers-${productId}-${questionId}`,
+            subscription,
+        );
         return subscription;
     }
 
     // Answer a question
     answerQuestion(userId, productId, questionId, answerText) {
-        if (!this.connected || !this.client) {
+        if (!this.isConnected() || !this.isActive()) {
             throw new Error("WebSocket chưa kết nối");
         }
 
@@ -248,12 +254,14 @@ class WebSocketService {
 
         // Unsubscribe from all answers for this product
         for (const key of this.subscriptions.keys()) {
-            if (key.startsWith(`answers`)) {
+            if (key.startsWith(`answers-${productId}`)) {
                 const sub = this.subscriptions.get(key);
                 sub.unsubscribe();
                 this.subscriptions.delete(key);
             }
         }
+
+        console.log("Unsubscribed from product:", productId);
     }
 }
 

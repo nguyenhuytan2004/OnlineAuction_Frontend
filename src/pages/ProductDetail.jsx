@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
@@ -11,7 +11,6 @@ import { useWebSocket } from "../hooks/useWebSocket";
 import { useAuction } from "../hooks/useAuction";
 import { useBid } from "../hooks/useBid";
 import { useQnA } from "../hooks/useQnA";
-import websocketService from "../services/websocketService";
 import { useAuth } from "../hooks/useAuth";
 
 const ProductDetail = () => {
@@ -160,28 +159,45 @@ const ProductDetail = () => {
     }, []);
 
     // WebSocket connection
-    const { connected, error: wsError } = useWebSocket();
+    const {
+        connected,
+        error: wsError,
+        unsubscribeFromProduct,
+    } = useWebSocket();
 
     // Q&A hook
     const { askQuestion, answerQuestion, subscribeToAnswers } = useQnA(
         productId,
         product?.seller?.userId,
+        connected,
         handleNewQuestion,
         handleNewAnswer,
     );
 
+    // Track subscribed questions to avoid duplicate subscriptions
+    const subscribedQuestionsRef = useRef(new Set());
+
     // Subscribe to answers for each question when Q&A data updates
     useEffect(() => {
-        if (product && websocketService.isConnected()) {
+        if (product && connected) {
             qnaData.forEach((qa) => {
-                subscribeToAnswers(qa.questionId);
+                // Just subscribe if not already subscribed
+                if (!subscribedQuestionsRef.current.has(qa.questionId)) {
+                    subscribeToAnswers(qa.questionId);
+                    subscribedQuestionsRef.current.add(qa.questionId);
+                    console.log(
+                        "Subscribed to answers for question:",
+                        qa.questionId,
+                    );
+                }
             });
         }
-    }, [qnaData, product, subscribeToAnswers]);
+    }, [connected, qnaData, product, subscribeToAnswers]);
 
     // Auction hook
     useAuction(
         productId,
+        connected,
         handleAuctionUpdate,
         handleAuctionExtended,
         handleAuctionEnd,
@@ -221,7 +237,11 @@ const ProductDetail = () => {
         };
 
         fetchProduct();
-    }, [productId]);
+
+        return () => {
+            unsubscribeFromProduct(productId);
+        };
+    }, [productId, unsubscribeFromProduct]);
 
     // Check eligibility to place bid
     useEffect(() => {

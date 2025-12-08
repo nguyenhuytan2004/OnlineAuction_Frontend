@@ -3,16 +3,19 @@ import websocketService from "../services/websocketService";
 
 export const useAuction = (
     productId,
+    connected,
     handleAuctionUpdate,
     handleAuctionExtended,
     handleAuctionEnd,
 ) => {
     useEffect(() => {
-        if (!productId) {
-            return;
-        }
+        // ✅ Kiểm tra cả connected và active từ props
+        if (productId && connected) {
+            console.log(
+                "Subscribing to auction updates for product:",
+                productId,
+            );
 
-        try {
             // Subscribe to bid updates
             websocketService.subscribeToBids(productId, (data) => {
                 handleAuctionUpdate?.(data);
@@ -27,15 +30,9 @@ export const useAuction = (
             websocketService.subscribeToAuctionEnd(productId, (data) => {
                 handleAuctionEnd?.(data);
             });
-        } catch (error) {
-            console.error("Error subscribing to auction events:", error);
         }
-
-        // Cleanup
-        return () => {
-            websocketService.unsubscribeFromProduct(productId);
-        };
     }, [
+        connected,
         productId,
         handleAuctionUpdate,
         handleAuctionExtended,
