@@ -12,7 +12,7 @@ export const useQnA = (
     // Subscribe to questions when product loads
     useEffect(() => {
         if (productId && connected) {
-            console.log("Subscribing to questions for product:", productId);
+            // console.log("Subscribing to questions for product:", productId);
 
             websocketService.subscribeToQuestions(productId, (data) => {
                 handleNewQuestion?.(data);

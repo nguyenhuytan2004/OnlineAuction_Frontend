@@ -45,7 +45,7 @@ export const userProfileService = {
     getRatings: async () => {
         try {
             const response = await apiClient.get(
-                API_ENDPOINTS.USER_PROFILE_RATINGS,
+                `${API_ENDPOINTS.USER_PROFILE}/ratings`,
             );
             return response;
         } catch (error) {

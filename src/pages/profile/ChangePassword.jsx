@@ -40,7 +40,7 @@ const ChangePassword = () => {
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-purple-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-500/10"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-indigo-600/10"></div>
                     <div className="flex items-center gap-4 relative z-10">
                         <Shield className="w-12 h-12 text-purple-400" />
                         <div>
@@ -183,7 +183,7 @@ const ChangePassword = () => {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full py-3 px-6 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold rounded-full transition-all duration-500 hover:scale-105 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wide"
+                                className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-600 hover:to-indigo-600 text-white font-bold rounded-full transition-all duration-500 hover:scale-105 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wide"
                             >
                                 {isSubmitting ? (
                                     <>

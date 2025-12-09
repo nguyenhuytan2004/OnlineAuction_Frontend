@@ -1,6 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { User, Heart, Settings, Lock, LogOut, ChevronDown } from "lucide-react";
+import {
+    User,
+    Heart,
+    Settings,
+    Lock,
+    LogOut,
+    ChevronDown,
+    Star,
+} from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
 /**
@@ -47,7 +55,7 @@ const AvatarDropdown = () => {
         {
             to: "/profile/info",
             icon: User,
-            label: "Thông tin",
+            label: "Quản lý sản phẩm",
             description: "Đang tham gia, Đã thắng",
             color: "amber",
         },
@@ -56,7 +64,14 @@ const AvatarDropdown = () => {
             icon: Heart,
             label: "Yêu thích",
             description: "Sản phẩm yêu thích",
-            color: "pink",
+            color: "red",
+        },
+        {
+            to: "/profile/ratings",
+            icon: Star,
+            label: "Đánh giá",
+            description: "Đánh giá nhận được",
+            color: "green",
         },
         {
             to: "/profile/account",
@@ -83,7 +98,7 @@ const AvatarDropdown = () => {
             >
                 {/* Avatar Circle */}
                 <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-black text-sm shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-600 to-orange-500 flex items-center justify-center text-white font-black text-sm shadow-lg group-hover:scale-110 transition-transform duration-300">
                         {getAvatarInitials()}
                     </div>
                     {/* Online indicator */}
@@ -92,7 +107,7 @@ const AvatarDropdown = () => {
 
                 {/* User name */}
                 <div className="hidden md:block text-left">
-                    <p className="text-sm font-bold text-slate-300 group-hover:text-amber-400 transition-colors">
+                    <p className="text-sm font-bold text-slate-300 group-hover:text-amber-600 transition-colors">
                         {user?.fullName}
                     </p>
                 </div>
@@ -109,7 +124,7 @@ const AvatarDropdown = () => {
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     {/* User Info Header */}
-                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4">
+                    <div className="bg-gradient-to-r from-amber-600 to-orange-500 p-4">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-amber-600 font-black text-lg shadow-lg">
                                 {getAvatarInitials()}
@@ -161,13 +176,13 @@ const AvatarDropdown = () => {
                         {/* Logout Button */}
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-all duration-200 group"
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-500/10 transition-all duration-200 group"
                         >
-                            <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
-                                <LogOut className="w-5 h-5 text-red-400" />
+                            <div className="w-10 h-10 rounded-lg bg-gray-500/10 flex items-center justify-center group-hover:bg-gray-500/20 transition-colors">
+                                <LogOut className="w-5 h-5 text-gray-400" />
                             </div>
                             <div className="flex-1 text-left">
-                                <p className="font-bold text-red-400 group-hover:text-red-300 transition-colors">
+                                <p className="font-bold text-gray-400 group-hover:text-gray-300 transition-colors">
                                     Đăng xuất
                                 </p>
                                 <p className="text-xs text-slate-500">

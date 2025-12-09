@@ -8,8 +8,9 @@ import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import UserInfo from "./pages/profile/UserInfo";
+import ProductManagement from "./pages/profile/ProductManagement";
 import Favorites from "./pages/profile/Favorites";
+import Ratings from "./pages/profile/Ratings";
 import AccountSettings from "./pages/profile/AccountSettings";
 import ChangePassword from "./pages/profile/ChangePassword";
 
@@ -52,11 +53,15 @@ function App() {
                                 />
                                 <Route
                                     path={`${ROUTES.PROFILE}/info`}
-                                    element={<UserInfo />}
+                                    element={<ProductManagement />}
                                 />
                                 <Route
                                     path={`${ROUTES.PROFILE}/favorites`}
                                     element={<Favorites />}
+                                />
+                                <Route
+                                    path={`${ROUTES.PROFILE}/ratings`}
+                                    element={<Ratings />}
                                 />
                                 <Route
                                     path={`${ROUTES.PROFILE}/account`}

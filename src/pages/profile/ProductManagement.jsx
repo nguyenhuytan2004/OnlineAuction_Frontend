@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TrendingUp, Trophy, Package } from "lucide-react";
+import { TrendingUp, Trophy, Package, User } from "lucide-react";
 import userProfileService from "../../services/userProfileService";
 import ProductCard from "../../components/ProductCard";
 
@@ -8,7 +8,7 @@ import ProductCard from "../../components/ProductCard";
  * - Sản phẩm đang tham gia đấu giá
  * - Sản phẩm đã thắng
  */
-const UserInfo = () => {
+const ProductManagement = () => {
     const [activeTab, setActiveTab] = useState("participating");
     const [loading, setLoading] = useState(false);
     const [participatingProducts, setParticipatingProducts] = useState([]);
@@ -18,14 +18,11 @@ const UserInfo = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                if (activeTab === "participating") {
-                    const data =
-                        await userProfileService.getParticipatingProducts();
-                    setParticipatingProducts(data);
-                } else {
-                    const data = await userProfileService.getWonProducts();
-                    setWonProducts(data);
-                }
+                const participatingProducts =
+                    await userProfileService.getParticipatingProducts();
+                setParticipatingProducts(participatingProducts);
+                const wonProducts = await userProfileService.getWonProducts();
+                setWonProducts(wonProducts);
             } catch (error) {
                 console.error("Error loading data:", error);
             } finally {
@@ -41,14 +38,18 @@ const UserInfo = () => {
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-amber-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
-                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10"></div>
-                    <div className="relative z-10">
-                        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 mb-2 tracking-tight">
-                            Thông Tin Của Tôi
-                        </h1>
-                        <p className="text-slate-300 font-semibold tracking-wide">
-                            Quản lý sản phẩm đang tham gia và đã thắng đấu giá
-                        </p>
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-400/10"></div>
+                    <div className="flex items-center gap-4 relative z-10">
+                        <User className="w-12 h-12 text-amber-500" />
+                        <div>
+                            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500 mb-2 tracking-tight">
+                                Quản lý sản phẩm
+                            </h1>
+                            <p className="text-slate-300 font-semibold tracking-wide">
+                                Quản lý sản phẩm đang tham gia và đã thắng đấu
+                                giá
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -59,7 +60,7 @@ const UserInfo = () => {
                             onClick={() => setActiveTab("participating")}
                             className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-500 ${
                                 activeTab === "participating"
-                                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30 scale-[1.02]"
+                                    ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/30 scale-[1.02]"
                                     : "bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200"
                             }`}
                         >
@@ -79,7 +80,7 @@ const UserInfo = () => {
                             onClick={() => setActiveTab("won")}
                             className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-500 ${
                                 activeTab === "won"
-                                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30 scale-[1.02]"
+                                    ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/30 scale-[1.02]"
                                     : "bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200"
                             }`}
                         >
@@ -120,7 +121,7 @@ const UserInfo = () => {
                                             </p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                             {participatingProducts.map(
                                                 (product) => (
                                                     <ProductCard
@@ -149,7 +150,7 @@ const UserInfo = () => {
                                             </p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                             {wonProducts.map((product) => (
                                                 <ProductCard
                                                     key={product.productId}
@@ -170,4 +171,4 @@ const UserInfo = () => {
     );
 };
 
-export default UserInfo;
+export default ProductManagement;

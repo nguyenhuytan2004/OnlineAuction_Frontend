@@ -14,6 +14,7 @@ import formatters from "../utils/formatters";
 import ProductCard from "../components/ProductCard_LessInfo";
 import productService from "../services/productService";
 import bidService from "../services/bidService";
+import favouriteService from "../services/favouriteService";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { useAuction } from "../hooks/useAuction";
 import { useBid } from "../hooks/useBid";
@@ -157,6 +158,18 @@ const ProductDetail = () => {
         );
     }, []);
 
+    const handleClickFavoriteProduct = async (productId, isFavorited) => {
+        try {
+            if (isFavorited) {
+                await favouriteService.addToFavourites(productId);
+            } else {
+                await favouriteService.removeFromFavourites(productId);
+            }
+        } catch (error) {
+            console.error("Failed to update favorite status:", error);
+        }
+    };
+
     // WebSocket connection
     const { connected, unsubscribeFromProduct } = useWebSocket();
 
@@ -180,10 +193,6 @@ const ProductDetail = () => {
                 if (!subscribedQuestionsRef.current.has(qa.questionId)) {
                     subscribeToAnswers(qa.questionId);
                     subscribedQuestionsRef.current.add(qa.questionId);
-                    console.log(
-                        "Subscribed to answers for question:",
-                        qa.questionId,
-                    );
                 }
             });
         }
@@ -207,13 +216,19 @@ const ProductDetail = () => {
             setLoading(true);
             setError(null);
             try {
-                const [productData, bidsData, qnaData, relatedProductsData] =
-                    await Promise.all([
-                        productService.getProductById(productId),
-                        productService.getBidsHistory(productId),
-                        productService.getProductQnA(productId),
-                        productService.getRelatedProducts(productId),
-                    ]);
+                const [
+                    productData,
+                    bidsData,
+                    qnaData,
+                    relatedProductsData,
+                    isFavorited,
+                ] = await Promise.all([
+                    productService.getProductById(productId),
+                    productService.getBidsHistory(productId),
+                    productService.getProductQnA(productId),
+                    productService.getRelatedProducts(productId),
+                    favouriteService.isInFavourites(productId),
+                ]);
                 setProduct(productData);
                 setIsAuctionEnded(!productData.isActive);
                 setBidHistory(Array.isArray(bidsData) ? bidsData : []);
@@ -223,6 +238,7 @@ const ProductDetail = () => {
                         ? relatedProductsData
                         : [],
                 );
+                setIsFavorited(isFavorited);
             } catch (err) {
                 console.error("Failed to fetch product:", err);
                 setError("Không thể tải chi tiết sản phẩm");
@@ -425,7 +441,17 @@ const ProductDetail = () => {
                             <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-orange-500/10 to-transparent rounded-tl-full"></div>
 
                             <button
-                                onClick={() => setIsFavorited(!isFavorited)}
+                                onClick={() => {
+                                    if (!isAuthenticated) {
+                                        navigate(ROUTES.LOGIN);
+                                        return;
+                                    }
+                                    handleClickFavoriteProduct(
+                                        product.productId,
+                                        !isFavorited,
+                                    );
+                                    setIsFavorited(!isFavorited);
+                                }}
                                 className="absolute top-8 right-8 text-3xl transition-all hover:scale-125 duration-500 z-50 cursor-pointer"
                             >
                                 <i
@@ -1063,7 +1089,7 @@ const ProductDetail = () => {
                     </h2>
                     <div className="grid grid-cols-5 gap-6">
                         {relatedProducts.map((relatedProduct) => (
-                            <div>
+                            <div key={relatedProduct.productId}>
                                 <ProductCard product={relatedProduct} />
                             </div>
                         ))}

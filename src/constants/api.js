@@ -17,4 +17,7 @@ export const API_ENDPOINTS = {
 
     // Profile
     USER_PROFILE: "/user-profile",
+
+    // Favourites
+    FAVOURITES: "/watch-list",
 };

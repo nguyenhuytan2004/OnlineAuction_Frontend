@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Heart, Package } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Heart } from "lucide-react";
 import userProfileService from "../../services/userProfileService";
 import ProductCard from "../../components/ProductCard";
 
@@ -30,12 +30,12 @@ const Favorites = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
-                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-pink-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
-                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-rose-500/10"></div>
+                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-red-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-rose-700/10"></div>
                     <div className="flex items-center gap-4 relative z-10">
-                        <Heart className="w-12 h-12 text-pink-400 fill-pink-400/30" />
+                        <Heart className="w-12 h-12 text-rose-400" />
                         <div>
-                            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-500 mb-2 tracking-tight">
+                            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-700 mb-2 tracking-tight">
                                 Sản Phẩm Yêu Thích
                             </h1>
                             <p className="text-slate-300 font-semibold tracking-wide">
@@ -63,7 +63,7 @@ const Favorites = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {watchList.map((product) => (
                                 <ProductCard
                                     key={product.productId}
