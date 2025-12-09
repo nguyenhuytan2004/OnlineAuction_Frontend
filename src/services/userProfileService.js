@@ -90,15 +90,15 @@ export const userProfileService = {
         }
     },
 
-    // Đổi mật khẩu (API chưa có - mock)
+    // Đổi mật khẩu
     changePassword: async (passwordData) => {
         try {
-            // TODO: Replace with actual API when available
-            const response = await apiClient.put(
-                `${API_ENDPOINTS.USER_PROFILE}/change-password`,
+            const response = await apiClient.patch(
+                `${API_ENDPOINTS.USER_PROFILE}`,
                 {
-                    oldPassword: passwordData.oldPassword,
+                    currentPassword: passwordData.currentPassword,
                     newPassword: passwordData.newPassword,
+                    confirmPassword: passwordData.confirmPassword,
                 },
             );
             return response;

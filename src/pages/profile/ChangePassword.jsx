@@ -1,37 +1,52 @@
-import React, { useState } from "react";
-import { Lock, Shield } from "lucide-react";
+import { useState } from "react";
+import { Lock, Shield, X } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { CheckCircle, XCircle } from "lucide-react";
 import userProfileService from "../../services/userProfileService";
 
 /**
  * Component đổi mật khẩu
  */
 const ChangePassword = () => {
-    const [updateSuccess, setUpdateSuccess] = useState(false);
+    const [updateState, setUpdateState] = useState({
+        message: "",
+        success: false,
+    });
     const {
         register,
-        handleSubmit,
+        handleSubmit: checkOnSubmit,
         watch,
         formState: { errors, isSubmitting },
         reset,
     } = useForm({
         defaultValues: {
-            oldPassword: "",
+            currentPassword: "",
             newPassword: "",
             confirmPassword: "",
         },
     });
 
+    const currentPassword = watch("currentPassword");
     const newPassword = watch("newPassword");
 
-    const onSubmit = async (data) => {
+    const handleSubmit = async (data) => {
+        console.log("Submitting password change:", data);
         try {
-            await userProfileService.changePassword(data);
-            setUpdateSuccess(true);
+            const response = await userProfileService.changePassword(data);
+            setUpdateState({
+                message: response || "Đổi mật khẩu thành công!",
+                success: true,
+            });
             reset();
-            setTimeout(() => setUpdateSuccess(false), 3000);
+            setTimeout(
+                () => setUpdateState({ message: "", success: false }),
+                3000,
+            );
         } catch (error) {
-            alert(error.message || "Không thể đổi mật khẩu");
+            setUpdateState({
+                message: error || "Không thể đổi mật khẩu",
+                success: false,
+            });
         }
     };
 
@@ -57,20 +72,26 @@ const ChangePassword = () => {
                 {/* Form */}
                 <div className="max-w-2xl mx-auto">
                     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 border border-slate-700/50 backdrop-blur-sm">
-                        {updateSuccess && (
-                            <div className="mb-6 p-4 bg-green-500/20 border-2 border-green-500/30 rounded-xl text-green-300 font-semibold animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm">
-                                ✓ Đổi mật khẩu thành công!
+                        {updateState.success ? (
+                            <div className="mb-6 p-4 bg-green-500/20 border-2 border-green-500/30 rounded-xl text-green-300 font-semibold animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm flex gap-2">
+                                <CheckCircle />
+                                {updateState.message}
                             </div>
-                        )}
+                        ) : updateState.message ? (
+                            <div className="mb-6 p-4 bg-red-500/20 border-2 border-red-500/30 rounded-xl text-red-300 font-semibold animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm flex gap-2">
+                                <XCircle />
+                                {updateState.message}
+                            </div>
+                        ) : null}
 
                         <form
-                            onSubmit={handleSubmit(onSubmit)}
+                            onSubmit={checkOnSubmit(handleSubmit)}
                             className="space-y-6"
                         >
-                            {/* Old Password */}
+                            {/* Current Password */}
                             <div>
                                 <label
-                                    htmlFor="oldPassword"
+                                    htmlFor="currentPassword"
                                     className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wider"
                                 >
                                     Mật khẩu hiện tại{" "}
@@ -79,9 +100,9 @@ const ChangePassword = () => {
                                 <div className="relative">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
-                                        id="oldPassword"
+                                        id="currentPassword"
                                         type="password"
-                                        {...register("oldPassword", {
+                                        {...register("currentPassword", {
                                             required:
                                                 "Vui lòng nhập mật khẩu hiện tại",
                                             minLength: {
@@ -90,17 +111,17 @@ const ChangePassword = () => {
                                                     "Mật khẩu phải có ít nhất 6 ký tự",
                                             },
                                         })}
-                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 ${
-                                            errors.oldPassword
+                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 focus:outline-none ${
+                                            errors.currentPassword
                                                 ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                                                 : "border-slate-700/50 focus:border-purple-500 focus:ring-purple-500/20"
                                         }`}
                                         placeholder="Nhập mật khẩu hiện tại"
                                     />
                                 </div>
-                                {errors.oldPassword && (
-                                    <p className="mt-2 text-sm text-red-400 font-semibold">
-                                        {errors.oldPassword.message}
+                                {errors.currentPassword && (
+                                    <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                                        {errors.currentPassword.message}
                                     </p>
                                 )}
                             </div>
@@ -127,8 +148,11 @@ const ChangePassword = () => {
                                                 message:
                                                     "Mật khẩu phải có ít nhất 6 ký tự",
                                             },
+                                            validate: (value) =>
+                                                value !== currentPassword ||
+                                                "Mật khẩu mới phải khác mật khẩu hiện tại",
                                         })}
-                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 ${
+                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 focus:outline-none ${
                                             errors.newPassword
                                                 ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                                                 : "border-slate-700/50 focus:border-purple-500 focus:ring-purple-500/20"
@@ -137,7 +161,7 @@ const ChangePassword = () => {
                                     />
                                 </div>
                                 {errors.newPassword && (
-                                    <p className="mt-2 text-sm text-red-400 font-semibold">
+                                    <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
                                         {errors.newPassword.message}
                                     </p>
                                 )}
@@ -164,7 +188,7 @@ const ChangePassword = () => {
                                                 value === newPassword ||
                                                 "Mật khẩu xác nhận không khớp",
                                         })}
-                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 ${
+                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 focus:outline-none ${
                                             errors.confirmPassword
                                                 ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                                                 : "border-slate-700/50 focus:border-purple-500 focus:ring-purple-500/20"
@@ -173,7 +197,7 @@ const ChangePassword = () => {
                                     />
                                 </div>
                                 {errors.confirmPassword && (
-                                    <p className="mt-2 text-sm text-red-400 font-semibold">
+                                    <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
                                         {errors.confirmPassword.message}
                                     </p>
                                 )}

@@ -10,6 +10,7 @@ import {
     Star,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import helpers from "../utils/helpers";
 
 /**
  * Component Avatar Dropdown Menu
@@ -41,14 +42,32 @@ const AvatarDropdown = () => {
         logout();
     };
 
-    const getAvatarInitials = () => {
-        if (!user?.fullName) return "U";
-        return user.fullName
-            .split(" ")
-            .map((word) => word[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2);
+    const colorClasses = {
+        amber: {
+            bg: "bg-amber-500/10",
+            bgHover: "group-hover:bg-amber-500/20",
+            text: "text-amber-400",
+        },
+        red: {
+            bg: "bg-red-500/10",
+            bgHover: "group-hover:bg-red-500/20",
+            text: "text-red-400",
+        },
+        green: {
+            bg: "bg-green-500/10",
+            bgHover: "group-hover:bg-green-500/20",
+            text: "text-green-400",
+        },
+        blue: {
+            bg: "bg-blue-500/10",
+            bgHover: "group-hover:bg-blue-500/20",
+            text: "text-blue-400",
+        },
+        purple: {
+            bg: "bg-purple-500/10",
+            bgHover: "group-hover:bg-purple-500/20",
+            text: "text-purple-400",
+        },
     };
 
     const menuItems = [
@@ -99,7 +118,7 @@ const AvatarDropdown = () => {
                 {/* Avatar Circle */}
                 <div className="relative">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-600 to-orange-500 flex items-center justify-center text-white font-black text-sm shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        {getAvatarInitials()}
+                        {helpers.getAvatarInitials(user?.fullName)}
                     </div>
                     {/* Online indicator */}
                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
@@ -127,7 +146,7 @@ const AvatarDropdown = () => {
                     <div className="bg-gradient-to-r from-amber-600 to-orange-500 p-4">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-amber-600 font-black text-lg shadow-lg">
-                                {getAvatarInitials()}
+                                {helpers.getAvatarInitials(user?.fullName)}
                             </div>
                             <div className="flex-1">
                                 <p className="font-black text-white text-lg">
@@ -144,6 +163,7 @@ const AvatarDropdown = () => {
                     <div className="p-2">
                         {menuItems.map((item) => {
                             const Icon = item.icon;
+                            const colors = colorClasses[item.color];
                             return (
                                 <Link
                                     key={item.to}
@@ -152,10 +172,10 @@ const AvatarDropdown = () => {
                                     className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-all duration-200 group"
                                 >
                                     <div
-                                        className={`w-10 h-10 rounded-lg bg-${item.color}-500/10 flex items-center justify-center group-hover:bg-${item.color}-500/20 transition-colors`}
+                                        className={`w-10 h-10 rounded-lg ${colors.bg} ${colors.bgHover} flex items-center justify-center transition-colors`}
                                     >
                                         <Icon
-                                            className={`w-5 h-5 text-${item.color}-400`}
+                                            className={`w-5 h-5 ${colors.text}`}
                                         />
                                     </div>
                                     <div className="flex-1">

@@ -45,12 +45,27 @@ const helpers = {
     },
 
     // Mask name
-    // Nguyễn Huy Tấn -> ****Tấn
     maskName: (fullName) => {
         const nameParts = fullName.trim().split(" ");
         if (nameParts.length === 0) return "";
         const lastName = nameParts[nameParts.length - 1];
         return "* * * * " + lastName;
+    },
+
+    // Get email regex
+    getEmailRegex: () => {
+        return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    },
+
+    // Get avatar initials
+    getAvatarInitials: (fullName) => {
+        if (!fullName) return "U";
+        return fullName
+            .split(" ")
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2);
     },
 };
 

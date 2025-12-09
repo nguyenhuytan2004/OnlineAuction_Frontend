@@ -1,67 +1,30 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
 import authService from "../../services/authService";
+import { useForm } from "react-hook-form";
+import helpers from "../../utils/helpers";
 
 const Login = () => {
+    const [generalError, setGeneralError] = useState("");
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
+    const {
+        register,
+        handleSubmit: checkOnSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm({
+        defaultValues: {
+            email: "",
+            password: "",
+        },
     });
-    const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors((prev) => ({
-                ...prev,
-                [name]: "",
-            }));
-        }
-    };
-
-    const validateForm = () => {
-        const newErrors = {};
-
-        if (!formData.email) {
-            newErrors.email = "Email là bắt buộc";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = "Email không hợp lệ";
-        }
-
-        if (!formData.password) {
-            newErrors.password = "Mật khẩu là bắt buộc";
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
-        }
-
-        return newErrors;
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const newErrors = validateForm();
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-
-        setLoading(true);
+    const handleSubmit = async (data) => {
         try {
-            await authService.login(formData.email, formData.password);
+            await authService.login(data.email, data.password);
             navigate(ROUTES.HOME);
         } catch (error) {
-            setErrors({ general: error || "Lỗi đăng nhập" });
-        } finally {
-            setLoading(false);
+            setGeneralError(error || "Đăng nhập thất bại");
         }
     };
 
@@ -87,7 +50,7 @@ const Login = () => {
                 </div>
 
                 {/* General Error */}
-                {errors.general && (
+                {generalError && (
                     <div className="mb-6 p-4 bg-gradient-to-r from-red-900/30 to-red-800/30 border-2 border-red-700/50 rounded-xl text-red-300 text-sm font-semibold backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="flex items-center gap-2">
                             <svg
@@ -104,26 +67,34 @@ const Login = () => {
                                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                             </svg>
-                            {errors.general}
+                            {generalError}
                         </div>
                     </div>
                 )}
 
                 {/* Form */}
                 <form
-                    onSubmit={handleSubmit}
+                    onSubmit={checkOnSubmit(handleSubmit)}
                     className="space-y-5 relative z-10"
                 >
                     {/* Email */}
                     <div>
-                        <label className="block text-slate-300 text-sm font-black mb-2 uppercase tracking-wider">
+                        <label
+                            htmlFor="email"
+                            className="block text-slate-300 text-sm font-black mb-2 uppercase tracking-wider"
+                        >
                             Email
                         </label>
                         <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            id="email"
+                            type="text"
+                            {...register("email", {
+                                required: "Email là bắt buộc",
+                                pattern: {
+                                    value: helpers.getEmailRegex(),
+                                    message: "Email không hợp lệ",
+                                },
+                            })}
                             placeholder="Nhập email của bạn"
                             className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.email
@@ -133,35 +104,29 @@ const Login = () => {
                         />
                         {errors.email && (
                             <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={3}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                                {errors.email}
+                                {errors.email.message}
                             </p>
                         )}
                     </div>
 
                     {/* Password */}
                     <div>
-                        <label className="block text-slate-300 text-sm font-black mb-2 uppercase tracking-wider">
+                        <label
+                            htmlFor="password"
+                            className="block text-slate-300 text-sm font-black mb-2 uppercase tracking-wider"
+                        >
                             Mật Khẩu
                         </label>
                         <input
+                            id="password"
                             type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
+                            {...register("password", {
+                                required: "Mật khẩu là bắt buộc",
+                                minLength: {
+                                    value: 6,
+                                    message: "Mật khẩu phải có ít nhất 6 ký tự",
+                                },
+                            })}
                             placeholder="Nhập mật khẩu của bạn"
                             className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.password
@@ -171,29 +136,19 @@ const Login = () => {
                         />
                         {errors.password && (
                             <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={3}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                                {errors.password}
+                                {errors.password.message}
                             </p>
                         )}
                     </div>
 
                     {/* Remember Me & Forgot Password */}
                     <div className="flex items-center justify-between text-xs pt-2">
-                        <label className="flex items-center text-slate-400 hover:text-slate-300 cursor-pointer group">
+                        <label
+                            htmlFor="rememberMe"
+                            className="flex items-center text-slate-400 hover:text-slate-300 cursor-pointer group"
+                        >
                             <input
+                                id="rememberMe"
                                 type="checkbox"
                                 className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-2 focus:ring-amber-500 transition-all duration-300"
                             />
@@ -212,11 +167,11 @@ const Login = () => {
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={isSubmitting}
                         className="group relative w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-6 rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-amber-500/50 hover:scale-[1.02] uppercase tracking-wider text-sm overflow-hidden mt-6"
                     >
                         <span className="relative z-10">
-                            {loading ? (
+                            {isSubmitting ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <svg
                                         className="animate-spin h-5 w-5"

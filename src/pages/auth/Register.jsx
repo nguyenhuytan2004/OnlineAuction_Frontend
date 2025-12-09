@@ -2,84 +2,37 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants/routes";
 import authService from "../../services/authService";
+import { useForm } from "react-hook-form";
+import helpers from "../../utils/helpers";
 
 const Register = () => {
+    const [generalError, setGeneralError] = useState("");
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        fullName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
+    const {
+        register,
+        handleSubmit: checkOnSubmit,
+        formState: { errors, isSubmitting },
+        watch,
+    } = useForm({
+        defaultValues: {
+            fullName: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
+        },
     });
-    const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
+    const password = watch("password");
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors((prev) => ({
-                ...prev,
-                [name]: "",
-            }));
-        }
-    };
-
-    const validateForm = () => {
-        const newErrors = {};
-
-        if (!formData.fullName) {
-            newErrors.fullName = "Họ tên là bắt buộc";
-        } else if (formData.fullName.length < 3) {
-            newErrors.fullName = "Họ tên phải có ít nhất 3 ký tự";
-        }
-
-        if (!formData.email) {
-            newErrors.email = "Email là bắt buộc";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = "Email không hợp lệ";
-        }
-
-        if (!formData.password) {
-            newErrors.password = "Mật khẩu là bắt buộc";
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
-        }
-
-        if (!formData.confirmPassword) {
-            newErrors.confirmPassword = "Xác nhận mật khẩu là bắt buộc";
-        } else if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
-        }
-
-        return newErrors;
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const newErrors = validateForm();
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-
-        setLoading(true);
+    const handleSubmit = async (data) => {
         try {
             await authService.register({
-                fullName: formData.fullName,
-                email: formData.email,
-                password: formData.password,
+                fullName: data.fullName,
+                email: data.email,
+                password: data.password,
             });
             navigate(ROUTES.HOME);
         } catch (error) {
-            setErrors({ general: error.message || "Lỗi đăng ký" });
-        } finally {
-            setLoading(false);
+            setGeneralError(error || "Lỗi đăng ký");
         }
     };
 
@@ -105,7 +58,7 @@ const Register = () => {
                 </div>
 
                 {/* General Error */}
-                {errors.general && (
+                {generalError && (
                     <div className="mb-6 p-4 bg-gradient-to-r from-red-900/30 to-red-800/30 border-2 border-red-700/50 rounded-xl text-red-300 text-sm font-semibold backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="flex items-center gap-2">
                             <svg
@@ -122,14 +75,14 @@ const Register = () => {
                                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                             </svg>
-                            {errors.general}
+                            {generalError}
                         </div>
                     </div>
                 )}
 
                 {/* Form */}
                 <form
-                    onSubmit={handleSubmit}
+                    onSubmit={checkOnSubmit(handleSubmit)}
                     className="space-y-5 relative z-10"
                 >
                     {/* Full Name */}
@@ -138,10 +91,16 @@ const Register = () => {
                             Họ và Tên
                         </label>
                         <input
+                            id="fullName"
                             type="text"
-                            name="fullName"
-                            value={formData.fullName}
-                            onChange={handleChange}
+                            {...register("fullName", {
+                                required: "Họ và tên là bắt buộc",
+                                minLength: {
+                                    value: 3,
+                                    message:
+                                        "Họ và tên phải có ít nhất 3 ký tự",
+                                },
+                            })}
                             placeholder="Nhập họ và tên của bạn"
                             className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.fullName
@@ -151,21 +110,7 @@ const Register = () => {
                         />
                         {errors.fullName && (
                             <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={3}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                                {errors.fullName}
+                                {errors.fullName.message}
                             </p>
                         )}
                     </div>
@@ -176,10 +121,15 @@ const Register = () => {
                             Email
                         </label>
                         <input
+                            id="email"
                             type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            {...register("email", {
+                                required: "Email là bắt buộc",
+                                pattern: {
+                                    value: helpers.getEmailRegex(),
+                                    message: "Định dạng email không hợp lệ",
+                                },
+                            })}
                             placeholder="Nhập email của bạn"
                             className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.email
@@ -189,29 +139,9 @@ const Register = () => {
                         />
                         {errors.email && (
                             <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={3}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                                {errors.email}
+                                {errors.email.message}
                             </p>
                         )}
-                    </div>
-
-                    <div>
-                        <p className="text-red-400 text-xs mt-1">
-                            {errors.email}
-                        </p>
                     </div>
 
                     {/* Password */}
@@ -220,10 +150,15 @@ const Register = () => {
                             Mật Khẩu
                         </label>
                         <input
+                            id="password"
                             type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
+                            {...register("password", {
+                                required: "Mật khẩu là bắt buộc",
+                                minLength: {
+                                    value: 6,
+                                    message: "Mật khẩu phải có ít nhất 6 ký tự",
+                                },
+                            })}
                             placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
                             className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.password
@@ -233,21 +168,7 @@ const Register = () => {
                         />
                         {errors.password && (
                             <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-3 w-3"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={3}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                                {errors.password}
+                                {errors.password.message}
                             </p>
                         )}
                     </div>
@@ -258,10 +179,13 @@ const Register = () => {
                             Xác Nhận Mật Khẩu
                         </label>
                         <input
+                            id="confirmPassword"
                             type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
+                            {...register("confirmPassword", {
+                                required: "Xác nhận mật khẩu là bắt buộc",
+                                validate: (value) =>
+                                    value === password || "Mật khẩu không khớp",
+                            })}
                             placeholder="Nhập lại mật khẩu"
                             className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                                 errors.confirmPassword
@@ -285,7 +209,7 @@ const Register = () => {
                                         d="M6 18L18 6M6 6l12 12"
                                     />
                                 </svg>
-                                {errors.confirmPassword}
+                                {errors.confirmPassword.message}
                             </p>
                         )}
                     </div>
@@ -321,11 +245,11 @@ const Register = () => {
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={isSubmitting}
                         className="group relative w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-6 rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-amber-500/50 hover:scale-[1.02] uppercase tracking-wider text-sm overflow-hidden mt-6"
                     >
                         <span className="relative z-10">
-                            {loading ? (
+                            {isSubmitting ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <svg
                                         className="animate-spin h-5 w-5"

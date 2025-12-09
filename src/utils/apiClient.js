@@ -37,14 +37,19 @@ class ApiClient {
                 let errorMessage = null;
                 try {
                     errorMessage = await response.text();
-                    console.error("Error message:", errorMessage);
                 } catch {
                     // Ignore JSON parse errors
                 }
 
                 throw errorMessage || `HTTP error! status: ${response.status}`;
             }
-            return await response.json();
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                return await response.json();
+            } else {
+                return await response.text();
+            }
         } catch (error) {
             console.error("Error occurred:", error);
             throw error;

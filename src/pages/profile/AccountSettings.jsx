@@ -3,6 +3,7 @@ import { Settings, User2, Mail, Save } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../hooks/useAuth";
 import userProfileService from "../../services/userProfileService";
+import helpers from "../../utils/helpers";
 
 /**
  * Component cập nhật thông tin tài khoản
@@ -12,7 +13,7 @@ const AccountSettings = () => {
     const [updateSuccess, setUpdateSuccess] = useState(false);
     const {
         register,
-        handleSubmit,
+        handleSubmit: checkOnSubmit,
         formState: { errors, isSubmitting },
     } = useForm({
         defaultValues: {
@@ -21,7 +22,7 @@ const AccountSettings = () => {
         },
     });
 
-    const onSubmit = async (data) => {
+    const handleSubmit = async (data) => {
         try {
             await userProfileService.updateProfile(data);
             setUpdateSuccess(true);
@@ -60,7 +61,7 @@ const AccountSettings = () => {
                         )}
 
                         <form
-                            onSubmit={handleSubmit(onSubmit)}
+                            onSubmit={checkOnSubmit(handleSubmit)}
                             className="space-y-6"
                         >
                             {/* Email */}
@@ -76,15 +77,15 @@ const AccountSettings = () => {
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
                                         id="email"
-                                        type="email"
+                                        type="text"
                                         {...register("email", {
                                             required: "Email là bắt buộc",
                                             pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                                value: helpers.getEmailRegex(),
                                                 message: "Email không hợp lệ",
                                             },
                                         })}
-                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 ${
+                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 focus:outline-none ${
                                             errors.email
                                                 ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                                                 : "border-slate-700/50 focus:border-blue-500 focus:ring-blue-500/20"
@@ -93,7 +94,7 @@ const AccountSettings = () => {
                                     />
                                 </div>
                                 {errors.email && (
-                                    <p className="mt-2 text-sm text-red-400 font-semibold">
+                                    <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
                                         {errors.email.message}
                                     </p>
                                 )}
@@ -112,7 +113,6 @@ const AccountSettings = () => {
                                     <User2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
                                         id="fullName"
-                                        type="text"
                                         {...register("fullName", {
                                             required: "Họ tên là bắt buộc",
                                             minLength: {
@@ -126,16 +126,16 @@ const AccountSettings = () => {
                                                     "Họ tên không được quá 100 ký tự",
                                             },
                                         })}
-                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 ${
+                                        className={`w-full pl-12 pr-4 py-3 bg-slate-950/50 border-2 rounded-xl focus:ring-4 transition-all duration-300 text-slate-100 placeholder-slate-500 focus:outline-none ${
                                             errors.fullName
                                                 ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
-                                                : "border-slate-700/50 focus:border-blue-500 focus:ring-blue-500/20"
+                                                : "border-slate-700/50 focus:border-blue-500 focus:ring-blue-500/20 "
                                         }`}
                                         placeholder="Nhập họ và tên của bạn"
                                     />
                                 </div>
                                 {errors.fullName && (
-                                    <p className="mt-2 text-sm text-red-400 font-semibold">
+                                    <p className="text-red-400 text-xs mt-2 font-semibold flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
                                         {errors.fullName.message}
                                     </p>
                                 )}

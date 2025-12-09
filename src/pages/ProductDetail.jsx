@@ -322,7 +322,11 @@ const ProductDetail = () => {
     // Get all images (main + auxiliary)
     const allImages = [
         product.mainImageUrl,
-        ...(product.auxiliaryImages?.map((img) => img.imageUrl) || []),
+        ...(Array.isArray(product.auxiliaryImages)
+            ? product.auxiliaryImages
+                  .map((img) => img?.imageUrl)
+                  .filter(Boolean)
+            : []),
     ].filter(Boolean);
 
     return (
