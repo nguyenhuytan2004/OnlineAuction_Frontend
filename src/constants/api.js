@@ -14,6 +14,9 @@ export const API_ENDPOINTS = {
 
     // Bids
     BIDS: "/bids",
+    BLOCK_BIDDER: (productId) => `/products/${productId}/block-bidder`,
+    CHECK_BLOCKING: (productId) =>
+        `/products/${productId}/bid-blocking-inspection`,
 
     // Profile
     USER_PROFILE: "/user-profile",

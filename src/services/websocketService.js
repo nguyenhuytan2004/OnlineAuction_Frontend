@@ -15,7 +15,7 @@ class WebSocketService {
             return;
         }
 
-        const socket = new SockJS("http://localhost:8080/ws/bid", null, {
+        const socket = new SockJS("http://localhost:8080/ws", null, {
             onOpen: () => {
                 console.log("SockJS connection opened");
             },
@@ -225,12 +225,41 @@ class WebSocketService {
         });
     }
 
+    // Subscribe to private notifications
+    subscribeToBlockedNotification(userId, handleBlockedNotification) {
+        if (!this.isConnected() || !this.isActive()) {
+            console.error("WebSocket not connected or STOMP client not active");
+            return null;
+        }
+
+        console.log("Subscribing to blocked notifications for user:", userId);
+        const destination = `/user/${userId}/queue/blocked-notification`;
+        const subscription = this.client.subscribe(destination, (message) => {
+            try {
+                const data = message.body;
+                console.log("Received private notification:", data);
+                handleBlockedNotification(data);
+            } catch (error) {
+                console.error(
+                    "Error parsing private notification message:",
+                    error,
+                );
+            }
+        });
+
+        this.subscriptions.set(`private-notifications`, subscription);
+        return subscription;
+    }
+
     // Unsubscribe from a specific product
     unsubscribeFromProduct(productId) {
         const bidsSub = this.subscriptions.get(`bids-${productId}`);
         const extensionSub = this.subscriptions.get(`extension-${productId}`);
         const auctionEndSub = this.subscriptions.get(`auctionEnd-${productId}`);
         const questionsSub = this.subscriptions.get(`questions-${productId}`);
+        const privateNotificationsSub = this.subscriptions.get(
+            `private-notifications`,
+        );
 
         if (bidsSub) {
             bidsSub.unsubscribe();
@@ -250,6 +279,11 @@ class WebSocketService {
         if (questionsSub) {
             questionsSub.unsubscribe();
             this.subscriptions.delete(`questions-${productId}`);
+        }
+
+        if (privateNotificationsSub) {
+            privateNotificationsSub.unsubscribe();
+            this.subscriptions.delete(`private-notifications`);
         }
 
         // Unsubscribe from all answers for this product

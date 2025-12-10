@@ -20,6 +20,7 @@ import { useAuction } from "../hooks/useAuction";
 import { useBid } from "../hooks/useBid";
 import { useQnA } from "../hooks/useQnA";
 import { useAuth } from "../hooks/useAuth";
+import { usePrivateNotification } from "../hooks/usePrivateNotification";
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -36,19 +37,223 @@ const ProductDetail = () => {
     const [maxBidPrice, setMaxBidPrice] = useState("");
     const [bidError, setBidError] = useState("");
     const [buyNowLoading, setBuyNowLoading] = useState(false);
-    const [isBidDropdownOpen, setIsBidDropdownOpen] = useState(false);
-    const bidDropdownRef = useRef(null);
     const [buyNowError, setBuyNowError] = useState("");
     const [notification, setNotification] = useState(null);
     const [isEligible, setIsEligible] = useState(false);
     const [isAuctionEnded, setIsAuctionEnded] = useState(false);
     const [questionText, setQuestionText] = useState("");
     const [answerTexts, setAnswerTexts] = useState({});
+    const [showBidderDetailModal, setShowBidderDetailModal] = useState(false);
+    const [selectedBidder, setSelectedBidder] = useState(null);
+    const [blockReason, setBlockReason] = useState("");
+    const [blockLoading, setBlockLoading] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [showBlockedNotificationModal, setShowBlockedNotificationModal] =
+        useState(false);
+    const [blockedReason, setBlockedReason] = useState("");
+    const [isBidDropdownOpen, setIsBidDropdownOpen] = useState(false);
+
+    const bidDropdownRef = useRef(null);
+
     const navigate = useNavigate();
 
     const { isAuthenticated, user } = useAuth();
+
     const isCurrentUserSeller =
         isAuthenticated && user.userId === product?.seller?.userId;
+
+    const handleBuyNowAction = async () => {
+        setTimeout(async () => {
+            try {
+                await productService.buyNowProduct(productId);
+                setShowBuyNowModal(false);
+
+                // Reload product info
+                const updatedProduct = await productService.getProductById(
+                    productId,
+                );
+                setProduct(updatedProduct);
+                setIsAuctionEnded(true);
+            } catch (err) {
+                setBuyNowError(
+                    err.response?.data?.message ||
+                        err.message ||
+                        "Không thể hoàn tất mua ngay",
+                );
+            } finally {
+                setBuyNowLoading(false);
+            }
+        }, 2000);
+    };
+
+    const handleClickFavoriteProduct = async (productId, isFavorited) => {
+        try {
+            if (isFavorited) {
+                await favouriteService.addToFavourites(productId);
+            } else {
+                await favouriteService.removeFromFavourites(productId);
+            }
+        } catch (error) {
+            console.error("Failed to update favorite status:", error);
+        }
+    };
+
+    // Handle click on bid history row to show bidder details
+    const handleBidderClick = (bidder) => {
+        if (!isCurrentUserSeller) return;
+        setSelectedBidder(bidder);
+        setBlockReason("");
+        setShowBidderDetailModal(true);
+    };
+
+    // Handle block bidder
+    const handleBlockBidder = async () => {
+        if (!selectedBidder) {
+            return;
+        }
+
+        setBlockLoading(true);
+        try {
+            await bidService.blockBidder(
+                productId,
+                selectedBidder.userId,
+                blockReason,
+            );
+
+            // Refresh product data
+            const updatedProduct = await productService.getProductById(
+                productId,
+            );
+            setProduct(updatedProduct);
+            console.log(
+                "Updated product after blocking bidder:",
+                updatedProduct,
+            );
+
+            // Refresh bid history
+            const history = await productService.getBidHistory(productId);
+            setBidHistory(history);
+
+            setNotification({
+                message: `Đã chặn bidder ${selectedBidder.fullName} thành công`,
+                type: "success",
+            });
+            setTimeout(() => setNotification(null), 3000);
+
+            setShowBidderDetailModal(false);
+            setSelectedBidder(null);
+            setBlockReason("");
+        } catch (error) {
+            console.error("Failed to block bidder:", error);
+            setNotification({
+                message:
+                    error.message || "Không thể chặn bidder. Vui lòng thử lại.",
+                type: "error",
+            });
+            setTimeout(() => setNotification(null), 3000);
+        } finally {
+            setBlockLoading(false);
+        }
+    };
+
+    // Check eligibility to place bid
+    useEffect(() => {
+        const fetchEligibility = async () => {
+            if (!isAuthenticated || !product || product.allowUnderratedBidder)
+                return;
+
+            try {
+                const isEligible = await productService.checkBiddingEligibility(
+                    product.productId,
+                );
+                setIsEligible(isEligible);
+            } catch (error) {
+                console.error("Failed to check bidding eligibility:", error);
+            }
+        };
+
+        fetchEligibility();
+    }, [isAuthenticated, product]);
+
+    // Check if current user is blocked from bidding
+    useEffect(() => {
+        const checkBlockingStatus = async () => {
+            if (!isAuthenticated || !productId || isCurrentUserSeller) return;
+
+            try {
+                const blocked = await bidService.checkBlocking(productId);
+                setIsBlocked(blocked);
+            } catch (error) {
+                console.error("Failed to check blocking status:", error);
+            }
+        };
+
+        checkBlockingStatus();
+    }, [isAuthenticated, productId, isCurrentUserSeller]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                bidDropdownRef.current &&
+                !bidDropdownRef.current.contains(event.target)
+            ) {
+                setIsBidDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // WebSocket connection
+    const { connected, unsubscribeFromProduct } = useWebSocket();
+
+    const handleNewQuestion = useCallback((newQuestion) => {
+        console.log("New question received:", newQuestion);
+        setQnaData((prev) => [newQuestion, ...prev]);
+    }, []);
+
+    const handleNewAnswer = useCallback((newAnswer, questionId) => {
+        console.log("New answer received:", newAnswer);
+
+        setQnaData((prev) =>
+            prev.map((qa) => {
+                if (qa.questionId === questionId) {
+                    return {
+                        ...qa,
+                        answers: [...(qa.answers || []), newAnswer],
+                    };
+                }
+                return qa;
+            }),
+        );
+    }, []);
+
+    // Q&A hook
+    const { askQuestion, answerQuestion, subscribeToAnswers } = useQnA(
+        productId,
+        product?.seller?.userId,
+        connected,
+        handleNewQuestion,
+        handleNewAnswer,
+    );
+
+    // Track subscribed questions to avoid duplicate subscriptions
+    const subscribedQuestionsRef = useRef(new Set());
+
+    // Subscribe to answers for each question when Q&A data updates
+    useEffect(() => {
+        if (product && connected) {
+            qnaData.forEach((qa) => {
+                // Just subscribe if not already subscribed
+                if (!subscribedQuestionsRef.current.has(qa.questionId)) {
+                    subscribeToAnswers(qa.questionId);
+                    subscribedQuestionsRef.current.add(qa.questionId);
+                }
+            });
+        }
+    }, [connected, qnaData, product, subscribeToAnswers]);
 
     const handleAuctionUpdate = useCallback((bidUpdate) => {
         console.log("Handling bid update:", bidUpdate);
@@ -113,91 +318,6 @@ const ProductDetail = () => {
         setTimeout(() => setNotification(null), 3000);
     }, []);
 
-    const handleBuyNowAction = async () => {
-        setTimeout(async () => {
-            try {
-                await productService.buyNowProduct(productId);
-                setShowBuyNowModal(false);
-
-                // Reload product info
-                const updatedProduct = await productService.getProductById(
-                    productId,
-                );
-                setProduct(updatedProduct);
-                setIsAuctionEnded(true);
-            } catch (err) {
-                setBuyNowError(
-                    err.response?.data?.message ||
-                        err.message ||
-                        "Không thể hoàn tất mua ngay",
-                );
-            } finally {
-                setBuyNowLoading(false);
-            }
-        }, 2000);
-    };
-
-    const handleNewQuestion = useCallback((newQuestion) => {
-        console.log("New question received:", newQuestion);
-        setQnaData((prev) => [newQuestion, ...prev]);
-    }, []);
-
-    const handleNewAnswer = useCallback((newAnswer, questionId) => {
-        console.log("New answer received:", newAnswer);
-
-        setQnaData((prev) =>
-            prev.map((qa) => {
-                if (qa.questionId === questionId) {
-                    return {
-                        ...qa,
-                        answers: [...(qa.answers || []), newAnswer],
-                    };
-                }
-                return qa;
-            }),
-        );
-    }, []);
-
-    const handleClickFavoriteProduct = async (productId, isFavorited) => {
-        try {
-            if (isFavorited) {
-                await favouriteService.addToFavourites(productId);
-            } else {
-                await favouriteService.removeFromFavourites(productId);
-            }
-        } catch (error) {
-            console.error("Failed to update favorite status:", error);
-        }
-    };
-
-    // WebSocket connection
-    const { connected, unsubscribeFromProduct } = useWebSocket();
-
-    // Q&A hook
-    const { askQuestion, answerQuestion, subscribeToAnswers } = useQnA(
-        productId,
-        product?.seller?.userId,
-        connected,
-        handleNewQuestion,
-        handleNewAnswer,
-    );
-
-    // Track subscribed questions to avoid duplicate subscriptions
-    const subscribedQuestionsRef = useRef(new Set());
-
-    // Subscribe to answers for each question when Q&A data updates
-    useEffect(() => {
-        if (product && connected) {
-            qnaData.forEach((qa) => {
-                // Just subscribe if not already subscribed
-                if (!subscribedQuestionsRef.current.has(qa.questionId)) {
-                    subscribeToAnswers(qa.questionId);
-                    subscribedQuestionsRef.current.add(qa.questionId);
-                }
-            });
-        }
-    }, [connected, qnaData, product, subscribeToAnswers]);
-
     // Auction hook
     useAuction(
         productId,
@@ -210,25 +330,57 @@ const ProductDetail = () => {
     // Bid hook
     const { placeBid: wsSendBid } = useBid(productId);
 
+    const handleBlockedNotification = useCallback(
+        (reason) => {
+            setBlockedReason(reason);
+            setIsBlocked(true);
+            setShowBlockedNotificationModal(true);
+
+            const fetchUpdatedData = async () => {
+                // Wait backend to commit transaction
+                await new Promise((resolve) => setTimeout(resolve, 500));
+
+                try {
+                    // Refresh product data
+                    const updatedProduct = await productService.getProductById(
+                        productId,
+                    );
+                    setProduct(updatedProduct);
+                    console.log(
+                        "Updated product after blocked notification:",
+                        updatedProduct,
+                    );
+
+                    // Refresh bid history
+                    const history = await productService.getBidHistory(
+                        productId,
+                    );
+                    setBidHistory(history);
+                } catch (error) {
+                    console.error("Failed to fetch updated data:", error);
+                }
+            };
+            fetchUpdatedData();
+        },
+        [productId],
+    );
+
+    // Private notification hook
+    usePrivateNotification(connected, user?.userId, handleBlockedNotification);
+
     // Fetch product details
     useEffect(() => {
         const fetchProduct = async () => {
             setLoading(true);
             setError(null);
             try {
-                const [
-                    productData,
-                    bidsData,
-                    qnaData,
-                    relatedProductsData,
-                    isFavorited,
-                ] = await Promise.all([
-                    productService.getProductById(productId),
-                    productService.getBidsHistory(productId),
-                    productService.getProductQnA(productId),
-                    productService.getRelatedProducts(productId),
-                    favouriteService.isInFavourites(productId),
-                ]);
+                const [productData, bidsData, qnaData, relatedProductsData] =
+                    await Promise.all([
+                        productService.getProductById(productId),
+                        productService.getBidHistory(productId),
+                        productService.getProductQnA(productId),
+                        productService.getRelatedProducts(productId),
+                    ]);
                 setProduct(productData);
                 setIsAuctionEnded(!productData.isActive);
                 setBidHistory(Array.isArray(bidsData) ? bidsData : []);
@@ -238,7 +390,6 @@ const ProductDetail = () => {
                         ? relatedProductsData
                         : [],
                 );
-                setIsFavorited(isFavorited);
             } catch (err) {
                 console.error("Failed to fetch product:", err);
                 setError("Không thể tải chi tiết sản phẩm");
@@ -246,45 +397,26 @@ const ProductDetail = () => {
                 setLoading(false);
             }
         };
+        const fetchFavoritedStatus = async () => {
+            if (isAuthenticated) {
+                try {
+                    const isFavorited = await favouriteService.isInFavourites(
+                        productId,
+                    );
+                    setIsFavorited(isFavorited);
+                } catch (err) {
+                    console.error("Failed to fetch favorited status:", err);
+                }
+            }
+        };
 
         fetchProduct();
+        fetchFavoritedStatus();
 
         return () => {
             unsubscribeFromProduct(productId);
         };
-    }, [productId, unsubscribeFromProduct]);
-
-    // Check eligibility to place bid
-    useEffect(() => {
-        const fetchEligibility = async () => {
-            try {
-                const isEligible = await productService.checkBiddingEligibility(
-                    product.productId,
-                );
-                setIsEligible(isEligible);
-            } catch (error) {
-                console.error("Failed to check bidding eligibility:", error);
-            }
-        };
-
-        if (isAuthenticated && product && !product.allowUnderratedBidder)
-            fetchEligibility();
-    }, [isAuthenticated, product]);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (
-                bidDropdownRef.current &&
-                !bidDropdownRef.current.contains(event.target)
-            ) {
-                setIsBidDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () =>
-            document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [isAuthenticated, productId, unsubscribeFromProduct]);
 
     if (loading) {
         return (
@@ -439,39 +571,42 @@ const ProductDetail = () => {
 
                     {/* Column 2: Main Information */}
                     <div className="relative col-span-1 flex flex-col">
-                        <div className="h-96 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 px-8 py-8 border border-slate-700/50 rounded-2xl flex flex-col backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden hover:shadow-amber-500/20 transition-all duration-300">
+                        <div className=" bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 px-8 py-8 border border-slate-700/50 rounded-2xl flex flex-col backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden hover:shadow-amber-500/20 transition-all duration-300">
                             {/* Decorative corner elements */}
                             <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-amber-500/10 to-transparent rounded-br-full"></div>
                             <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-orange-500/10 to-transparent rounded-tl-full"></div>
 
-                            <button
-                                onClick={() => {
-                                    if (!isAuthenticated) {
-                                        navigate(ROUTES.LOGIN);
-                                        return;
-                                    }
-                                    handleClickFavoriteProduct(
-                                        product.productId,
-                                        !isFavorited,
-                                    );
-                                    setIsFavorited(!isFavorited);
-                                }}
-                                className="absolute top-8 right-8 text-3xl transition-all hover:scale-125 duration-500 z-50 cursor-pointer"
-                            >
-                                <i
-                                    className={
-                                        isFavorited
-                                            ? "fa-solid fa-heart"
-                                            : "fa-regular fa-heart"
-                                    }
-                                    style={{
-                                        color: isFavorited
-                                            ? "#fb923c"
-                                            : "#94a3b8",
+                            {!isCurrentUserSeller && (
+                                <button
+                                    onClick={() => {
+                                        if (!isAuthenticated) {
+                                            navigate(ROUTES.LOGIN);
+                                            return;
+                                        }
+                                        handleClickFavoriteProduct(
+                                            product.productId,
+                                            !isFavorited,
+                                        );
+                                        setIsFavorited(!isFavorited);
                                     }}
-                                ></i>
-                            </button>
-                            <div className="mb-8 relative z-10">
+                                    className="absolute top-8 right-8 text-3xl transition-all hover:scale-125 duration-500 z-50 cursor-pointer"
+                                >
+                                    <i
+                                        className={
+                                            isFavorited
+                                                ? "fa-solid fa-heart"
+                                                : "fa-regular fa-heart"
+                                        }
+                                        style={{
+                                            color: isFavorited
+                                                ? "#fb923c"
+                                                : "#94a3b8",
+                                        }}
+                                    ></i>
+                                </button>
+                            )}
+
+                            <div className="mb-8 pr-16 relative z-10">
                                 <h1 className="text-2xl font-bold text-white mb-4 font-['Playfair_Display'] leading-tight">
                                     {product.productName}
                                 </h1>
@@ -507,72 +642,84 @@ const ProductDetail = () => {
                             </div>
                             {/* Action Buttons */}
                             <div className="flex gap-4 flex-grow items-center relative z-10">
-                                <button
-                                    onClick={() => {
-                                        if (!isAuthenticated) {
-                                            navigate(ROUTES.LOGIN);
-                                            return;
-                                        }
-                                        if (
-                                            product.buyNowPrice &&
-                                            isEligible &&
-                                            !isAuctionEnded
-                                        ) {
-                                            setShowBuyNowModal(true);
-                                        }
-                                    }}
-                                    disabled={
-                                        (!product.buyNowPrice ||
-                                            !isEligible ||
-                                            isAuctionEnded) &&
-                                        isAuthenticated
-                                    }
-                                    className={`flex-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:from-red-500 hover:to-red-400 text-white font-bold py-4 px-6 rounded-xl shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 font-['Montserrat'] border border-red-400/20 ${
-                                        (!product.buyNowPrice ||
-                                            !isEligible ||
-                                            isAuctionEnded) &&
-                                        isAuthenticated
-                                            ? "opacity-40 cursor-not-allowed grayscale"
-                                            : ""
-                                    }`}
-                                >
-                                    <span className="flex items-center justify-center gap-2">
-                                        Mua ngay
-                                    </span>
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (!isAuthenticated) {
-                                            navigate(ROUTES.LOGIN);
-                                            return;
-                                        }
-                                        if (
-                                            connected &&
-                                            isEligible &&
-                                            !isAuctionEnded
-                                        ) {
-                                            setShowBidModal(true);
-                                        }
-                                    }}
-                                    disabled={
-                                        (!connected ||
-                                            !isEligible ||
-                                            isAuctionEnded) &&
-                                        isAuthenticated
-                                    }
-                                    className={`flex-1 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 hover:from-amber-500 hover:to-orange-400 text-white font-bold py-4 px-6 rounded-xl shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 hover:scale-105 font-['Montserrat'] border border-amber-400/20 ${
-                                        (!connected ||
-                                            !isEligible ||
-                                            isAuctionEnded) &&
-                                        isAuthenticated
-                                            ? "opacity-40 cursor-not-allowed grayscale"
-                                            : ""
-                                    }`}
-                                >
-                                    <span className="flex items-center justify-center gap-2">
-                                        Đặt giá tối đa
-                                    </span>
-                                </button>
+                                {isBlocked ? (
+                                    <div className="flex-1 p-2 bg-gradient-to-r from-red-900/30 via-orange-900/20 to-red-900/30 border border-red-500/50 rounded-xl">
+                                        <p className="text-red-200 font-semibold font-['Montserrat'] flex justify-center text-center gap-2">
+                                            Bạn không thể đấu giá sản phẩm này
+                                        </p>
+                                    </div>
+                                ) : isCurrentUserSeller ? (
+                                    <div></div>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                if (!isAuthenticated) {
+                                                    navigate(ROUTES.LOGIN);
+                                                    return;
+                                                }
+                                                if (
+                                                    product.buyNowPrice &&
+                                                    isEligible &&
+                                                    !isAuctionEnded
+                                                ) {
+                                                    setShowBuyNowModal(true);
+                                                }
+                                            }}
+                                            disabled={
+                                                (!product.buyNowPrice ||
+                                                    !isEligible ||
+                                                    isAuctionEnded) &&
+                                                isAuthenticated
+                                            }
+                                            className={`flex-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:from-red-500 hover:to-red-400 text-white font-bold py-4 px-6 rounded-xl shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 font-['Montserrat'] border border-red-400/20 ${
+                                                (!product.buyNowPrice ||
+                                                    !isEligible ||
+                                                    isAuctionEnded) &&
+                                                isAuthenticated
+                                                    ? "opacity-40 cursor-not-allowed grayscale"
+                                                    : ""
+                                            }`}
+                                        >
+                                            <span className="flex items-center justify-center gap-2">
+                                                Mua ngay
+                                            </span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                if (!isAuthenticated) {
+                                                    navigate(ROUTES.LOGIN);
+                                                    return;
+                                                }
+                                                if (
+                                                    connected &&
+                                                    isEligible &&
+                                                    !isAuctionEnded
+                                                ) {
+                                                    setShowBidModal(true);
+                                                }
+                                            }}
+                                            disabled={
+                                                (!connected ||
+                                                    !isEligible ||
+                                                    isAuctionEnded) &&
+                                                isAuthenticated
+                                            }
+                                            className={`flex-1 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 hover:from-amber-500 hover:to-orange-400 text-white font-bold py-4 px-6 rounded-xl shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 hover:scale-105 font-['Montserrat'] border border-amber-400/20 ${
+                                                (!connected ||
+                                                    !isEligible ||
+                                                    isAuctionEnded) &&
+                                                isAuthenticated
+                                                    ? "opacity-40 cursor-not-allowed grayscale"
+                                                    : ""
+                                            }`}
+                                        >
+                                            <span className="flex items-center justify-center gap-2">
+                                                Đặt giá tối đa
+                                            </span>
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                         {/* Dates Info */}
@@ -676,10 +823,19 @@ const ProductDetail = () => {
                                             bidHistory.map((bid, index) => (
                                                 <tr
                                                     key={index}
+                                                    onClick={() =>
+                                                        handleBidderClick(
+                                                            bid.bidder,
+                                                        )
+                                                    }
                                                     className={`border-b border-slate-700/50 transition-colors duration-200 ${
                                                         index === 0
                                                             ? "animate-slide-in-up bg-amber-900/20 hover:bg-amber-900/50"
-                                                            : "hover:bg-slate-700/20 "
+                                                            : "hover:bg-slate-700/20"
+                                                    } ${
+                                                        isCurrentUserSeller
+                                                            ? "cursor-pointer"
+                                                            : ""
                                                     }`}
                                                 >
                                                     <td className="px-4 py-5 text-gray-300">
@@ -1403,6 +1559,165 @@ const ProductDetail = () => {
                                 )}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Bidder Detail Modal (for Seller) */}
+            {showBidderDetailModal && selectedBidder && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] animate-in fade-in duration-200">
+                    <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 rounded-3xl p-10 max-w-lg w-full mx-4 border border-slate-700/50 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300">
+                        {/* Decorative Elements */}
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full"></div>
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full"></div>
+
+                        <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 mb-6 font-['Playfair_Display'] relative z-10">
+                            Thông tin người ra giá
+                        </h2>
+
+                        <div className="mb-6 p-6 bg-gradient-to-br from-slate-800/60 to-slate-900/40 rounded-xl border border-slate-700/50 relative z-10">
+                            <div className="mb-4">
+                                <p className="text-gray-400 text-sm mb-2 font-['Montserrat']">
+                                    Họ và tên
+                                </p>
+                                <p className="text-white font-semibold text-lg font-['Montserrat']">
+                                    {selectedBidder.fullName}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-gray-400 text-sm mb-2 font-['Montserrat']">
+                                    Email
+                                </p>
+                                <p className="text-white font-semibold text-lg font-['Montserrat']">
+                                    {selectedBidder.email}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mb-6 relative z-10">
+                            <label
+                                htmlFor="blockReason"
+                                className="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wider"
+                            >
+                                Lý do chặn
+                            </label>
+                            <textarea
+                                id="blockReason"
+                                value={blockReason}
+                                onChange={(e) => setBlockReason(e.target.value)}
+                                placeholder="Nhập lý do chặn người dùng này..."
+                                rows="4"
+                                className="w-full px-4 py-3 bg-slate-800/50 text-slate-100 font-semibold border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm resize-none"
+                            />
+                        </div>
+
+                        <div className="mb-6 p-4 bg-gradient-to-r from-yellow-900/30 via-orange-900/20 to-yellow-900/30 border border-yellow-500/50 rounded-xl relative z-10">
+                            <p className="text-yellow-200 text-sm font-['Montserrat'] flex items-start gap-2">
+                                <i
+                                    className="fa-solid fa-exclamation-triangle mt-0.5"
+                                    style={{ color: "#fbbf24" }}
+                                ></i>
+                                <span>
+                                    Người dùng này sẽ không được phép đấu giá
+                                    sản phẩm này nữa. Nếu đây là người đặt giá
+                                    cao nhất, sản phẩm sẽ chuyển cho người có
+                                    giá cao thứ hai.
+                                </span>
+                            </p>
+                        </div>
+
+                        <div className="flex gap-4 relative z-10">
+                            <button
+                                onClick={() => {
+                                    setShowBidderDetailModal(false);
+                                    setSelectedBidder(null);
+                                    setBlockReason("");
+                                }}
+                                disabled={blockLoading}
+                                className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat']"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleBlockBidder}
+                                disabled={blockLoading}
+                                className="flex-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:from-red-500 hover:to-red-400 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat']"
+                            >
+                                {blockLoading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <svg
+                                            className="animate-spin h-5 w-5"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                                fill="none"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        Đang xử lý...
+                                    </span>
+                                ) : (
+                                    "Chặn người dùng"
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Blocked Notification Modal (for Bidder) */}
+            {showBlockedNotificationModal && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] animate-in fade-in duration-200">
+                    <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 rounded-3xl p-10 max-w-lg w-full mx-4 border border-red-700/50 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300">
+                        {/* Decorative Elements */}
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-red-500/20 to-transparent rounded-bl-full"></div>
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-orange-500/20 to-transparent rounded-tr-full"></div>
+
+                        <div className="text-center mb-6 relative z-10">
+                            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-full mb-4 shadow-lg shadow-red-500/50">
+                                <i
+                                    className="fa-solid fa-ban text-white text-3xl"
+                                    style={{ color: "#ffffff" }}
+                                ></i>
+                            </div>
+                            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500 mb-3 font-['Playfair_Display']">
+                                Bạn đã bị chặn
+                            </h2>
+                            <p className="text-gray-300 font-['Montserrat']">
+                                Bạn không thể đấu giá sản phẩm này nữa
+                            </p>
+                        </div>
+
+                        {blockedReason && (
+                            <div className="mb-6 p-6 bg-gradient-to-br from-red-900/30 to-orange-900/20 rounded-xl border border-red-500/50 relative z-10">
+                                <p className="text-gray-400 text-sm mb-2 font-['Montserrat']">
+                                    Lý do
+                                </p>
+                                <p className="text-red-200 font-semibold text-base font-['Montserrat']">
+                                    {blockedReason}
+                                </p>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => {
+                                setShowBlockedNotificationModal(false);
+                                setBlockedReason("");
+                            }}
+                            className="w-full bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']"
+                        >
+                            Xác nhận
+                        </button>
                     </div>
                 </div>
             )}

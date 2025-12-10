@@ -12,6 +12,11 @@ export const useAuth = () => {
         const userStr = localStorage.getItem("user");
         return userStr ? JSON.parse(userStr) : null;
     });
+    const [role, setRole] = useState(() => {
+        const userStr = localStorage.getItem("user");
+        return userStr ? JSON.parse(userStr).role : null;
+    });
+
     const navigate = useNavigate();
 
     const tokenStatus = useTokenStatus();
@@ -21,6 +26,7 @@ export const useAuth = () => {
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
         setUser(null);
+        setRole(null);
         navigate(ROUTES.LOGIN);
     }, [navigate]);
 
@@ -38,7 +44,7 @@ export const useAuth = () => {
     return {
         isAuthenticated: !!user && !tokenStatus.isExpired,
         user,
-        tokenStatus,
+        role,
         logout,
     };
 };

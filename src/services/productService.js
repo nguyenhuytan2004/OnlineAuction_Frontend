@@ -27,7 +27,7 @@ const productService = {
         return product;
     },
 
-    getBidsHistory: async (productId) => {
+    getBidHistory: async (productId) => {
         const endpoint = `${API_ENDPOINTS.PRODUCTS}/${productId}/bids`;
         const bids = await apiClient.get(endpoint);
 

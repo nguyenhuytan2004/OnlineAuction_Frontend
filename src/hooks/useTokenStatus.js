@@ -20,11 +20,14 @@ export const useTokenStatus = (updateInterval = 10000) => {
         const checkToken = () => {
             const token = localStorage.getItem("accessToken");
             if (token) {
-                setTokenStatus({
-                    isExpired: isTokenExpired(token),
-                    expiresIn: getTokenExpiresIn(token),
+                const newStatus = {
+                    isExpired: token ? isTokenExpired(token) : true,
+                    expiresIn: token ? getTokenExpiresIn(token) : 0,
                     token,
-                });
+                };
+                if (newStatus.isExpired !== tokenStatus.isExpired) {
+                    setTokenStatus(newStatus);
+                }
             } else {
                 setTokenStatus({
                     isExpired: true,
@@ -47,7 +50,7 @@ export const useTokenStatus = (updateInterval = 10000) => {
             clearInterval(interval);
             window.removeEventListener("storage", checkToken);
         };
-    }, [updateInterval]);
+    }, [tokenStatus.isExpired, updateInterval]);
 
     return tokenStatus;
 };
