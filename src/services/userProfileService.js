@@ -1,7 +1,7 @@
 import apiClient from "../utils/apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
-export const userProfileService = {
+const userProfileService = {
     // Lấy danh sách sản phẩm đang tham gia đấu giá
     getParticipatingProducts: async () => {
         try {
@@ -104,6 +104,60 @@ export const userProfileService = {
             return response;
         } catch (error) {
             console.error("Change password error:", error);
+            throw error;
+        }
+    },
+
+    // Lấy danh sách sản phẩm đang đăng & còn hạn (cho người bán)
+    getActiveProducts: async () => {
+        try {
+            const response = await apiClient.get(
+                `${API_ENDPOINTS.USER_PROFILE}/active-products`,
+            );
+            return response;
+        } catch (error) {
+            console.error("Get active products error:", error);
+            throw error;
+        }
+    },
+
+    // Lấy danh sách sản phẩm đã có người thắng đấu giá (cho người bán)
+    getSoldProducts: async () => {
+        try {
+            const response = await apiClient.get(
+                `${API_ENDPOINTS.USER_PROFILE}/sold-products`,
+            );
+            return response;
+        } catch (error) {
+            console.error("Get sold products error:", error);
+            throw error;
+        }
+    },
+
+    // Đánh giá người mua (buyer)
+    rateBuyer: async (ratingData) => {
+        try {
+            const response = await apiClient.post(API_ENDPOINTS.RATINGS_BUYER, {
+                productId: ratingData.productId,
+                ratingValue: ratingData.ratingValue,
+                comment: ratingData.comment,
+            });
+            return response;
+        } catch (error) {
+            console.error("Rate buyer error:", error);
+            throw error;
+        }
+    },
+
+    // Huỷ giao dịch
+    cancelAuctionResult: async (productId) => {
+        try {
+            const response = await apiClient.post(
+                API_ENDPOINTS.AUCTION_RESULTS_CANCEL(productId),
+            );
+            return response;
+        } catch (error) {
+            console.error("Cancel auction result error:", error);
             throw error;
         }
     },

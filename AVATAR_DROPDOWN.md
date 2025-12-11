@@ -179,7 +179,7 @@ src/
 
 ## 🎯 Integration
 
-### MainLayout Update
+### UserLayout Update
 
 ```jsx
 // Old
@@ -365,7 +365,7 @@ White: #FFFFFF
 -   [x] Account Settings page
 -   [x] Change Password page
 -   [x] Routes configuration
--   [x] MainLayout integration
+-   [x] UserLayout integration
 -   [x] React Hook Form validation
 -   [x] Responsive design
 -   [x] Animations & transitions

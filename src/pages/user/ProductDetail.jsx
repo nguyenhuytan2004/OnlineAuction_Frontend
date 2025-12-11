@@ -8,19 +8,19 @@ import {
     XCircle,
     ChevronDown,
 } from "lucide-react";
-import { ROUTES } from "../constants/routes";
-import helpers from "../utils/helpers";
-import formatters from "../utils/formatters";
-import ProductCard from "../components/ProductCard_LessInfo";
-import productService from "../services/productService";
-import bidService from "../services/bidService";
-import favouriteService from "../services/favouriteService";
-import { useWebSocket } from "../hooks/useWebSocket";
-import { useAuction } from "../hooks/useAuction";
-import { useBid } from "../hooks/useBid";
-import { useQnA } from "../hooks/useQnA";
-import { useAuth } from "../hooks/useAuth";
-import { usePrivateNotification } from "../hooks/usePrivateNotification";
+import { ROUTES } from "../../constants/routes";
+import helpers from "../../utils/helpers";
+import formatters from "../../utils/formatters";
+import ProductCard from "../../components/ProductCard_LessInfo";
+import productService from "../../services/productService";
+import bidService from "../../services/bidService";
+import favouriteService from "../../services/favouriteService";
+import { useWebSocket } from "../../hooks/useWebSocket";
+import { useAuction } from "../../hooks/useAuction";
+import { useBid } from "../../hooks/useBid";
+import { useQnA } from "../../hooks/useQnA";
+import { useAuth } from "../../hooks/useAuth";
+import { usePrivateNotification } from "../../hooks/usePrivateNotification";
 
 const ProductDetail = () => {
     const { productId } = useParams();

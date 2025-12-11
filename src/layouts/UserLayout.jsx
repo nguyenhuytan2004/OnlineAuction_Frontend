@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
 import SearchBar from "../components/inputs/SearchBar";
 import AvatarDropdown from "../components/AvatarDropdown";
 import { useAuth } from "../hooks/useAuth";
 
-const MainLayout = ({ children }) => {
+const UserLayout = () => {
     const location = useLocation();
 
     // Scroll to top when route changes
@@ -88,7 +88,9 @@ const MainLayout = ({ children }) => {
             </header>
 
             {/* Main Content */}
-            <main className="flex-1">{children}</main>
+            <main className="flex-1">
+                <Outlet />
+            </main>
 
             {/* Premium Footer */}
             <footer className="bg-gradient-to-b from-slate-900 to-slate-950 border-t border-slate-800/50 mt-2 relative overflow-hidden">
@@ -197,4 +199,4 @@ const MainLayout = ({ children }) => {
     );
 };
 
-export default MainLayout;
+export default UserLayout;

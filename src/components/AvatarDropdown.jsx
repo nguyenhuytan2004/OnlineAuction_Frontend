@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-    User,
+    Zap,
     Heart,
-    Settings,
-    Lock,
+    User,
+    Shield,
     LogOut,
     ChevronDown,
     Star,
+    Package,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import helpers from "../utils/helpers";
@@ -17,7 +18,7 @@ import helpers from "../utils/helpers";
  * Hiển thị avatar user và dropdown menu với các tùy chọn
  */
 const AvatarDropdown = () => {
-    const { user, logout } = useAuth();
+    const { user, role, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -68,14 +69,34 @@ const AvatarDropdown = () => {
             bgHover: "group-hover:bg-purple-500/20",
             text: "text-purple-400",
         },
+        orange: {
+            bg: "bg-orange-500/10",
+            bgHover: "group-hover:bg-orange-500/20",
+            text: "text-orange-400",
+        },
     };
 
+    // Menu items cho seller (nếu có role SELLER)
+    const sellerMenuItems =
+        role === "SELLER"
+            ? [
+                  {
+                      to: "/profile/product-management",
+                      icon: Package,
+                      label: "Quản lý sản phẩm",
+                      description: "Sản phẩm đang bán, đã bán",
+                      color: "orange",
+                  },
+              ]
+            : [];
+
     const menuItems = [
+        ...sellerMenuItems,
         {
-            to: "/profile/info",
-            icon: User,
-            label: "Quản lý sản phẩm",
-            description: "Đang tham gia, Đã thắng",
+            to: "/profile/activity",
+            icon: Zap,
+            label: "Hoạt động",
+            description: "Sản phẩm đang tham gia, đã thắng",
             color: "amber",
         },
         {
@@ -94,14 +115,14 @@ const AvatarDropdown = () => {
         },
         {
             to: "/profile/account",
-            icon: Settings,
+            icon: User,
             label: "Tài khoản",
             description: "Cập nhật thông tin",
             color: "blue",
         },
         {
             to: "/profile/password",
-            icon: Lock,
+            icon: Shield,
             label: "Đổi mật khẩu",
             description: "Bảo mật tài khoản",
             color: "purple",

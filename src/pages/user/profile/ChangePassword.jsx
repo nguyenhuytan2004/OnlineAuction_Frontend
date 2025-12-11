@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Lock, Shield, X } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { CheckCircle, XCircle } from "lucide-react";
-import userProfileService from "../../services/userProfileService";
+import { CheckCircle, XCircle, Lock, Shield } from "lucide-react";
+import userProfileService from "../../../services/userProfileService";
 
 /**
  * Component đổi mật khẩu
@@ -51,7 +50,7 @@ const ChangePassword = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12">
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-purple-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">

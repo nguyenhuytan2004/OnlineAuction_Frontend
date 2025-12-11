@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { ROUTES } from "../constants/routes";
-import ProductCard from "../components/ProductCard";
+import { ROUTES } from "../../constants/routes";
+import ProductCard from "../../components/ProductCard";
 
-import categoryService from "../services/categoryService";
-import productService from "../services/productService";
+import categoryService from "../../services/categoryService";
+import productService from "../../services/productService";
 
 const ITEMS_PER_PAGE = 6;
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
-import userProfileService from "../../services/userProfileService";
-import ProductCard from "../../components/ProductCard";
+import userProfileService from "../../../services/userProfileService";
+import ProductCard from "../../../components/ProductCard";
 
 /**
  * Component hiển thị sản phẩm yêu thích (Watch List)
@@ -27,7 +27,7 @@ const Favorites = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12">
             <div className="container mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-red-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">

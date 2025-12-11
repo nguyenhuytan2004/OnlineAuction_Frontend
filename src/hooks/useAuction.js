@@ -9,7 +9,6 @@ export const useAuction = (
     handleAuctionEnd,
 ) => {
     useEffect(() => {
-        // ✅ Kiểm tra cả connected và active từ props
         if (productId && connected) {
             // console.log(
             //     "Subscribing to auction updates for product:",

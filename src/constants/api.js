@@ -21,6 +21,13 @@ export const API_ENDPOINTS = {
     // Profile
     USER_PROFILE: "/user-profile",
 
+    // Ratings
+    RATINGS: "/ratings",
+
+    // Auction Results
+    AUCTION_RESULTS_CANCEL: (productId) =>
+        `/auction-results/product/${productId}/cancel`,
+
     // Favourites
     FAVOURITES: "/watch-list",
 };

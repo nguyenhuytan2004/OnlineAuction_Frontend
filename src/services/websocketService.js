@@ -112,7 +112,7 @@ class WebSocketService {
             return null;
         }
 
-        const destination = `/topic/product/${productId}/auction-extended`;
+        const destination = `/topic/product/${productId}/auction-extend`;
         const subscription = this.client.subscribe(destination, (message) => {
             try {
                 const newEndTime = JSON.parse(message.body);
@@ -133,7 +133,8 @@ class WebSocketService {
             return null;
         }
 
-        const destination = `/topic/product/${productId}/auction-ended`;
+        console.log("Subscribing to auction end for product:", productId);
+        const destination = `/topic/product/${productId}/auction-end`;
         const subscription = this.client.subscribe(destination, (message) => {
             try {
                 const data = message.body;

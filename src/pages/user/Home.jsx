@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ROUTES } from "../constants/routes";
-import ProductCard from "../components/ProductCard_LessInfo";
 
-import productService from "../services/productService";
-import { useAuth } from "../hooks/useAuth";
+import { ROUTES } from "../../constants/routes";
+import ProductCard from "../../components/ProductCard_LessInfo";
+
+import productService from "../../services/productService";
+import { useAuth } from "../../hooks/useAuth";
 
 // Section Component with Premium Design
 const ProductSection = ({ title, icon, products, type }) => {
