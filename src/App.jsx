@@ -16,6 +16,7 @@ import Favorites from "./pages/user/profile/Favorites";
 import Ratings from "./pages/user/profile/Ratings";
 import AccountSettings from "./pages/user/profile/AccountSettings";
 import ChangePassword from "./pages/user/profile/ChangePassword";
+import CategoryManagement from "./pages/admin/CategoryManagement";
 
 function App() {
     return (
@@ -71,8 +72,12 @@ function App() {
                     path={`${ROUTES.PROFILE}/password`}
                     element={<ChangePassword />}
                 />
+                <Route
+                    path={ROUTES.CATEGORIES}
+                    element={<CategoryManagement />}
+                />
 
-                <Route path="*" element={<div>404 Page Not Found</div>} />
+                <Route path="*" element={<div>404 Page Not Foundd</div>} />
             </Route>
         </Routes>
     );

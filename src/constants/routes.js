@@ -10,4 +10,5 @@ export const ROUTES = {
     PROFILE: "/profile",
 
     // Admin
+    CATEGORIES: "categories",
 };
