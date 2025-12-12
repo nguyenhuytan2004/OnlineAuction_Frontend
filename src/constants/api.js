@@ -2,32 +2,32 @@ export const API_BASE_URL = "http://localhost:8080/api";
 
 // API Endpoints
 export const API_ENDPOINTS = {
-    // Auth
-    AUTH: "/auth",
+  // Auth
+  AUTH: "/auth",
 
-    // Categories
-    CATEGORIES: "/categories",
+  // Categories
+  CATEGORIES: "/categories",
 
-    // Products
-    PRODUCTS: "/products",
-    PRODUCTS_BY_CATEGORY: "/products/category",
+  // Products
+  PRODUCTS: "/products",
+  PRODUCTS_BY_CATEGORY: "/products/category",
+  BLOCK_BIDDER: (productId) => `/products/${productId}/block-bidder`,
+  CHECK_BLOCKING: (productId) =>
+    `/products/${productId}/bid-blocking-inspection`,
 
-    // Bids
-    BIDS: "/bids",
-    BLOCK_BIDDER: (productId) => `/products/${productId}/block-bidder`,
-    CHECK_BLOCKING: (productId) =>
-        `/products/${productId}/bid-blocking-inspection`,
+  // Bids
+  BIDS: "/bids",
 
-    // Profile
-    USER_PROFILE: "/user-profile",
+  // Profile
+  USER_PROFILE: "/user-profile",
 
-    // Ratings
-    RATINGS: "/ratings",
+  // Ratings
+  RATINGS: "/ratings",
 
-    // Auction Results
-    AUCTION_RESULTS_CANCEL: (productId) =>
-        `/auction-results/product/${productId}/cancel`,
+  // Auction Results
+  AUCTION_RESULTS_CANCEL: (productId) =>
+    `/auction-results/product/${productId}/cancel`,
 
-    // Favourites
-    FAVOURITES: "/watch-list",
+  // Favourites
+  FAVOURITES: "/watch-list",
 };
