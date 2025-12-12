@@ -3,13 +3,24 @@ import { API_ENDPOINTS } from "../constants/api";
 import helpers from "../utils/helpers";
 
 const categoryService = {
-    // Get all categories
+    // Dùng cho USER (ProductList)
     getAllCategories: async () => {
-        const flatCategories = await apiClient.get(API_ENDPOINTS.CATEGORIES);
-        const categoryTree = helpers.buildCategoryTree(flatCategories);
-
-        return categoryTree;
+        const flat = await apiClient.get(API_ENDPOINTS.CATEGORIES);
+        return helpers.buildCategoryTree(flat);
     },
+
+    // Dùng cho ADMIN (CategoryManagement)
+    getAllCategoriesFlat: async () => {
+        return apiClient.get(API_ENDPOINTS.CATEGORIES);
+    },
+
+    createCategory: (data) => apiClient.post(API_ENDPOINTS.CATEGORIES, data),
+
+    updateCategory: (id, data) =>
+        apiClient.put(`${API_ENDPOINTS.CATEGORIES}/${id}`, data),
+
+    deleteCategory: (id) =>
+        apiClient.delete(`${API_ENDPOINTS.CATEGORIES}/${id}`),
 };
 
 export default categoryService;
