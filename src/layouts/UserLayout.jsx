@@ -6,6 +6,8 @@ import SearchBar from "../components/inputs/SearchBar";
 import AvatarDropdown from "../components/AvatarDropdown";
 import { useAuth } from "../hooks/useAuth";
 
+import BackgroundDecoration from "../components/BackgroundDecoration";
+
 const UserLayout = () => {
   const location = useLocation();
 
@@ -85,15 +87,8 @@ const UserLayout = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
-        {/* Decorative Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-full blur-3xl animate-float"></div>
-          <div
-            className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-orange-500/10 to-amber-500/5 rounded-full blur-3xl animate-float"
-            style={{ animationDelay: "2s" }}
-          ></div>
-        </div>
+      <main className="flex-1 relative">
+        <BackgroundDecoration />
         <Outlet />
       </main>
 

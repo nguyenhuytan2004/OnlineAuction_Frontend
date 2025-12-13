@@ -3,6 +3,8 @@ import { Outlet, useLocation } from "react-router-dom";
 
 import { useEffect } from "react";
 
+import BackgroundDecoration from "../components/BackgroundDecoration";
+
 const AuthLayout = () => {
   const location = useLocation();
 
@@ -13,6 +15,7 @@ const AuthLayout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 flex items-center justify-center">
+      <BackgroundDecoration />
       <Outlet />
     </div>
   );
