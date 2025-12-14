@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import {
   BarChart3,
-  TrendingUp,
   Users,
   ShoppingBag,
-  DollarSign,
+  Banknote,
   CheckCircle,
   Eye,
   CreditCard,
@@ -39,10 +38,40 @@ const StatCard = ({ icon: Icon, label, value, subtext, color }) => (
   </div>
 );
 
-// Chart Container Component
-const ChartContainer = ({ title, description, children }) => (
+// Chart Container Component with Toggle
+const ChartContainer = ({
+  title,
+  description,
+  children,
+  onToggle,
+  isBarChart,
+}) => (
   <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50 hover:border-slate-600 transition-all duration-300">
-    <h3 className="text-lg font-bold text-slate-100 mb-1">{title}</h3>
+    <div className="flex items-center justify-between mb-1">
+      <h3 className="text-lg font-bold text-slate-100">{title}</h3>
+      <div className="flex gap-2 bg-slate-700/30 p-1 rounded-lg">
+        <button
+          onClick={() => isBarChart === false && onToggle()}
+          className={`px-3 py-1 text-xs font-bold rounded-md transition-all duration-300 ${
+            isBarChart
+              ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/30"
+              : "bg-slate-700/50 text-slate-400 hover:text-slate-300"
+          }`}
+        >
+          Cột
+        </button>
+        <button
+          onClick={() => isBarChart === true && onToggle()}
+          className={`px-3 py-1 text-xs font-bold rounded-md transition-all duration-300 ${
+            !isBarChart
+              ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/30"
+              : "bg-slate-700/50 text-slate-400 hover:text-slate-300"
+          }`}
+        >
+          Đường
+        </button>
+      </div>
+    </div>
     <p className="text-slate-500 text-sm mb-6">{description}</p>
     <div className="w-full h-64 flex items-center justify-center bg-slate-900/50 rounded-xl border border-slate-700/30">
       {children}
@@ -50,8 +79,8 @@ const ChartContainer = ({ title, description, children }) => (
   </div>
 );
 
-// Simple Bar Chart
-const SimpleBarChart = ({ data }) => {
+// Bar Chart
+const BarChart = ({ data }) => {
   const maxValue = Math.max(...data.map((d) => d.count));
   return (
     <div className="w-full flex items-flex-end justify-around gap-2 px-4 py-8">
@@ -83,8 +112,8 @@ const SimpleBarChart = ({ data }) => {
   );
 };
 
-// Simple Line Chart
-const SimpleLineChart = ({ data }) => {
+// Line Chart
+const LineChart = ({ data }) => {
   const maxValue = Math.max(...data.map((d) => d.revenue / 1000000));
   const points = data.map((item, idx) => {
     const x = (idx / (data.length - 1)) * 100;
@@ -92,119 +121,117 @@ const SimpleLineChart = ({ data }) => {
     return { x, y, value: item.revenue };
   });
 
+  const pathLength =
+    Math.sqrt(
+      points.reduce((sum, p, idx) => {
+        if (idx === 0) return 0;
+        const prev = points[idx - 1];
+        return (
+          sum + Math.sqrt(Math.pow(p.x - prev.x, 2) + Math.pow(p.y - prev.y, 2))
+        );
+      }, 0),
+    ) * 4;
+
   return (
-    <svg
-      className="w-full h-full"
-      viewBox="0 0 400 200"
-      preserveAspectRatio="none"
-    >
-      {/* Grid lines */}
-      <g stroke="#334155" strokeDasharray="4" opacity="0.2">
-        {[0, 25, 50, 75, 100].map((y) => (
-          <line
-            key={`hline-${y}`}
-            x1="0"
-            y1={y}
-            x2="400"
-            y2={y}
-            strokeWidth="0.5"
-          />
-        ))}
-      </g>
-      {/* Line */}
-      <polyline
-        points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-        fill="none"
-        stroke="url(#gradient)"
-        strokeWidth="2"
-      />
-      {/* Gradient definition */}
-      <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6" stopOpacity="1" />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
-        </linearGradient>
-      </defs>
-      {/* Fill under line */}
-      <polygon
-        points={`0,100 ${points.map((p) => `${p.x},${p.y}`).join(" ")} 400,100`}
-        fill="url(#gradient)"
-        opacity="0.3"
-      />
-      {/* Data points */}
-      {points.map((p, idx) => (
-        <circle
-          key={`point-${idx}`}
-          cx={p.x}
-          cy={p.y}
-          r="3"
-          fill="#3b82f6"
-          className="hover:r-5 transition-all"
+    <>
+      <style>{`
+        @keyframes drawLine {
+          from {
+            stroke-dashoffset: ${pathLength};
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes scaleIn {
+          from {
+            r: 0;
+            opacity: 0;
+          }
+          to {
+            r: 3;
+            opacity: 1;
+          }
+        }
+      `}</style>
+      <svg
+        className="w-full h-full"
+        viewBox="0 0 400 200"
+        preserveAspectRatio="none"
+      >
+        {/* Grid lines */}
+        <g stroke="#334155" strokeDasharray="4" opacity="0.2">
+          {[0, 25, 50, 75, 100].map((y) => (
+            <line
+              key={`hline-${y}`}
+              x1="0"
+              y1={y}
+              x2="400"
+              y2={y}
+              strokeWidth="0.5"
+            />
+          ))}
+        </g>
+        {/* Line */}
+        <polyline
+          points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+          fill="none"
+          stroke="url(#gradient)"
+          strokeWidth="2"
+          style={{
+            strokeDasharray: pathLength,
+            animation: `drawLine 1.5s ease-out forwards`,
+          }}
         />
-      ))}
-    </svg>
-  );
-};
-
-// Simple Area Chart
-const SimpleAreaChart = ({ data }) => {
-  const maxValue = Math.max(...data.map((d) => d.users));
-  const points = data.map((item, idx) => {
-    const x = (idx / (data.length - 1)) * 100;
-    const y = 100 - (item.users / maxValue) * 80;
-    return { x, y, value: item.users };
-  });
-
-  return (
-    <svg
-      className="w-full h-full"
-      viewBox="0 0 400 200"
-      preserveAspectRatio="none"
-    >
-      {/* Grid lines */}
-      <g stroke="#334155" strokeDasharray="4" opacity="0.2">
-        {[0, 25, 50, 75, 100].map((y) => (
-          <line
-            key={`hline-${y}`}
-            x1="0"
-            y1={y}
-            x2="400"
-            y2={y}
-            strokeWidth="0.5"
+        {/* Gradient definition */}
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="1" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
+          </linearGradient>
+        </defs>
+        {/* Fill under line */}
+        <polygon
+          points={`0,100 ${points
+            .map((p) => `${p.x},${p.y}`)
+            .join(" ")} 400,100`}
+          fill="url(#gradient)"
+          opacity="0.3"
+          style={{
+            animation: `fadeInUp 1.2s ease-out 0.2s forwards`,
+            opacity: 0,
+          }}
+        />
+        {/* Data points */}
+        {points.map((p, idx) => (
+          <circle
+            key={`point-${idx}`}
+            cx={p.x}
+            cy={p.y}
+            r="3"
+            fill="#3b82f6"
+            style={{
+              animation: `scaleIn 0.6s ease-out ${0.8 + idx * 0.1}s forwards`,
+              opacity: 0,
+            }}
+            className="hover:scale-125 transition-transform hover:fill-blue-300 cursor-pointer"
           />
         ))}
-      </g>
-      {/* Area fill */}
-      <polygon
-        points={`0,100 ${points.map((p) => `${p.x},${p.y}`).join(" ")} 400,100`}
-        fill="url(#areaGradient)"
-      />
-      {/* Line */}
-      <polyline
-        points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-        fill="none"
-        stroke="#10b981"
-        strokeWidth="2"
-      />
-      {/* Gradient definition */}
-      <defs>
-        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#10b981" stopOpacity="0.05" />
-        </linearGradient>
-      </defs>
-      {/* Data points */}
-      {points.map((p, idx) => (
-        <circle key={`point-${idx}`} cx={p.x} cy={p.y} r="3" fill="#10b981" />
-      ))}
-    </svg>
+      </svg>
+    </>
   );
 };
 
-/**
- * Admin Dashboard - Bảng điều khiển tổng quan quản trị viên
- * Hiển thị thống kê, biểu đồ dữ liệu hệ thống
- */
 const AdminDashboard = () => {
   const [statsData] = useState({
     totalAuctions: 1250,
@@ -215,6 +242,14 @@ const AdminDashboard = () => {
     successRate: 87.5,
     topProduct: "iPhone 15 Pro Max",
     paymentStatus: 92,
+  });
+
+  // Chart view states
+  const [chartViews, setChartViews] = useState({
+    auctions: true, // true = bar, false = line
+    revenue: true,
+    users: true,
+    upgrades: true,
   });
 
   const [chartData] = useState({
@@ -242,15 +277,21 @@ const AdminDashboard = () => {
       { month: "May", users: 850 },
       { month: "Jun", users: 1050 },
     ],
+    upgradesTrend: [
+      { month: "Jan", count: 3 },
+      { month: "Feb", count: 5 },
+      { month: "Mar", count: 4 },
+      { month: "Apr", count: 7 },
+      { month: "May", count: 6 },
+      { month: "Jun", count: 12 },
+    ],
   });
 
-  // Helper để format tiền tệ
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(value);
+  const toggleChartView = (chartKey) => {
+    setChartViews((prev) => ({
+      ...prev,
+      [chartKey]: !prev[chartKey],
+    }));
   };
 
   return (
@@ -284,9 +325,9 @@ const AdminDashboard = () => {
             color="text-blue-400"
           />
           <StatCard
-            icon={DollarSign}
+            icon={Banknote}
             label="Doanh Thu Hệ Thống"
-            value={formatCurrency(statsData.totalRevenue)}
+            value={statsData.totalRevenue.toLocaleString()}
             subtext="Tính đến hôm nay"
             color="text-emerald-400"
           />
@@ -306,46 +347,74 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Charts Grid - 2 rows */}
+        {/* Charts Grid - 2x2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <ChartContainer
             title="Số Lượng Sàn Đấu Giá Mới"
             description="Xu hướng sàn đấu giá tạo mới theo tháng"
+            isBarChart={chartViews.auctions}
+            onToggle={() => toggleChartView("auctions")}
           >
-            <SimpleBarChart data={chartData.auctionsTrend} />
+            {chartViews.auctions ? (
+              <BarChart data={chartData.auctionsTrend} />
+            ) : (
+              <LineChart data={chartData.auctionsTrend} />
+            )}
           </ChartContainer>
 
           <ChartContainer
             title="Doanh Thu Hệ Thống"
             description="Biểu đồ doanh thu 6 tháng gần đây"
+            isBarChart={chartViews.revenue}
+            onToggle={() => toggleChartView("revenue")}
           >
-            <SimpleLineChart data={chartData.revenueTrend} />
+            {chartViews.revenue ? (
+              <BarChart
+                data={chartData.revenueTrend.map((item) => ({
+                  month: item.month,
+                  count: Math.round(item.revenue / 1000000),
+                }))}
+              />
+            ) : (
+              <LineChart data={chartData.revenueTrend} />
+            )}
           </ChartContainer>
 
           <ChartContainer
             title="Số Lượng Người Dùng Mới"
             description="Tăng trưởng người dùng theo tháng"
+            isBarChart={chartViews.users}
+            onToggle={() => toggleChartView("users")}
           >
-            <SimpleAreaChart data={chartData.usersTrend} />
+            {chartViews.users ? (
+              <BarChart data={chartData.usersTrend} />
+            ) : (
+              <LineChart
+                data={chartData.usersTrend.map((item) => ({
+                  month: item.month,
+                  revenue: item.users * 100000,
+                }))}
+              />
+            )}
           </ChartContainer>
 
-          <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50 hover:border-slate-600 transition-all duration-300">
-            <h3 className="text-lg font-bold text-slate-100 mb-1">
-              Bidder Nâng Cấp Lên Seller
-            </h3>
-            <p className="text-slate-500 text-sm mb-6">
-              Yêu cầu nâng cấp đang chờ duyệt
-            </p>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-300">Chờ duyệt</span>
-              <span className="text-2xl font-black text-amber-400">
-                {statsData.newSellers}
-              </span>
-            </div>
-            <button className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105">
-              Xem & Duyệt Yêu Cầu
-            </button>
-          </div>
+          <ChartContainer
+            title="Bidder Nâng Cấp Lên Seller"
+            description="Yêu cầu nâng cấp theo tháng"
+            isBarChart={chartViews.upgrades}
+            onToggle={() => toggleChartView("upgrades")}
+          >
+            {chartViews.upgrades ? (
+              <BarChart data={chartData.upgradesTrend} />
+            ) : (
+              <LineChart
+                data={chartData.upgradesTrend.map((item) => ({
+                  month: item.month,
+                  revenue: item.count * 1000000,
+                }))}
+              />
+            )}
+          </ChartContainer>
         </div>
 
         {/* Additional Stats - 3 columns */}

@@ -80,19 +80,23 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
   const headingOptions = [
     { tag: "p", label: "Đoạn văn bản", className: "text-base" },
     { tag: "h2", label: "Tiêu đề lớn (H2)", className: "text-xl font-bold" },
-    { tag: "h3", label: "Tiêu đề nhỏ (H3)", className: "text-lg font-semibold" },
+    {
+      tag: "h3",
+      label: "Tiêu đề nhỏ (H3)",
+      className: "text-lg font-semibold",
+    },
   ];
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-700">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/70 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-amber-500/30 border border-slate-700/50 w-full max-w-2xl animate-in fade-in zoom-in-90 duration-300 border-slate-700">
         {/* Header with Amber/Orange Theme */}
-        <div className="bg-gradient-to-r from-amber-600 to-orange-600 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-amber-600 to-orange-600 px-8 py-4 text-white relative rounded-t-3xl">
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
+            className="absolute top-8 right-8 p-2 hover:bg-white/20 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -104,12 +108,22 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        {/* Background Decoration */}
+        <div className="fixed h-[80vh] w-full max-w-2xl z-0">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full"></div>
+        </div>
+
+        {/* Content */}
+        <form
+          onSubmit={handleSubmit}
+          className="p-8 space-y-6 max-h-[80vh] overflow-y-auto relative z-10"
+        >
           {/* Product Info */}
           <div className="mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
             <div className="flex items-start gap-4">
               <img
-                src={product.mainImageUrl}
+                src={product.mainImageUrl || null}
                 alt={product.productName}
                 className="w-20 h-20 object-cover rounded-lg border border-slate-600"
               />
@@ -197,7 +211,8 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
                   title="Định dạng tiêu đề"
                 >
                   <span className="text-sm font-semibold">
-                    {headingOptions.find((h) => h.tag === selectedHeading)?.label || "Tiêu đề"}
+                    {headingOptions.find((h) => h.tag === selectedHeading)
+                      ?.label || "Tiêu đề"}
                   </span>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform duration-300 ${
@@ -247,7 +262,7 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
               ref={editorRef}
               contentEditable
               onInput={handleEditorInput}
-              className="min-h-[200px] max-h-[400px] overflow-y-auto p-4 bg-slate-800/50 border-2 border-slate-700 rounded-b-xl focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all text-slate-100 outline-none"
+              className="min-h-[100px] max-h-[150px] overflow-y-auto p-4 bg-slate-800/50 border-2 border-slate-700 rounded-b-xl focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all text-slate-100 outline-none"
               style={{
                 wordWrap: "break-word",
                 overflowWrap: "break-word",
@@ -262,10 +277,10 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
           {/* Info Box */}
           <div className="mb-6 p-4 bg-amber-500/10 border-2 border-amber-500/30 rounded-xl">
             <p className="text-sm text-amber-300 font-semibold">
-              💡 Lưu ý: Thông tin bổ sung sẽ được chèn vào cuối mô tả hiện tại, không thay thế nội dung cũ.
+              Lưu ý: Thông tin bổ sung sẽ được chèn vào cuối mô tả hiện tại,
+              không thay thế nội dung cũ.
             </p>
           </div>
-
           {/* Actions */}
           <div className="flex gap-3">
             <button
@@ -296,7 +311,7 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
         </form>
       </div>
 
-      <style jsx>{`
+      <style jsx="true">{`
         [contenteditable]:empty:before {
           content: attr(data-placeholder);
           color: #64748b;

@@ -123,6 +123,19 @@ const productService = {
       throw error;
     }
   },
+
+  createProduct: async (productData) => {
+    try {
+      const response = await apiClient.post(
+        API_ENDPOINTS.PRODUCTS,
+        productData,
+      );
+      return response;
+    } catch (error) {
+      console.error("Create product error:", error);
+      throw error;
+    }
+  },
 };
 
 export default productService;

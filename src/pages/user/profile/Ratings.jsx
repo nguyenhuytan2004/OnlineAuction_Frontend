@@ -77,8 +77,8 @@ const Ratings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="container mx-auto px-28 py-8">
         {/* Header */}
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-green-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
           <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10"></div>
@@ -96,7 +96,7 @@ const Ratings = () => {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-8 px-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-40 mb-8 px-40">
           {/* Rating Percentage Card */}
           <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-xl p-8 border border-slate-700/50 backdrop-blur-sm hover:shadow-green-500/20 transition-all duration-500">
             <div className="text-center space-y-4">
@@ -185,7 +185,7 @@ const Ratings = () => {
               {ratings.map((rating) => (
                 <div
                   key={rating.ratingId}
-                  className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-500 overflow-hidden border border-slate-700/50 group backdrop-blur-sm"
+                  className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-500 overflow-hidden border border-slate-700/50 group backdrop-blur-sm p-4"
                 >
                   <div className="p-6">
                     {/* Header - Product & Rating */}
@@ -233,63 +233,64 @@ const Ratings = () => {
                         )}
                       </div>
                     </div>
-
-                    {/* Reviewer Info */}
-                    <div className="flex items-center gap-3 mb-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-200">
-                          {rating.reviewer.fullName}
-                        </p>
-                        <div className="flex items-center gap-2 text-sm text-slate-400">
-                          <span>
-                            {rating.reviewer.role === "SELLER"
-                              ? "Người bán"
-                              : "Người mua"}
-                          </span>
-                          {rating.reviewer.ratingScore &&
-                            rating.reviewer.ratingCount > 0 && (
-                              <>
-                                <span>•</span>
-                                {Array.from(
-                                  {
-                                    length: helpers.getRatingStars(
-                                      rating.reviewer.ratingScore,
-                                      rating.reviewer.ratingCount,
+                    <div className="ml-10">
+                      {/* Reviewer Info */}
+                      <div className="flex items-center gap-3 mb-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-200">
+                            {rating.reviewer.fullName}
+                          </p>
+                          <div className="flex items-center gap-2 text-sm text-slate-400">
+                            <span>
+                              {rating.reviewer.role === "SELLER"
+                                ? "Người bán"
+                                : "Người mua"}
+                            </span>
+                            {rating.reviewer.ratingScore &&
+                              rating.reviewer.ratingCount > 0 && (
+                                <>
+                                  <span>•</span>
+                                  {Array.from(
+                                    {
+                                      length: helpers.getRatingStars(
+                                        rating.reviewer.ratingScore,
+                                        rating.reviewer.ratingCount,
+                                      ),
+                                    },
+                                    (_, i) => (
+                                      <Star
+                                        key={i}
+                                        className="w-3 h-3 text-amber-400 fill-amber-400"
+                                      />
                                     ),
-                                  },
-                                  (_, i) => (
-                                    <Star
-                                      key={i}
-                                      className="w-3 h-3 text-amber-400 fill-amber-400"
-                                    />
-                                  ),
-                                )}
-                                <span className="text-slate-500">
-                                  ({rating.reviewer.ratingCount} đánh giá)
-                                </span>
-                              </>
-                            )}
+                                  )}
+                                  <span className="text-slate-500">
+                                    ({rating.reviewer.ratingCount} đánh giá)
+                                  </span>
+                                </>
+                              )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Comment */}
-                    {rating.comment && (
-                      <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-700/50">
-                        <div className="flex items-start gap-2 mb-2">
-                          <MessageSquare className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                          <p className="font-bold text-slate-300 text-sm uppercase tracking-wider">
-                            Nhận xét
+                      {/* Comment */}
+                      {rating.comment && (
+                        <div className="p-4 bg-slate-950/50 rounded-xl border border-slate-700/50">
+                          <div className="flex items-start gap-2 mb-2">
+                            <MessageSquare className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                            <p className="font-bold text-slate-300 text-sm uppercase tracking-wider">
+                              Nhận xét
+                            </p>
+                          </div>
+                          <p className="text-slate-300 leading-relaxed pl-7">
+                            {rating.comment}
                           </p>
                         </div>
-                        <p className="text-slate-300 leading-relaxed pl-7">
-                          {rating.comment}
-                        </p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

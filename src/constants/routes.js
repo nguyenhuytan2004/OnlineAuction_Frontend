@@ -1,14 +1,18 @@
 export const ROUTES = {
-    // Auth
-    REGISTER: "/register",
-    LOGIN: "/login",
+  // Auth
+  REGISTER: "/register",
+  LOGIN: "/login",
 
-    // User
-    HOME: "/",
-    PRODUCT: "/products",
-    SELLER_REGISTER: "/seller-register",
-    PROFILE: "/profile",
+  // User
+  HOME: "/",
+  PRODUCT: "/products",
+  PROFILE: "/profile",
+  SELLER_REGISTER: "/user/upgrade-to-seller",
 
-    // Admin
-    CATEGORIES: "categories",
+  // Admin
+  ADMIN_DASHBOARD: "/admin/dashboard",
+  ADMIN_CATEGORIES: "/admin/categories",
+  ADMIN_PRODUCTS: "/admin/products",
+  ADMIN_USERS: "/admin/users",
+  ADMIN_UPGRADE_REVIEWS: "/admin/upgrade-reviews",
 };

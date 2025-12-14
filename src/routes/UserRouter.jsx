@@ -10,6 +10,7 @@ import Favorites from "../pages/user/profile/Favorites";
 import Ratings from "../pages/user/profile/Ratings";
 import AccountSettings from "../pages/user/profile/AccountSettings";
 import ChangePassword from "../pages/user/profile/ChangePassword";
+import UpgradeToSellerRequest from "../pages/user/UpgradeToSellerRequest";
 
 import NotFound from "../pages/NotFound";
 
@@ -55,6 +56,10 @@ export const UserRouter = [
       {
         path: `${ROUTES.PROFILE}/change-password`,
         element: <ChangePassword />,
+      },
+      {
+        path: "/user/upgrade-to-seller",
+        element: <UpgradeToSellerRequest />,
       },
       {
         path: "*",

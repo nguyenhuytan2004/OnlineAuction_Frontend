@@ -10,6 +10,8 @@ import {
   X,
 } from "lucide-react";
 
+import { ROUTES } from "../constants/routes";
+
 const AdminLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -22,27 +24,27 @@ const AdminLayout = () => {
     {
       label: "Bảng Điều Khiển",
       icon: BarChart3,
-      path: "/admin/dashboard",
+      path: ROUTES.ADMIN_DASHBOARD,
     },
     {
       label: "Quản Lý Danh Mục",
       icon: Package,
-      path: "/admin/categories",
+      path: ROUTES.ADMIN_CATEGORIES,
     },
     {
       label: "Quản Lý Sản Phẩm",
       icon: Package,
-      path: "/admin/products",
+      path: ROUTES.ADMIN_PRODUCTS,
     },
     {
       label: "Quản Lý Người Dùng",
       icon: Users,
-      path: "/admin/users",
+      path: ROUTES.ADMIN_USERS,
     },
     {
       label: "Duyệt Nâng Cấp",
       icon: ClipboardList,
-      path: "/admin/upgrade-reviews",
+      path: ROUTES.ADMIN_UPGRADE_REVIEWS,
     },
   ];
 
@@ -68,7 +70,7 @@ const AdminLayout = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 pr-12">
             <button className="px-4 py-2 rounded-lg text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors">
               <span className="text-sm font-semibold">Admin</span>
             </button>
@@ -83,8 +85,8 @@ const AdminLayout = () => {
         {/* Sidebar */}
         <aside
           className={`${
-            isSidebarOpen ? "w-64" : "w-24"
-          } bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 overflow-y-auto p-2 sticky top-20 h-[calc(100vh-5rem)]`}
+            isSidebarOpen ? "w-72" : "w-24"
+          } bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 overflow-y-auto sticky top-20 h-[calc(100vh-5rem)]`}
         >
           <div className="p-4 space-y-2">
             {navItems.map((item) => {
@@ -95,7 +97,7 @@ const AdminLayout = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                  className={`flex items-center gap-3 px-5 py-3 rounded-lg transition-all duration-300 ${
                     isActive
                       ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/30"
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
