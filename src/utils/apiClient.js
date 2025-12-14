@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../constants/api";
+import { isTokenExpired } from "../utils/jwt";
 
 class ApiClient {
     constructor(baseURL = API_BASE_URL) {
@@ -13,7 +14,85 @@ class ApiClient {
         };
     }
 
-    async request(endpoint, options = {}) {
+    async refreshAccessToken() {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+            throw new Error("No refresh token");
+        }
+
+        const response = await fetch(`${this.baseURL}/auth/refresh`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ refreshToken }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Refresh token expired");
+        }
+
+        const data = await response.json();
+
+        if (data.accessToken) {
+            localStorage.setItem("accessToken", data.accessToken);
+        }
+
+        if (data.refreshToken) {
+            localStorage.setItem("refreshToken", data.refreshToken);
+        }
+
+        return data.accessToken;
+    }
+
+    async request(endpoint, options = {}, retry = true) {
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken && isTokenExpired(accessToken)) {
+            try {
+                await this.refreshAccessToken();
+            } catch (err) {
+                this.logout();
+                throw err;
+            }
+        }
+
+        const url = `${this.baseURL}${endpoint}`;
+        const config = {
+            ...options,
+            headers: this.getHeaders(),
+        };
+
+        const response = await fetch(url, config);
+
+        if (!response.ok) {
+            if (response.status === 401 && retry) {
+                try {
+                    await this.refreshAccessToken();
+                    return this.request(endpoint, options, false); 
+                } catch {
+                    this.logout();
+                }
+            }
+
+            let message;
+            try {
+                const data = await response.json();
+                message = data.message;
+            } catch {
+                message = await response.text();
+            }
+
+            throw message || `HTTP ${response.status}`;
+        }
+
+        const contentType = response.headers.get("content-type");
+        return contentType?.includes("application/json")
+            ? response.json()
+            : response.text();
+    }
+
+
+    /*sync request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const config = {
             ...options,
@@ -54,6 +133,13 @@ class ApiClient {
             console.error("Error occurred:", error);
             throw error;
         }
+    }*/
+
+    logout() {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
     }
 
     get(endpoint) {
