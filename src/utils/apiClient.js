@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../constants/api";
-import { isTokenExpired } from "../utils/jwt";
+import { isTokenExpired } from "../utils/tokenUtils.js";
 
 class ApiClient {
     constructor(baseURL = API_BASE_URL) {

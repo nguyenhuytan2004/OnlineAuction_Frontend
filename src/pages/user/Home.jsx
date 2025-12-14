@@ -80,7 +80,6 @@ const Home = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      setLoading(true);
       setError(null);
       try {
         const [endingSoon, mostAuctioned, highestPriced] = await Promise.all([
@@ -96,6 +95,7 @@ const Home = () => {
         setHighestPriceProducts(
           Array.isArray(highestPriced) ? highestPriced : [],
         );
+        set
       } catch (err) {
         console.error("Error fetching products:", err);
         setError("Không thể tải sản phẩm");
