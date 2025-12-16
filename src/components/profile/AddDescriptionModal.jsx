@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Save, Bold, Italic, Underline, ChevronDown } from "lucide-react";
+import {
+  X,
+  Save,
+  Bold,
+  Italic,
+  Underline,
+  Heading2,
+  Heading3,
+} from "lucide-react";
 
 /**
  * Modal bổ sung mô tả sản phẩm - Amber/Orange theme với WYSIWYG (Simplified)
@@ -8,10 +16,7 @@ import { X, Save, Bold, Italic, Underline, ChevronDown } from "lucide-react";
 const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
   const [additionalDescription, setAdditionalDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isHeadingOpen, setIsHeadingOpen] = useState(false);
-  const [selectedHeading, setSelectedHeading] = useState("p");
   const editorRef = useRef(null);
-  const headingRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && editorRef.current) {
@@ -19,32 +24,13 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
     }
   }, [isOpen]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (headingRef.current && !headingRef.current.contains(event.target)) {
-        setIsHeadingOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleClose = () => {
     setAdditionalDescription("");
-    setSelectedHeading("p");
-    setIsHeadingOpen(false);
     onClose();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!additionalDescription.trim()) {
-      alert("Vui lòng nhập thông tin bổ sung");
-      return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -65,27 +51,11 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
     editorRef.current?.focus();
   };
 
-  const applyHeading = (tag) => {
-    setSelectedHeading(tag);
-    applyFormat("formatBlock", `<${tag}>`);
-    setIsHeadingOpen(false);
-  };
-
   const handleEditorInput = () => {
     if (editorRef.current) {
       setAdditionalDescription(editorRef.current.innerHTML);
     }
   };
-
-  const headingOptions = [
-    { tag: "p", label: "Đoạn văn bản", className: "text-base" },
-    { tag: "h2", label: "Tiêu đề lớn (H2)", className: "text-xl font-bold" },
-    {
-      tag: "h3",
-      label: "Tiêu đề nhỏ (H3)",
-      className: "text-lg font-semibold",
-    },
-  ];
 
   if (!isOpen) return null;
 
@@ -93,7 +63,7 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/70 backdrop-blur-sm">
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-amber-500/30 border border-slate-700/50 w-full max-w-2xl animate-in fade-in zoom-in-90 duration-300 border-slate-700">
         {/* Header with Amber/Orange Theme */}
-        <div className="bg-gradient-to-r from-amber-600 to-orange-600 px-8 py-4 text-white relative rounded-t-3xl">
+        <div className="bg-gradient-to-r from-amber-600 to-orange-600  p-8 text-white relative rounded-t-3xl">
           <button
             onClick={handleClose}
             className="absolute top-8 right-8 p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -103,21 +73,12 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
           <h2 className="text-2xl font-black mb-2">
             Bổ sung thông tin sản phẩm
           </h2>
-          <p className="text-amber-50">
-            Thêm mô tả chi tiết cho sản phẩm của bạn
-          </p>
-        </div>
-
-        {/* Background Decoration */}
-        <div className="fixed h-[80vh] w-full max-w-2xl z-0">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full"></div>
         </div>
 
         {/* Content */}
         <form
           onSubmit={handleSubmit}
-          className="p-8 space-y-6 max-h-[80vh] overflow-y-auto relative z-10"
+          className="px-8 pt-8 space-y-6 max-h-[80vh] overflow-y-auto flex flex-col"
         >
           {/* Product Info */}
           <div className="mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
@@ -202,59 +163,24 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
               {/* Divider */}
               <div className="w-px h-6 bg-slate-700 mx-1"></div>
 
-              {/* Heading Dropdown */}
-              <div className="relative" ref={headingRef}>
-                <button
-                  type="button"
-                  onClick={() => setIsHeadingOpen(!isHeadingOpen)}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100 group"
-                  title="Định dạng tiêu đề"
-                >
-                  <span className="text-sm font-semibold">
-                    {headingOptions.find((h) => h.tag === selectedHeading)
-                      ?.label || "Tiêu đề"}
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-300 ${
-                      isHeadingOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+              {/* Heading */}
+              <button
+                type="button"
+                onClick={() => applyFormat("formatBlock", "<h2>")}
+                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
+                title="Tiêu đề lớn"
+              >
+                <Heading2 className="w-4 h-4" />
+              </button>
 
-                {/* Heading Dropdown Menu */}
-                {isHeadingOpen && (
-                  <ul className="absolute top-full left-0 mt-2 w-56 bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-amber-500/30 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {headingOptions.map((option) => (
-                      <li key={option.tag}>
-                        <button
-                          type="button"
-                          onClick={() => applyHeading(option.tag)}
-                          className={`w-full text-left px-4 py-3 transition-all duration-200 flex items-center gap-3 group ${
-                            selectedHeading === option.tag
-                              ? "bg-gradient-to-r from-amber-600/30 to-orange-600/30 border-l-2 border-amber-500 text-amber-300"
-                              : "hover:bg-slate-700/50 text-slate-300 hover:text-slate-100"
-                          }`}
-                        >
-                          {/* Highlight indicator */}
-                          {selectedHeading === option.tag && (
-                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                          )}
-                          <div className="flex-1">
-                            <p className={`font-semibold ${option.className}`}>
-                              {option.label}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {option.tag === "p" && "Đoạn văn bản thường"}
-                              {option.tag === "h2" && "Tiêu đề chính"}
-                              {option.tag === "h3" && "Tiêu đề phụ"}
-                            </p>
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => applyFormat("formatBlock", "<h3>")}
+                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
+                title="Tiêu đề nhỏ"
+              >
+                <Heading3 className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Editor Area */}
@@ -269,9 +195,6 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
               }}
               data-placeholder="Nhập thông tin bổ sung cho sản phẩm..."
             />
-            <p className="mt-2 text-xs text-slate-500">
-              Thông tin này sẽ được thêm vào cuối mô tả hiện tại
-            </p>
           </div>
 
           {/* Info Box */}
@@ -281,8 +204,9 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
               không thay thế nội dung cũ.
             </p>
           </div>
+
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="sticky bottom-0 flex gap-3 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 px-8 py-6 border-t border-slate-700/50 rounded-xl -mx-2">
             <button
               type="button"
               onClick={handleClose}
@@ -301,10 +225,7 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
                   Đang lưu...
                 </>
               ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  Lưu thông tin
-                </>
+                <>Lưu thông tin</>
               )}
             </button>
           </div>

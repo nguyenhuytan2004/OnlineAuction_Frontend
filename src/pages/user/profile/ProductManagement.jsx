@@ -134,10 +134,19 @@ const ProductManagement = () => {
 
   const handleCreateProduct = async (formData) => {
     try {
-      // TODO: Call API to create product
-      // const createdProduct = await productService.createProduct(formData);
+      const newProduct = await productService.createProduct(formData);
+      setActiveProducts((prevProducts) => [newProduct, ...prevProducts]);
 
-      toast.success("Sản phẩm đã được tạo thành công!");
+      toast.success("Sản phẩm đã được tạo thành công", {
+        duration: 2000,
+        style: {
+          background: "rgba(16, 185, 129, 0.2)", // bg-emerald-500/20
+          color: "#D1FAE5", // text-emerald-200
+          border: "1px solid #10B981", // border-emerald-500
+          padding: "12px 16px",
+          maxWidth: "800px",
+        },
+      });
       setIsCreateProductModalOpen(false);
 
       // Reload products
@@ -145,7 +154,19 @@ const ProductManagement = () => {
       setActiveProducts(activeProducts);
     } catch (error) {
       console.error("Error creating product:", error);
-      toast.error("Lỗi tạo sản phẩm, vui lòng thử lại");
+      toast.error(
+        "Đã xảy ra lỗi trong quá trình tạo sản phẩm. Vui lòng thử lại.",
+        {
+          duration: 3000,
+          style: {
+            background: "rgba(239, 68, 68, 0.2)", // bg-rose-500/20
+            color: "#FEE2E2", // text-rose-200
+            border: "1px solid #DC2626", // border-rose-500
+            padding: "12px 16px",
+            maxWidth: "800px",
+          },
+        },
+      );
     }
   };
 

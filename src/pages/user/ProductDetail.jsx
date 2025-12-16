@@ -28,7 +28,10 @@ const ProductDetail = () => {
   const [bidHistory, setBidHistory] = useState([]);
   const [qnaData, setQnaData] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [hoveredImage, setHoveredImage] = useState(null);
+  const [hoveredImage, setHoveredImage] = useState({
+    idx: null,
+    image: null,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -502,7 +505,7 @@ const ProductDetail = () => {
               {/* Decorative Corner */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <img
-                src={hoveredImage || product.mainImageUrl || null}
+                src={hoveredImage?.image || product.mainImageUrl || null}
                 alt={product.productName}
                 className="w-full h-96 object-cover transition-all duration-700 group-hover:scale-105"
               />
@@ -514,11 +517,11 @@ const ProductDetail = () => {
                 {allImages.slice(1, 4).map((image, idx) => (
                   <button
                     key={idx}
-                    onMouseEnter={() => setHoveredImage(image)}
+                    onMouseEnter={() => setHoveredImage({ idx, image })}
                     onMouseLeave={() => setHoveredImage(null)}
                     className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 
                                             ${
-                                              hoveredImage === image
+                                              hoveredImage?.idx === idx
                                                 ? "border-amber-500 shadow-lg shadow-amber-500/50 scale-105"
                                                 : "border-slate-700/50 hover:border-amber-500/50"
                                             } bg-gradient-to-br from-slate-900/90 to-slate-800/80`}
