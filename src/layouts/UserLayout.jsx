@@ -5,6 +5,7 @@ import { ROUTES } from "../constants/routes";
 import SearchBar from "../components/inputs/SearchBar";
 import AvatarDropdown from "../components/AvatarDropdown";
 import { useAuth } from "../hooks/useAuth";
+import ChatFloatingButton from "../components/ChatFloatingButton";
 
 import BackgroundDecoration from "../components/BackgroundDecoration";
 
@@ -20,6 +21,9 @@ const UserLayout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
+      {/* Chat Floating Button */}
+      {isAuthenticated && <ChatFloatingButton />}
+
       {/* Header with Premium Dark Mode */}
       <header className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 backdrop-blur-xl border-b border-slate-800/50 sticky top-0 z-50 shadow-xl shadow-slate-950/50">
         <nav className="max-w-7xl mx-auto px-8 h-20 flex items-center">

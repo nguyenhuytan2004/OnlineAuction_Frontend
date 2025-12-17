@@ -1246,7 +1246,7 @@ const ProductDetail = () => {
                   }
 
                   const bidAmount = parseFloat(maxBidPrice);
-                  if (bidAmount >= product.buyNowPrice) {
+                  if (product.buyNowPrice && bidAmount >= product.buyNowPrice) {
                     setShowBuyNowModal(true);
                     setShowBidModal(false);
                     setMaxBidPrice("");
@@ -1276,7 +1276,7 @@ const ProductDetail = () => {
       {showBuyNowModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
           <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 rounded-2xl border border-slate-700/50 p-10 w-[480px] shadow-2xl shadow-red-500/20 backdrop-blur-xl relative overflow-hidden">
-            {/* Decorative corners */}
+            {/* Background Decoration */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/20 to-transparent rounded-bl-full"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-red-500/20 to-transparent rounded-tr-full"></div>
 
@@ -1384,7 +1384,7 @@ const ProductDetail = () => {
       {showBidderDetailModal && selectedBidder && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] animate-in fade-in duration-200">
           <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 rounded-3xl p-10 max-w-lg w-full mx-4 border border-slate-700/50 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300">
-            {/* Decorative Elements */}
+            {/* Background Decoration */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full"></div>
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full"></div>
 
