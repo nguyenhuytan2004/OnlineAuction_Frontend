@@ -13,9 +13,11 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const latestMessageSimulationRef = useRef(null);
   const inputMessageRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const { user } = useAuth();
   const { connected } = useWebSocket();
@@ -24,7 +26,6 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
   const handleNewMessage = useCallback((newMsg) => {
     setMessages((prevMessages) => [...prevMessages, newMsg]);
     setIsSending(false);
-    setIsAtBottom(true);
   }, []);
 
   // Use WebSocket chat hook
@@ -38,18 +39,26 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
     setIsSending(true);
     sendMessage(user.userId, newMessage);
     setNewMessage("");
-    inputMessageRef.current?.focus();
   };
+
+  // Focus input after sending message
+  useEffect(() => {
+    if (!isSending && inputMessageRef.current) {
+      inputMessageRef.current.focus();
+    }
+  }, [isSending]);
 
   // Fetch messages
   useEffect(() => {
     const fetchMessages = async () => {
       setIsLoading(true);
       try {
-        const data = await chatService.getMessages(conversation.conversationId);
-        setMessages(data);
-        setIsAtBottom(true);
-        setHasMore(data.length >= 20);
+        const messages = await chatService.getMessages(
+          conversation.conversationId,
+        );
+        setMessages(messages);
+        setHasMore(messages.length >= 20);
+        setIsInitialLoad(true);
       } catch (error) {
         console.error("Failed to load messages:", error);
       } finally {
@@ -60,14 +69,27 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
     if (isOpen && conversation) {
       fetchMessages();
     }
+    return () => {
+      setIsInitialLoad(false);
+    };
   }, [isOpen, conversation]);
+
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    latestMessageSimulationRef.current?.scrollIntoView();
+  }, [isInitialLoad]);
 
   // Auto-scroll to bottom when new message comes
   useEffect(() => {
-    if (isAtBottom && latestMessageSimulationRef.current) {
-      latestMessageSimulationRef.current.scrollIntoView({ behavior: "smooth" });
+    const isFindingMessage =
+      messagesContainerRef.current?.scrollHeight -
+        messagesContainerRef.current?.scrollTop -
+        messagesContainerRef.current?.clientHeight >
+      messagesContainerRef.current?.clientHeight / 2;
+    if (!isFindingMessage && latestMessageSimulationRef.current) {
+      latestMessageSimulationRef.current.scrollIntoView();
     }
-  }, [messages.length, isAtBottom]);
+  }, [messages.length]);
 
   // Handle scroll to detect if at bottom
   const handleScroll = useCallback(
@@ -84,6 +106,12 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
 
         try {
           setIsLoadingMore(true);
+
+          // Lưu scrollHeight và scrollTop trước khi load tin nhắn cũ
+          const scrollHeightBefore =
+            messagesContainerRef.current?.scrollHeight || 0;
+          const scrollTopBefore = messagesContainerRef.current?.scrollTop || 0;
+
           const oldestMessageId = messages[0]?.messageId;
           const moreMessages = await chatService.getMessages(
             conversation.conversationId,
@@ -98,6 +126,17 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
               setHasMore(false);
             }
             setMessages((prev) => [...moreMessages, ...prev]);
+
+            // Điều chỉnh scrollTop sau khi load tin nhắn cũ
+            setTimeout(() => {
+              if (messagesContainerRef.current) {
+                const scrollHeightAfter =
+                  messagesContainerRef.current.scrollHeight;
+                const newScrollTop =
+                  scrollTopBefore + (scrollHeightAfter - scrollHeightBefore);
+                messagesContainerRef.current.scrollTop = newScrollTop - 20;
+              }
+            }, 10);
           }
         } catch (error) {
           console.error("Failed to load more messages:", error);
@@ -107,8 +146,7 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
       };
 
       // Load more messages when scrolled to top
-      if (container.scrollTop < 10 && hasMore && !isLoadingMore && !isLoading) {
-        console.log("Loading more messages...");
+      if (container.scrollTop < 20 && hasMore && !isLoadingMore && !isLoading) {
         handleLoadMore();
       }
     },
@@ -117,18 +155,13 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
 
   // Scroll to bottom
   const scrollToBottom = () => {
-    setIsAtBottom(true);
     if (latestMessageSimulationRef.current) {
-      latestMessageSimulationRef.current.scrollIntoView({ behavior: "smooth" });
+      latestMessageSimulationRef.current.scrollIntoView();
     }
+    setIsAtBottom(true);
   };
 
   if (!isOpen) return null;
-
-  const otherUser =
-    conversation.seller.userId !== conversation.buyer.userId
-      ? conversation.buyer
-      : conversation.seller;
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-end p-4">
@@ -158,7 +191,9 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
             )}
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-white truncate">
-                {otherUser?.fullName || "Chat"}
+                {conversation.seller.userId !== conversation.buyer.userId
+                  ? conversation.buyer.fullName
+                  : conversation.seller.fullName || "Chat"}
               </h3>
               <p className="text-xs text-amber-100 truncate">
                 {conversation.product?.productName}
@@ -175,6 +210,7 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
 
         {/* Messages Container */}
         <div
+          ref={messagesContainerRef}
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-slate-800/50 to-slate-900/50 relative"
         >
