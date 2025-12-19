@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import categoryService from "../../services/categoryService";
+import Tooltip from "../common/Tooltip";
 
 const AddAdditionalImageModal = ({ isOpen, onClose, onAdd, existingUrls }) => {
   const [imageUrl, setImageUrl] = useState("");
@@ -653,49 +654,39 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
               <button
                 type="button"
                 onClick={() => applyFormat("bold")}
-                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
-                title="In đậm"
+                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100 group relative"
               >
                 <Bold className="w-4 h-4" />
+                <Tooltip
+                  text="In đậm (Ctrl + B)"
+                  position="bottom-full left-1/2 -translate-x-1/2"
+                />
               </button>
 
               <button
                 type="button"
                 onClick={() => applyFormat("italic")}
-                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
+                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100 group relative"
                 title="In nghiêng"
               >
                 <Italic className="w-4 h-4" />
+                <Tooltip
+                  text="In nghiêng (Ctrl + I)"
+                  position="bottom-full left-1/2 -translate-x-1/2"
+                />
               </button>
 
               <button
                 type="button"
                 onClick={() => applyFormat("underline")}
-                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
+                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100 group relative"
                 title="Gạch dưới"
               >
                 <Underline className="w-4 h-4" />
-              </button>
-
-              {/* Divider */}
-              <div className="w-px h-6 bg-slate-700 mx-1"></div>
-
-              <button
-                type="button"
-                onClick={() => applyFormat("formatBlock", "<h2>")}
-                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
-                title="Tiêu đề lớn"
-              >
-                <Heading2 className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => applyFormat("formatBlock", "<h3>")}
-                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
-                title="Tiêu đề nhỏ"
-              >
-                <Heading3 className="w-4 h-4" />
+                <Tooltip
+                  text="Gạch dưới (Ctrl + U)"
+                  position="bottom-full left-1/2 -translate-x-1/2"
+                />
               </button>
             </div>
 

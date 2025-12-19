@@ -8,7 +8,7 @@ import {
   FileEdit,
   Plus,
 } from "lucide-react";
-import { Toaster, toast } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import Tooltip from "../../../components/common/Tooltip";
 
 import userProfileService from "../../../services/userProfileService";
@@ -66,8 +66,6 @@ const ProductManagement = () => {
           isRated: isRatedList[index],
           paymentStatus: statusList[index],
         }));
-
-        console.log("Updated Sold Products:", updatedSoldProducts);
 
         setSoldProducts(updatedSoldProducts);
       } catch (error) {
@@ -174,10 +172,10 @@ const ProductManagement = () => {
             : product,
         ),
       );
-
-      return updatedDescription;
+      notify.success("Bổ sung mô tả sản phẩm thành công");
     } catch (error) {
       console.error("Error adding description:", error);
+      notify.error("Bổ sung mô tả sản phẩm thất bại, vui lòng thử lại");
     }
   };
 
@@ -186,16 +184,7 @@ const ProductManagement = () => {
       const newProduct = await productService.createProduct(formData);
       setActiveProducts((prevProducts) => [newProduct, ...prevProducts]);
 
-      toast.success("Sản phẩm đã được tạo thành công", {
-        duration: 2000,
-        style: {
-          background: "rgba(16, 185, 129, 0.2)", // bg-emerald-500/20
-          color: "#D1FAE5", // text-emerald-200
-          border: "1px solid #10B981", // border-emerald-500
-          padding: "12px 16px",
-          maxWidth: "800px",
-        },
-      });
+      notify.success("Tạo sản phẩm thành công");
       setIsCreateProductModalOpen(false);
 
       // Reload products
@@ -203,19 +192,7 @@ const ProductManagement = () => {
       setActiveProducts(activeProducts);
     } catch (error) {
       console.error("Error creating product:", error);
-      toast.error(
-        "Đã xảy ra lỗi trong quá trình tạo sản phẩm. Vui lòng thử lại.",
-        {
-          duration: 3000,
-          style: {
-            background: "rgba(239, 68, 68, 0.2)", // bg-rose-500/20
-            color: "#FEE2E2", // text-rose-200
-            border: "1px solid #DC2626", // border-rose-500
-            padding: "12px 16px",
-            maxWidth: "800px",
-          },
-        },
-      );
+      notify.error("Tạo sản phẩm thất bại, vui lòng thử lại");
     }
   };
 
@@ -402,9 +379,12 @@ const ProductManagement = () => {
                                     </span>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <p className="text-sm text-slate-300 line-clamp-2">
-                                      {product.description || "Chưa có mô tả"}
-                                    </p>
+                                    <div
+                                      className="text-slate-300 line-clamp-2"
+                                      dangerouslySetInnerHTML={{
+                                        __html: product.description,
+                                      }}
+                                    />
                                   </td>
                                   <td className="px-6 py-4">
                                     <div className="flex items-center justify-center">

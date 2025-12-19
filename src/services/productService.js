@@ -112,7 +112,7 @@ const productService = {
   appendProductDescription: async (productId, additionalDescription) => {
     try {
       const response = await apiClient.patch(
-        `${API_ENDPOINTS.PRODUCTS}/${productId}/description`,
+        `${API_ENDPOINTS.PRODUCTS}/${productId}/append-description`,
         {
           additionalDescription,
         },

@@ -12,6 +12,7 @@ import { ROUTES } from "../../constants/routes";
 import helpers from "../../utils/helpers";
 import formatters from "../../utils/formatters";
 import ProductCard from "../../components/ProductCard_LessInfo";
+import { X } from "lucide-react";
 import productService from "../../services/productService";
 import bidService from "../../services/bidService";
 import favouriteService from "../../services/favouriteService";
@@ -55,8 +56,11 @@ const ProductDetail = () => {
     useState(false);
   const [blockedReason, setBlockedReason] = useState("");
   const [isBidDropdownOpen, setIsBidDropdownOpen] = useState(false);
+  const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
+  const [isDescriptionClamped, setIsDescriptionClamped] = useState(false);
 
   const bidDropdownRef = useRef(null);
+  const descriptionRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -168,6 +172,15 @@ const ProductDetail = () => {
 
     fetchEligibility();
   }, [isAuthenticated, product]);
+
+  // Check if description is clamped
+  useEffect(() => {
+    if (descriptionRef.current && product) {
+      const maxHeight = 3 * 24;
+      const actualHeight = descriptionRef.current.scrollHeight;
+      setIsDescriptionClamped(actualHeight > maxHeight + 10); // +10px tolerance
+    }
+  }, [product]);
 
   // Check if current user is blocked from bidding
   useEffect(() => {
@@ -864,11 +877,53 @@ const ProductDetail = () => {
               ></i>
               Mô tả chi tiết
             </h2>
-            <div className="text-gray-200 whitespace-pre-line leading-relaxed font-['Montserrat'] relative z-10">
-              {product.description}
-            </div>
+            <div
+              ref={descriptionRef}
+              className="text-gray-200 whitespace-pre-line leading-relaxed font-['Montserrat'] relative z-10 prose prose-sm prose-invert max-w-none line-clamp-3"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
+            {isDescriptionClamped && (
+              <div className="mt-4 flex items-center gap-2 relative z-10">
+                <button
+                  onClick={() => setIsDescriptionModalOpen(true)}
+                  className="text-amber-400 hover:text-amber-300 font-semibold transition-colors duration-200 text-sm"
+                >
+                  Xem thêm
+                </button>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Description Modal */}
+        {isDescriptionModalOpen && product && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl w-full max-w-xl max-h-[80vh] overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-700">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-amber-600 to-orange-600 px-10 py-6 flex items-center justify-between sticky top-0 z-10">
+                <h3 className="text-2xl font-bold text-white">
+                  Mô tả chi tiết
+                </h3>
+                <button
+                  onClick={() => setIsDescriptionModalOpen(false)}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <X className="w-6 h-6 text-white" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-10 overflow-y-auto max-h-[calc(80vh-80px)] relative">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full"></div>
+                <div
+                  className="prose prose-sm prose-invert max-w-none text-gray-200 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Q&A Section */}
         <div className="mb-12 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 rounded-2xl border border-slate-700/50 p-8 backdrop-blur-xl shadow-2xl shadow-amber-500/10 relative overflow-hidden">

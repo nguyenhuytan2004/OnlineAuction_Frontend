@@ -8,6 +8,7 @@ import {
   Heading2,
   Heading3,
 } from "lucide-react";
+import Tooltip from "../common/Tooltip";
 
 /**
  * Modal bổ sung mô tả sản phẩm - Amber/Orange theme với WYSIWYG (Simplified)
@@ -81,7 +82,7 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
           className="px-8 pt-8 space-y-6 max-h-[80vh] overflow-y-auto flex flex-col"
         >
           {/* Product Info */}
-          <div className="mb-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+          <div className=" p-4 bg-slate-800/50 rounded-xl border border-slate-700">
             <div className="flex items-start gap-4">
               <img
                 src={product.mainImageUrl || null}
@@ -101,20 +102,19 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
 
           {/* Current Description */}
           {product.description && (
-            <div className="mb-6">
+            <div className="">
               <label className="block text-sm font-bold text-slate-200 mb-2">
                 Mô tả hiện tại
               </label>
-              <div className="p-4 bg-slate-800/30 rounded-xl border border-slate-700 max-h-32 overflow-y-auto">
-                <p className="text-sm text-slate-300 whitespace-pre-wrap">
-                  {product.description}
-                </p>
-              </div>
+              <div
+                className="p-4 bg-slate-800/30 rounded-xl border border-slate-700 max-h-28 overflow-y-auto"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+              ></div>
             </div>
           )}
 
           {/* WYSIWYG Editor */}
-          <div className="mb-6">
+          <div className="">
             <label className="block text-sm font-bold text-slate-200 mb-2">
               Thông tin bổ sung <span className="text-red-400">*</span>
             </label>
@@ -126,12 +126,12 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
                 type="button"
                 onClick={() => applyFormat("bold")}
                 className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100 group relative"
-                title="In đậm (Ctrl+B)"
               >
                 <Bold className="w-4 h-4" />
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-slate-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  In đậm
-                </span>
+                <Tooltip
+                  text="In đậm (Ctrl + B)"
+                  position="bottom-full left-1/2 -translate-x-1/2"
+                />
               </button>
 
               {/* Italic Button */}
@@ -139,12 +139,12 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
                 type="button"
                 onClick={() => applyFormat("italic")}
                 className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100 group relative"
-                title="In nghiêng (Ctrl+I)"
               >
                 <Italic className="w-4 h-4" />
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-slate-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  In nghiêng
-                </span>
+                <Tooltip
+                  text="In nghiêng (Ctrl + I)"
+                  position="bottom-full left-1/2 -translate-x-1/2"
+                />
               </button>
 
               {/* Underline Button */}
@@ -152,34 +152,12 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
                 type="button"
                 onClick={() => applyFormat("underline")}
                 className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100 group relative"
-                title="Gạch dưới (Ctrl+U)"
               >
                 <Underline className="w-4 h-4" />
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-700 text-slate-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  Gạch dưới
-                </span>
-              </button>
-
-              {/* Divider */}
-              <div className="w-px h-6 bg-slate-700 mx-1"></div>
-
-              {/* Heading */}
-              <button
-                type="button"
-                onClick={() => applyFormat("formatBlock", "<h2>")}
-                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
-                title="Tiêu đề lớn"
-              >
-                <Heading2 className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => applyFormat("formatBlock", "<h3>")}
-                className="p-2 hover:bg-slate-700 rounded transition-colors text-slate-300 hover:text-slate-100"
-                title="Tiêu đề nhỏ"
-              >
-                <Heading3 className="w-4 h-4" />
+                <Tooltip
+                  text="Gạch dưới (Ctrl + U)"
+                  position="bottom-full left-1/2 -translate-x-1/2"
+                />
               </button>
             </div>
 
@@ -198,7 +176,7 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
           </div>
 
           {/* Info Box */}
-          <div className="mb-6 p-4 bg-amber-500/10 border-2 border-amber-500/30 rounded-xl">
+          <div className="p-4 bg-amber-500/10 border-2 border-amber-500/30 rounded-xl">
             <p className="text-sm text-amber-300 font-semibold">
               Lưu ý: Thông tin bổ sung sẽ được chèn vào cuối mô tả hiện tại,
               không thay thế nội dung cũ.
@@ -237,20 +215,6 @@ const AddDescriptionModal = ({ isOpen, onClose, product, onSubmit }) => {
           content: attr(data-placeholder);
           color: #64748b;
           font-style: italic;
-        }
-
-        h2 {
-          font-size: 1.5rem;
-          font-weight: bold;
-          margin: 0.5em 0;
-          color: inherit;
-        }
-
-        h3 {
-          font-size: 1.25rem;
-          font-weight: 600;
-          margin: 0.5em 0;
-          color: inherit;
         }
 
         b,
