@@ -13,7 +13,7 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(false);
 
   const latestMessageSimulationRef = useRef(null);
   const inputMessageRef = useRef(null);
@@ -128,7 +128,7 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
             setMessages((prev) => [...moreMessages, ...prev]);
 
             // Điều chỉnh scrollTop sau khi load tin nhắn cũ
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
               if (messagesContainerRef.current) {
                 const scrollHeightAfter =
                   messagesContainerRef.current.scrollHeight;
@@ -137,6 +137,7 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
                 messagesContainerRef.current.scrollTop = newScrollTop - 20;
               }
             }, 10);
+            return () => clearTimeout(timeoutId);
           }
         } catch (error) {
           console.error("Failed to load more messages:", error);
@@ -214,10 +215,6 @@ const ChatModal = ({ isOpen, onClose, conversation, onBack }) => {
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-slate-800/50 to-slate-900/50 relative"
         >
-          {/* Background Decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full pointer-events-none z-10"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-full pointer-events-none z-10"></div>
-
           {/* Load more indicator */}
           {isLoadingMore && (
             <div className="flex items-center justify-center py-2">

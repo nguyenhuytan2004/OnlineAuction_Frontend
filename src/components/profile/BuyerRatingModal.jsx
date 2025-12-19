@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { ThumbsUp, ThumbsDown, Send, X } from "lucide-react";
 
-/**
- * Modal đánh giá người mua - Green theme
- */
-const BuyerRatingModal = ({ isOpen, onClose, product, onSubmit }) => {
+const BuyerRatingModal = ({
+  isOpen,
+  onClose,
+  product,
+  onSubmit,
+  isSeller = true,
+  initialRating,
+}) => {
   const [selectedRating, setSelectedRating] = useState(null);
   const {
     register,
@@ -16,10 +20,20 @@ const BuyerRatingModal = ({ isOpen, onClose, product, onSubmit }) => {
     reset,
   } = useForm({
     defaultValues: {
-      ratingValue: null,
-      comment: "",
+      ratingValue: initialRating?.ratingValue || null,
+      comment: initialRating?.comment || "",
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        ratingValue: initialRating?.ratingValue || null,
+        comment: initialRating?.comment || "",
+      });
+      setSelectedRating(initialRating?.ratingValue || null);
+    }
+  }, [isOpen, initialRating, reset]);
 
   const handleClose = () => {
     reset();
@@ -58,9 +72,13 @@ const BuyerRatingModal = ({ isOpen, onClose, product, onSubmit }) => {
           >
             <X className="w-5 h-5" />
           </button>
-          <h2 className="text-2xl font-black mb-2">Đánh giá người mua</h2>
+          <h2 className="text-2xl font-black mb-2">
+            {isSeller ? "Đánh giá người mua" : "Đánh giá người bán"}
+          </h2>
           <p className="text-green-50">
-            Đánh giá người thắng đấu giá về sản phẩm này
+            {isSeller
+              ? "Đánh giá người chiến thắng sản phẩm này."
+              : "Đánh giá người bán sản phẩm này."}
           </p>
         </div>
 
@@ -82,7 +100,9 @@ const BuyerRatingModal = ({ isOpen, onClose, product, onSubmit }) => {
                   {product.productName}
                 </h3>
                 <p className="text-sm text-slate-400">
-                  Người mua: {product.highestBidder?.fullName}
+                  {isSeller
+                    ? `Người mua: ${product.highestBidder?.fullName || "N/A"}`
+                    : `Người bán: ${product.seller?.fullName || "N/A"}`}
                 </p>
               </div>
             </div>

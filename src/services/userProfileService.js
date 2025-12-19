@@ -116,7 +116,7 @@ const userProfileService = {
   // Đánh giá người mua (buyer)
   rateBuyer: async (ratingData) => {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.RATINGS_BUYER, {
+      const response = await apiClient.post(`${API_ENDPOINTS.RATINGS}/buyer`, {
         productId: ratingData.productId,
         ratingValue: ratingData.ratingValue,
         comment: ratingData.comment,
@@ -128,10 +128,25 @@ const userProfileService = {
     }
   },
 
+  // Đánh giá người bán (seller)
+  rateSeller: async (ratingData) => {
+    try {
+      const response = await apiClient.post(`${API_ENDPOINTS.RATINGS}/seller`, {
+        productId: ratingData.productId,
+        ratingValue: ratingData.ratingValue,
+        comment: ratingData.comment,
+      });
+      return response;
+    } catch (error) {
+      console.error("Rate seller error:", error);
+      throw error;
+    }
+  },
+
   // Huỷ giao dịch
   cancelAuctionResult: async (productId) => {
     try {
-      const response = await apiClient.post(
+      const response = await apiClient.patch(
         API_ENDPOINTS.AUCTION_RESULTS_CANCEL(productId),
       );
       return response;

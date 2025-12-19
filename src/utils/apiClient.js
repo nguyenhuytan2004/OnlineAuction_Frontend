@@ -1,6 +1,8 @@
 import { API_BASE_URL } from "../constants/api";
 import { isTokenExpired } from "../utils/tokenUtils.js";
 
+import authService from "../services/authService.js";
+
 class ApiClient {
   constructor(baseURL = API_BASE_URL) {
     this.baseURL = baseURL;
@@ -12,37 +14,6 @@ class ApiClient {
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
     };
-  }
-
-  async refreshAccessToken() {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) {
-      throw new Error("No refresh token");
-    }
-
-    const response = await fetch(`${this.baseURL}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Refresh token expired");
-    }
-
-    const data = await response.json();
-
-    if (data.accessToken) {
-      localStorage.setItem("accessToken", data.accessToken);
-    }
-
-    if (data.refreshToken) {
-      localStorage.setItem("refreshToken", data.refreshToken);
-    }
-
-    return data.accessToken;
   }
 
   async request(endpoint, options = {}, retry = true) {
@@ -69,10 +40,10 @@ class ApiClient {
       if (!response.ok) {
         if (response.status === 401 && retry) {
           try {
-            await this.refreshAccessToken();
+            await authService.refreshAccessToken();
             return this.request(endpoint, options, false);
           } catch {
-            this.logout();
+            authService.logout();
           }
         }
 
@@ -91,56 +62,6 @@ class ApiClient {
       console.error("Error occurred:", error);
       throw error;
     }
-  }
-
-  /*sync request(endpoint, options = {}) {
-        const url = `${this.baseURL}${endpoint}`;
-        const config = {
-            ...options,
-            headers: this.getHeaders(),
-        };
-
-        try {
-            const response = await fetch(url, config);
-
-            if (!response.ok) {
-                if (
-                    response.status === 401 &&
-                    !endpoint.includes("/auth/login")
-                ) {
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
-                    localStorage.removeItem("user");
-                    window.location.href = "/login";
-                }
-
-                let errorMessage = null;
-                try {
-                    errorMessage = await response.text();
-                } catch {
-                    // Ignore JSON parse errors
-                }
-
-                throw errorMessage || `HTTP error! status: ${response.status}`;
-            }
-
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                return await response.json();
-            } else {
-                return await response.text();
-            }
-        } catch (error) {
-            console.error("Error occurred:", error);
-            throw error;
-        }
-    }*/
-
-  logout() {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
   }
 
   get(endpoint) {

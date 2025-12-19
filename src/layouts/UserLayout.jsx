@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 
 import { ROUTES } from "../constants/routes";
 import SearchBar from "../components/inputs/SearchBar";
@@ -10,14 +10,21 @@ import ChatFloatingButton from "../components/ChatFloatingButton";
 import BackgroundDecoration from "../components/BackgroundDecoration";
 
 const UserLayout = () => {
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Scroll to top when route changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [location.pathname]);
 
-  const { isAuthenticated } = useAuth();
+    const pathRequiresAuth = [ROUTES.PROFILE, ROUTES.SELLER_REGISTER].some(
+      (path) => location.pathname.startsWith(path),
+    );
+    if (pathRequiresAuth && !isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">

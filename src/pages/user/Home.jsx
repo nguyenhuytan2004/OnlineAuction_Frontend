@@ -54,17 +54,41 @@ const ProductSection = ({ title, products }) => {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-5 gap-7 relative z-10">
-          {products.map((product, index) => (
-            <div
-              key={product.productId}
-              className="animate-slide-in-up"
-              style={{ animationDelay: `${index * 200}ms` }}
-            >
-              <ProductCard product={product} />
+        {products.length !== 0 ? (
+          <div className="grid grid-cols-5 gap-7 relative z-10">
+            {products.map((product, index) => (
+              <div
+                key={product.productId}
+                className="animate-slide-in-up"
+                style={{ animationDelay: `${index * 200}ms` }}
+              >
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center">
+            <div className="inline-block p-8 bg-slate-800/50 rounded-3xl border border-slate-700/50 backdrop-blur-sm">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-20 w-20 text-slate-600 mx-auto mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+              <p className="text-slate-400 text-lg font-bold">
+                Không tìm thấy sản phẩm nào
+              </p>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -211,7 +235,7 @@ const Home = () => {
       {!loading && !error && (
         <div className="mt-10">
           {/* Top 5 Sản phẩm gần kết thúc */}
-          {endingSoonProducts.length > 0 && (
+          {endingSoonProducts.length >= 0 && (
             <ProductSection
               title="Sắp Kết Thúc"
               products={endingSoonProducts}
@@ -220,7 +244,7 @@ const Home = () => {
           )}
 
           {/* Top 5 Sản phẩm nhiều lượt ra giá */}
-          {mostAuctionedProducts.length > 0 && (
+          {mostAuctionedProducts.length >= 0 && (
             <ProductSection
               title="Sôi Động Nhất"
               products={mostAuctionedProducts}
@@ -229,7 +253,7 @@ const Home = () => {
           )}
 
           {/* Top 5 Sản phẩm giá cao nhất */}
-          {highestPriceProducts.length > 0 && (
+          {highestPriceProducts.length >= 0 && (
             <ProductSection
               title="Giá Trị Cao"
               products={highestPriceProducts}

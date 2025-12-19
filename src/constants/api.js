@@ -5,6 +5,9 @@ export const API_ENDPOINTS = {
   // Auth
   AUTH: "/auth",
 
+  // Auction
+  AUCTION_RESULTS: "/auction-results",
+
   // Categories
   CATEGORIES: "/categories",
 

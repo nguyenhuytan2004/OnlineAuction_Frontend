@@ -613,7 +613,7 @@ const ProductList = () => {
                       />
                     </svg>
                     <p className="text-slate-400 text-lg font-bold">
-                      Không tìm thấy sản phẩm nào.
+                      Không tìm thấy sản phẩm nào
                     </p>
                     <p className="text-slate-500 text-sm mt-2">
                       Thử thay đổi bộ lọc hoặc tìm kiếm khác

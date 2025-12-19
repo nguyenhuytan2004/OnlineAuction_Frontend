@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import {
   BarChart3,
   Package,
@@ -12,13 +12,24 @@ import {
 
 import { ROUTES } from "../constants/routes";
 
+import { useAuth } from "../hooks/useAuth";
+
 const AdminLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [location.pathname]);
+
+    const pathRequiresAuth = ["/admin"].some((path) =>
+      location.pathname.startsWith(path),
+    );
+    if (pathRequiresAuth && !isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
 
   const navItems = [
     {

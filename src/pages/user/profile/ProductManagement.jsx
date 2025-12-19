@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import {
   Package,
   CheckCircle,
@@ -8,22 +9,20 @@ import {
   Plus,
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
+import Tooltip from "../../../components/common/Tooltip";
 
 import userProfileService from "../../../services/userProfileService";
 import ratingService from "../../../services/ratingService";
 import productService from "../../../services/productService";
+import auctionService from "../../../services/auctionService";
 
 import BuyerRatingModal from "../../../components/profile/BuyerRatingModal";
 import CancelTransactionModal from "../../../components/profile/CancelTransactionModal";
 import AddDescriptionModal from "../../../components/profile/AddDescriptionModal";
 import CreateProductModal from "../../../components/profile/CreateProductModal";
 import formatters from "../../../utils/formatters";
+import { notify } from "../../../utils/toast";
 
-/**
- * Component hiển thị quản lý sản phẩm của người bán
- * - Sản phẩm đang đăng & còn hạn
- * - Sản phẩm đã có người thắng đấu giá
- */
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [loading, setLoading] = useState(false);
@@ -54,12 +53,22 @@ const ProductManagement = () => {
               product.highestBidder?.userId,
             ),
           ),
-        );
+        ).then((results) => results.map((res) => res));
+
+        const statusList = await Promise.all(
+          soldProducts.map((product) =>
+            auctionService.getAuctionResult(product.productId),
+          ),
+        ).then((results) => results.map((res) => res.paymentStatus));
 
         const updatedSoldProducts = soldProducts.map((product, index) => ({
           ...product,
           isRated: isRatedList[index],
+          paymentStatus: statusList[index],
         }));
+
+        console.log("Updated Sold Products:", updatedSoldProducts);
+
         setSoldProducts(updatedSoldProducts);
       } catch (error) {
         console.error("Error loading data:", error);
@@ -71,9 +80,23 @@ const ProductManagement = () => {
     loadData();
   }, []);
 
-  const handleRateWinner = (product) => {
+  const handleOpenRatingModal = async (product) => {
     setSelectedProduct(product);
     setIsRatingModalOpen(true);
+
+    try {
+      const existingRating = await ratingService.getRating(
+        product.productId,
+        product.seller?.userId,
+        product.highestBidder?.userId,
+      );
+      setSelectedProduct((prevProduct) => ({
+        ...prevProduct,
+        initialRating: existingRating || {},
+      }));
+    } catch (error) {
+      console.error("Error fetching existing rating:", error);
+    }
   };
 
   const handleCancelTransaction = (product) => {
@@ -87,14 +110,34 @@ const ProductManagement = () => {
   };
 
   const handleSubmitRating = async (ratingData) => {
-    try {
-      await userProfileService.rateBuyer(ratingData);
+    if (selectedProduct.isRated) {
+      try {
+        const updateRatingData = {
+          ...ratingData,
+          revieweeId: selectedProduct.highestBidder?.userId,
+        };
+        await ratingService.updateRating(updateRatingData);
+        notify.success("Cập nhật đánh giá thành công");
+      } catch (error) {
+        console.error("Error updating rating:", error);
+        notify.error("Cập nhật đánh giá thất bại, vui lòng thử lại");
+      }
+    } else {
+      try {
+        await userProfileService.rateBuyer(ratingData);
 
-      // Reload sold products
-      const products = await userProfileService.getSoldProducts();
-      setSoldProducts(products);
-    } catch (error) {
-      console.error("Error rating buyer:", error);
+        setSoldProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.productId === ratingData.productId
+              ? { ...product, isRated: true }
+              : product,
+          ),
+        );
+        notify.success("Đánh giá người bán thành công");
+      } catch (error) {
+        console.error("Error rating buyer:", error);
+        notify.error("Đánh giá người bán thất bại, vui lòng thử lại");
+      }
     }
   };
 
@@ -102,11 +145,17 @@ const ProductManagement = () => {
     try {
       await userProfileService.cancelAuctionResult(cancelData.productId);
 
-      // Reload sold products
-      const products = await userProfileService.getSoldProducts();
-      setSoldProducts(products);
+      setSoldProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.productId === cancelData.productId
+            ? { ...product, paymentStatus: "CANCELED" }
+            : product,
+        ),
+      );
+      notify.success("Giao dịch đã được hủy thành công");
     } catch (error) {
       console.error("Error canceling transaction:", error);
+      notify.error("Hủy giao dịch thất bại, vui lòng thử lại");
     }
   };
 
@@ -178,6 +227,38 @@ const ProductManagement = () => {
         onClose={() => setIsCreateProductModalOpen(false)}
         onSubmit={handleCreateProduct}
       />
+      {selectedProduct && (
+        <>
+          <BuyerRatingModal
+            isOpen={isRatingModalOpen}
+            onClose={() => {
+              setIsRatingModalOpen(false);
+              setSelectedProduct(null);
+            }}
+            product={selectedProduct}
+            onSubmit={handleSubmitRating}
+            initialRating={selectedProduct.initialRating}
+          />
+          <CancelTransactionModal
+            isOpen={isCancelModalOpen}
+            onClose={() => {
+              setIsCancelModalOpen(false);
+              setSelectedProduct(null);
+            }}
+            product={selectedProduct}
+            onSubmit={handleSubmitCancel}
+          />
+          <AddDescriptionModal
+            isOpen={isAddDescModalOpen}
+            onClose={() => {
+              setIsAddDescModalOpen(false);
+              setSelectedProduct(null);
+            }}
+            product={selectedProduct}
+            onSubmit={handleSubmitAddDescription}
+          />
+        </>
+      )}
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="container mx-auto px-28 py-8">
@@ -380,7 +461,10 @@ const ProductManagement = () => {
                                   Người mua
                                 </th>
                                 <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
-                                  Hành động
+                                  Đánh giá
+                                </th>
+                                <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
+                                  Hủy
                                 </th>
                               </tr>
                             </thead>
@@ -430,26 +514,68 @@ const ProductManagement = () => {
                                       </p>
                                     </div>
                                   </td>
-                                  {!product.isRated && (
+                                  {product.paymentStatus !== "CANCELED" ? (
                                     <td className="px-6 py-4">
                                       <div className="flex items-center justify-center gap-2">
                                         <button
                                           onClick={() =>
-                                            handleRateWinner(product)
+                                            handleOpenRatingModal(product)
                                           }
-                                          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/30"
-                                          title="Đánh giá người mua"
+                                          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/30 group relative"
                                         >
+                                          <Tooltip
+                                            text={
+                                              product.isRated
+                                                ? "Sửa đánh giá người mua"
+                                                : "Đánh giá người mua"
+                                            }
+                                          />
                                           <Star className="w-4 h-4" />
-                                          Đánh giá
+                                          {product.isRated
+                                            ? "Sửa đánh giá"
+                                            : "Đánh giá"}
                                         </button>
+                                      </div>
+                                    </td>
+                                  ) : (
+                                    <td className="px-6 py-4"></td>
+                                  )}
+                                  {product.paymentStatus === "CANCELED" ? (
+                                    <td className="px-6 py-4 text-center">
+                                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-red-800 text-red-300 group relative cursor-not-allowed">
+                                        Đã hủy
+                                        <Tooltip
+                                          text="Giao dịch đã bị hủy, không thể thực hiện hành động này nữa"
+                                          position="bottom-full right-0 mb-2"
+                                        />
+                                      </span>
+                                    </td>
+                                  ) : product.paymentStatus === "PAID" ? (
+                                    <td className="px-6 py-4">
+                                      <div className="flex items-center justify-center gap-2">
+                                        <button
+                                          disabled
+                                          onClick={() =>
+                                            handleCancelTransaction(product)
+                                          }
+                                          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-red-500/30 group relative disabled:cursor-not-allowed grayscale"
+                                        >
+                                          <Tooltip text="Giao dịch đã được thanh toán, không thể thực hiện hành động này nữa" />
+                                          <XCircle className="w-4 h-4" />
+                                          Huỷ
+                                        </button>
+                                      </div>
+                                    </td>
+                                  ) : (
+                                    <td className="px-6 py-4">
+                                      <div className="flex items-center justify-center gap-2">
                                         <button
                                           onClick={() =>
                                             handleCancelTransaction(product)
                                           }
-                                          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-red-500/30"
-                                          title="Huỷ giao dịch"
+                                          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-red-500/30 group relative"
                                         >
+                                          <Tooltip text="Hủy giao dịch" />
                                           <XCircle className="w-4 h-4" />
                                           Huỷ
                                         </button>
@@ -469,39 +595,6 @@ const ProductManagement = () => {
             )}
           </div>
         </div>
-
-        {/* Modals */}
-        {selectedProduct && (
-          <>
-            <BuyerRatingModal
-              isOpen={isRatingModalOpen}
-              onClose={() => {
-                setIsRatingModalOpen(false);
-                setSelectedProduct(null);
-              }}
-              product={selectedProduct}
-              onSubmit={handleSubmitRating}
-            />
-            <CancelTransactionModal
-              isOpen={isCancelModalOpen}
-              onClose={() => {
-                setIsCancelModalOpen(false);
-                setSelectedProduct(null);
-              }}
-              product={selectedProduct}
-              onSubmit={handleSubmitCancel}
-            />
-            <AddDescriptionModal
-              isOpen={isAddDescModalOpen}
-              onClose={() => {
-                setIsAddDescModalOpen(false);
-                setSelectedProduct(null);
-              }}
-              product={selectedProduct}
-              onSubmit={handleSubmitAddDescription}
-            />
-          </>
-        )}
       </div>
     </>
   );
