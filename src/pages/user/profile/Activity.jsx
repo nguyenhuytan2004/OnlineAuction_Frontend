@@ -11,6 +11,8 @@ import ProductCard from "../../../components/ProductCard";
 import BuyerRatingModal from "../../../components/profile/BuyerRatingModal";
 
 import formatters from "../../../utils/formatters";
+import { ROUTES } from "../../../constants/routes";
+import { Link } from "react-router-dom";
 
 /**
  * Component hiển thị thông tin người dùng
@@ -250,9 +252,6 @@ const Activity = () => {
                                   Sản phẩm
                                 </th>
                                 <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
-                                  Danh mục
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
                                   Giá thắng
                                 </th>
                                 <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
@@ -260,6 +259,9 @@ const Activity = () => {
                                 </th>
                                 <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
                                   Đánh giá
+                                </th>
+                                <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
+                                  Thanh toán
                                 </th>
                               </tr>
                             </thead>
@@ -277,19 +279,18 @@ const Activity = () => {
                                         className="w-12 h-12 object-cover rounded-lg border border-slate-600"
                                       />
                                       <div className="max-w-xs">
-                                        <p className="font-bold text-slate-100 truncate">
-                                          {product.productName}
-                                        </p>
+                                        <Link
+                                          to={`${ROUTES.PRODUCT}/${product.productId}`}
+                                        >
+                                          <p className="font-bold text-slate-100 truncate hover:underline hover:scale-105 transition-all duration-300">
+                                            {product.productName}
+                                          </p>
+                                        </Link>
                                         <p className="text-xs text-slate-500">
                                           ID: {product.productId}
                                         </p>
                                       </div>
                                     </div>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-slate-700 text-slate-300">
-                                      {product.category?.categoryName || "N/A"}
-                                    </span>
                                   </td>
                                   <td className="px-6 py-4">
                                     <p className="font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400 text-lg">
@@ -331,6 +332,21 @@ const Activity = () => {
                                       </button>
                                     </div>
                                   </td>
+                                  {product.paymentStatus === "PAID" ? (
+                                    <td className="px-6 py-4 text-center">
+                                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-indigo-800 text-indigo-300 group relative cursor-not-allowed">
+                                        Đã thanh toán
+                                      </span>
+                                    </td>
+                                  ) : (
+                                    <td className="px-6 py-4 text-center">
+                                      <div className="flex items-center justify-center gap-2">
+                                        <button className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-indigo-500/30 group relative">
+                                          Thanh toán
+                                        </button>
+                                      </div>
+                                    </td>
+                                  )}
                                 </tr>
                               ))}
                             </tbody>

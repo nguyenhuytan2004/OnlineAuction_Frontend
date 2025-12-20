@@ -4,6 +4,7 @@ import UserLayout from "../layouts/UserLayout";
 import Home from "../pages/user/Home";
 import ProductList from "../pages/user/ProductList";
 import ProductDetail from "../pages/user/ProductDetail";
+import OrderCompletion from "../pages/user/OrderCompletion";
 import Activity from "../pages/user/profile/Activity";
 import ProductManagement from "../pages/user/profile/ProductManagement";
 import Favorites from "../pages/user/profile/Favorites";
@@ -32,6 +33,10 @@ export const UserRouter = [
       {
         path: `${ROUTES.PRODUCT}/:productId`,
         element: <ProductDetail />,
+      },
+      {
+        path: `${ROUTES.PRODUCT}/:productId/order-completion`,
+        element: <OrderCompletion />,
       },
       {
         path: `${ROUTES.PROFILE}/product-management`,

@@ -6,6 +6,7 @@ export const ROUTES = {
   // User
   HOME: "/",
   PRODUCT: "/products",
+  POST_AUCTION: "/post-auction",
   PROFILE: "/profile",
   SELLER_REGISTER: "/user/upgrade-to-seller",
 

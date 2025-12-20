@@ -37,6 +37,17 @@
   }
 }
 
+@keyframes slide-down-reverse {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+}
+
 @keyframes slide-in-up {
   from {
     opacity: 0;
@@ -104,6 +115,10 @@
 
 .animate-slide-down {
   animation: slide-down 0.3s ease-out;
+}
+
+.animate-slide-down-reverse {
+  animation: slide-down-reverse 0.3s ease-out forwards;
 }
 
 .animate-slide-in-up {

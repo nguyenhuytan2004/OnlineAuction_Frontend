@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import { Link } from "react-router-dom";
 import {
   Package,
   CheckCircle,
@@ -22,6 +22,7 @@ import AddDescriptionModal from "../../../components/profile/AddDescriptionModal
 import CreateProductModal from "../../../components/profile/CreateProductModal";
 import formatters from "../../../utils/formatters";
 import { notify } from "../../../utils/toast";
+import { ROUTES } from "../../../constants/routes";
 
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState("active");
@@ -364,9 +365,13 @@ const ProductManagement = () => {
                                         className="w-12 h-12 object-cover rounded-lg border border-slate-600"
                                       />
                                       <div className="max-w-xs">
-                                        <p className="font-bold text-slate-100 truncate">
-                                          {product.productName}
-                                        </p>
+                                        <Link
+                                          to={`${ROUTES.PRODUCT}/${product.productId}`}
+                                        >
+                                          <p className="font-bold text-slate-100 truncate hover:underline hover:scale-105 transition-all duration-300">
+                                            {product.productName}
+                                          </p>
+                                        </Link>
                                         <p className="text-xs text-slate-500">
                                           ID: {product.productId}
                                         </p>
@@ -392,9 +397,9 @@ const ProductManagement = () => {
                                         onClick={() =>
                                           handleAddDescription(product)
                                         }
-                                        className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-amber-500/30"
-                                        title="Bổ sung thông tin"
+                                        className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-amber-500/30 group re"
                                       >
+                                        <Tooltip text="Bổ sung mô tả sản phẩm" />
                                         <FileEdit className="w-4 h-4" />
                                         Bổ sung
                                       </button>
@@ -424,15 +429,12 @@ const ProductManagement = () => {
                       </div>
                     ) : (
                       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl">
-                        <div className="overflow-x-auto">
+                        <div className="">
                           <table className="w-full">
                             <thead className="bg-slate-800/50 border-b border-slate-700">
                               <tr>
                                 <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
                                   Sản phẩm
-                                </th>
-                                <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
-                                  Danh mục
                                 </th>
                                 <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
                                   Giá bán
@@ -462,19 +464,18 @@ const ProductManagement = () => {
                                         className="w-12 h-12 object-cover rounded-lg border border-slate-600"
                                       />
                                       <div className="max-w-xs">
-                                        <p className="font-bold text-slate-100 truncate">
-                                          {product.productName}
-                                        </p>
+                                        <Link
+                                          to={`${ROUTES.PRODUCT}/${product.productId}`}
+                                        >
+                                          <p className="font-bold text-slate-100 truncate hover:underline hover:scale-105 transition-all duration-300">
+                                            {product.productName}
+                                          </p>
+                                        </Link>
                                         <p className="text-xs text-slate-500">
                                           ID: {product.productId}
                                         </p>
                                       </div>
                                     </div>
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-slate-700 text-slate-300">
-                                      {product.category?.categoryName || "N/A"}
-                                    </span>
                                   </td>
                                   <td className="px-6 py-4">
                                     <p className="font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400 text-lg">
@@ -531,20 +532,14 @@ const ProductManagement = () => {
                                       </span>
                                     </td>
                                   ) : product.paymentStatus === "PAID" ? (
-                                    <td className="px-6 py-4">
-                                      <div className="flex items-center justify-center gap-2">
-                                        <button
-                                          disabled
-                                          onClick={() =>
-                                            handleCancelTransaction(product)
-                                          }
-                                          className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-red-500/30 group relative disabled:cursor-not-allowed grayscale"
-                                        >
-                                          <Tooltip text="Giao dịch đã được thanh toán, không thể thực hiện hành động này nữa" />
-                                          <XCircle className="w-4 h-4" />
-                                          Huỷ
-                                        </button>
-                                      </div>
+                                    <td className="px-6 py-4 text-center">
+                                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-indigo-800 text-indigo-300 group relative cursor-not-allowed">
+                                        Đã thanh toán
+                                        <Tooltip
+                                          text="Người mua đã thanh toán, không thể hủy giao dịch"
+                                          position="bottom-full right-0 mb-2"
+                                        />
+                                      </span>
                                     </td>
                                   ) : (
                                     <td className="px-6 py-4">
@@ -556,7 +551,6 @@ const ProductManagement = () => {
                                           className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-red-500/30 group relative"
                                         >
                                           <Tooltip text="Hủy giao dịch" />
-                                          <XCircle className="w-4 h-4" />
                                           Huỷ
                                         </button>
                                       </div>

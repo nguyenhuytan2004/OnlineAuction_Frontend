@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import { useParams, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
@@ -7,6 +13,7 @@ import {
   TriangleAlert,
   XCircle,
   ChevronDown,
+  XIcon,
 } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import helpers from "../../utils/helpers";
@@ -58,6 +65,8 @@ const ProductDetail = () => {
   const [isBidDropdownOpen, setIsBidDropdownOpen] = useState(false);
   const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
   const [isDescriptionClamped, setIsDescriptionClamped] = useState(false);
+  const [isFloatNotificationVisible, setIsFloatNotificationVisible] =
+    useState(true);
 
   const bidDropdownRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -66,8 +75,17 @@ const ProductDetail = () => {
 
   const { isAuthenticated, user } = useAuth();
 
-  const isCurrentUserSeller =
-    isAuthenticated && user.userId === product?.seller?.userId;
+  const isCurrentUserSeller = useMemo(
+    () => isAuthenticated && user.userId === product?.seller?.userId,
+    [isAuthenticated, user, product],
+  );
+  const isCurrentUserWinner = useMemo(
+    () =>
+      isAuthenticated &&
+      !product?.isActive &&
+      product?.highestBidder?.userId === user.userId,
+    [isAuthenticated, user, product],
+  );
 
   const handleBuyNowAction = async () => {
     setTimeout(async () => {
@@ -178,7 +196,7 @@ const ProductDetail = () => {
     if (descriptionRef.current && product) {
       const maxHeight = 3 * 24;
       const actualHeight = descriptionRef.current.scrollHeight;
-      setIsDescriptionClamped(actualHeight > maxHeight + 10); // +10px tolerance
+      setIsDescriptionClamped(actualHeight > maxHeight + 10);
     }
   }, [product]);
 
@@ -372,6 +390,7 @@ const ProductDetail = () => {
 
   // Fetch product details
   useEffect(() => {
+    setIsFloatNotificationVisible(true);
     const fetchProduct = async () => {
       setLoading(true);
       setError(null);
@@ -484,6 +503,64 @@ const ProductDetail = () => {
           <span className="font-semibold text-lg font-['Montserrat']">
             {notification.message}
           </span>
+        </div>
+      )}
+
+      {/* Auction Ended - Floating Notification (Seller or Winner Only) */}
+      {isAuctionEnded && (isCurrentUserSeller || isCurrentUserWinner) && (
+        <div
+          className={`fixed top-26 right-16 z-40 ${
+            isFloatNotificationVisible
+              ? "animate-slide-down"
+              : "animate-slide-down-reverse pointer-events-none"
+          }`}
+        >
+          <div className="floating-notification bg-gradient-to-br from-amber-950/90 via-orange-950/80 to-amber-950/90 border-2 border-amber-800 glow-border rounded-2xl p-6 backdrop-blur-xl shadow-2xl max-w-sm w-80 relative overflow-hidden">
+            {/* Decorative gradient background */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-400/20 to-transparent rounded-bl-full pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-500/15 to-transparent rounded-tr-full pointer-events-none"></div>
+
+            {/* Content */}
+            <div className="relative z-10">
+              {/* Header with icon */}
+              <div className="flex items-center gap-3 mb-4">
+                <p className="text-sm font-black text-amber-200 font-['Montserrat'] tracking-wide">
+                  ĐẤU GIÁ ĐÃ KẾT THÚC
+                </p>
+                <XIcon
+                  className="absolute top-0 right-0 w-6 h-6 text-amber-300 cursor-pointer"
+                  onClick={() => setIsFloatNotificationVisible(false)}
+                />
+              </div>
+
+              {/* Message */}
+              <p className="text-slate-200 text-sm mb-6 font-['Montserrat'] leading-relaxed">
+                {isCurrentUserWinner
+                  ? "Bạn là người thắng cuộc! Hãy hoàn tất đơn hàng để kết thúc giao dịch."
+                  : "Sản phẩm đã kết thúc. Hãy hoàn tất đơn hàng để kết thúc giao dịch."}
+              </p>
+
+              {/* Action Button */}
+              <button
+                onClick={() =>
+                  navigate(
+                    `${ROUTES.PRODUCT}/${product.productId}/order-completion`,
+                    {
+                      state: {
+                        productId: product.productId,
+                        productName: product.productName,
+                        price: formatters.formatCurrency(product.currentPrice),
+                        userRole: isCurrentUserWinner ? "buyer" : "seller",
+                      },
+                    },
+                  )
+                }
+                className="w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:via-orange-400 hover:to-amber-400 text-white font-bold py-3 px-4 rounded-xl shadow-2xl shadow-amber-500/40 hover:shadow-amber-500/60 transition-all duration-300 hover:scale-105 border border-amber-300/30 font-['Montserrat'] text-sm tracking-wide flex items-center justify-center gap-2"
+              >
+                Hoàn Tất Đơn Hàng
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1484,16 +1561,10 @@ const ProductDetail = () => {
             </div>
 
             <div className="mb-6 p-4 bg-gradient-to-r from-yellow-900/30 via-orange-900/20 to-yellow-900/30 border border-yellow-500/50 rounded-xl relative z-10">
-              <p className="text-yellow-200 text-sm font-['Montserrat'] flex items-start gap-2">
-                <i
-                  className="fa-solid fa-exclamation-triangle mt-0.5"
-                  style={{ color: "#fbbf24" }}
-                ></i>
-                <span>
-                  Người dùng này sẽ không được phép đấu giá sản phẩm này nữa.
-                  Nếu đây là người đặt giá cao nhất, sản phẩm sẽ chuyển cho
-                  người có giá cao thứ hai.
-                </span>
+              <p className="text-sm text-amber-300 font-semibold">
+                Lưu ý: Người dùng này sẽ không được phép đấu giá sản phẩm này
+                nữa. Nếu đây là người đặt giá cao nhất, sản phẩm sẽ chuyển cho
+                người có giá cao thứ hai.
               </p>
             </div>
 
