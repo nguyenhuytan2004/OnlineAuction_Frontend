@@ -9,17 +9,16 @@ const PaymentStep = ({ onNext, productName, price }) => {
   const handlePayment = async () => {
     if (!selectedPayment) return;
 
-    // Hiện tại chỉ xử lý VNPay
     if (selectedPayment !== "vnpay") {
       alert("Phương thức này chưa được hỗ trợ");
       return;
     }
 
     try {
-      setIsLoading(true);
+      onNext();
+      /*setIsLoading(true);
       const orderId = 123;
 
-      // Convert "1.200.000 ₫" → 1200000
       const amount = Number(price.replace(/[^\d]/g, ""));
 
       const res = await paymentService.createVnpayPayment({
@@ -31,7 +30,7 @@ const PaymentStep = ({ onNext, productName, price }) => {
         throw new Error("Không nhận được paymentUrl từ VNPay");
       }
 
-      window.location.href = res.paymentUrl;
+      window.location.href = res.paymentUrl;*/
     } catch (error) {
       console.error(error);
       alert("Không thể khởi tạo thanh toán VNPay");

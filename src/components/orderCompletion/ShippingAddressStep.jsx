@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { MapPin, MapPinHouse, ChevronDown } from "lucide-react";
+import orderService from "../../services/orderService";
 
 const ShippingAddressStep = ({ onNext }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -40,12 +41,28 @@ const ShippingAddressStep = ({ onNext }) => {
   };
 
   const onSubmit = async (data) => {
-    console.log("Shipping Address Data:", data);
-    // Simulate form submission
-    setTimeout(() => {
-      onNext();
-    }, 1000);
-  };
+  try {
+    const orderId = 1;
+
+    const shippingAddress = [
+      data.fullName,
+      data.phone,
+      data.address,
+      data.ward,
+      data.district,
+      data.city,
+      data.postalCode,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    await orderService.setShippingAddress(orderId, shippingAddress);
+
+    onNext();
+  } catch (error) {
+    alert("Không thể lưu địa chỉ giao hàng");
+  }
+};
 
   // Listen for clicks outside the dropdown to close it
   useEffect(() => {
