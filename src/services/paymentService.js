@@ -2,11 +2,6 @@ import apiClient from "../utils/apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 const paymentService = {
-  /**
-   * Tạo URL thanh toán VNPay
-   * @param {number} orderId
-   * @param {number} amount
-   */
   createVnpayPayment: async ({ orderId, amount }) => {
     try {
       const res = await apiClient.post(

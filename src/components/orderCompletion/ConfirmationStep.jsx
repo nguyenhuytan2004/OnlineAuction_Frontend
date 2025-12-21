@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { UserCheckIcon, Star } from "lucide-react";
+import orderService from "../../services/orderService";
 
 const ConfirmationStep = ({ onNext }) => {
   const [confirmed, setConfirmed] = useState(false);
@@ -22,13 +23,20 @@ const ConfirmationStep = ({ onNext }) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    setIsLoading(true);
-    // Simulate form submission
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      setIsLoading(true);
+
+      const orderId = 1;
+      await orderService.buyerConfirmReceived(orderId);
+
       onNext();
-    }, 1000);
+    } catch (error) {
+      alert("Xác nhận nhận hàng thất bại");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
 
   return (
     <div className="space-y-8">
@@ -56,30 +64,27 @@ const ConfirmationStep = ({ onNext }) => {
           <h4 className="text-lg font-semibold text-white mb-4 font-['Montserrat']">
             Xác nhận nhận hàng
           </h4>
+
           <div
-            className={`p-6 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
+            className={`p-6 rounded-xl border-2 transition-all duration-300 ${
               confirmed
                 ? "bg-emerald-900/30 border-emerald-500"
-                : "bg-slate-800/30 border-slate-700/50 hover:border-slate-600"
+                : "bg-slate-800/30 border-slate-700/50"
             }`}
-            onClick={() => {
-              setConfirmed(!confirmed);
-              if (errors.confirmed)
-                setErrors((prev) => ({ ...prev, confirmed: "" }));
-            }}
           >
             <div className="flex items-start gap-4">
               <div
                 className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 mt-1 ${
                   confirmed
                     ? "bg-gradient-to-br from-emerald-500 to-emerald-600 border-emerald-400"
-                    : "border-slate-600 hover:border-emerald-500"
+                    : "border-slate-600"
                 }`}
               >
                 {confirmed && (
                   <i className="fa-solid fa-check text-white text-sm"></i>
                 )}
               </div>
+
               <div className="flex-1">
                 <p className="text-white font-semibold font-['Montserrat']">
                   Tôi đã nhận được hàng đúng theo mô tả
@@ -88,15 +93,35 @@ const ConfirmationStep = ({ onNext }) => {
                   Xác nhận rằng sản phẩm đã nhận được đúng thời hạn, đúng số
                   lượng và đúng như mô tả.
                 </p>
+
+                {!confirmed ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmed(true);
+                      if (errors.confirmed)
+                        setErrors((prev) => ({ ...prev, confirmed: "" }));
+                    }}
+                    className="mt-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']"
+                  >
+                    Xác nhận đã nhận hàng
+                  </button>
+                ) : (
+                  <div className="mt-4 text-emerald-400 font-semibold font-['Montserrat']">
+                    ✔ Đã xác nhận nhận hàng
+                  </div>
+                )}
               </div>
             </div>
           </div>
+
           {errors.confirmed && (
             <p className="text-red-400 text-sm mt-2 font-['Montserrat']">
               {errors.confirmed}
             </p>
           )}
         </div>
+
 
         {/* Rating Section */}
         <div>

@@ -26,6 +26,17 @@ const orderService = {
       throw error;
     }
   },
+
+  buyerConfirmReceived: async (orderId) => {
+  try {
+    await apiClient.post(
+      `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-received`
+    );
+  } catch (error) {
+    console.error("Buyer confirm received error:", error);
+    throw error;
+  }
+},
 };
 
 export default orderService;
