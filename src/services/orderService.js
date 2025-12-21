@@ -15,6 +15,17 @@ const orderService = {
       throw error;
     }
   },
+
+  sellerConfirmPayment: async (orderId) => {
+    try {
+      await apiClient.post(
+        `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-payment`
+      );
+    } catch (error) {
+      console.error("Seller confirm payment error:", error);
+      throw error;
+    }
+  },
 };
 
 export default orderService;
