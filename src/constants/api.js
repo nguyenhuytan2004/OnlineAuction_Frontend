@@ -33,4 +33,6 @@ export const API_ENDPOINTS = {
 
   // Favourites
   FAVOURITES: "/watch-list",
+
+  PAYMENTS: "/payments",
 };

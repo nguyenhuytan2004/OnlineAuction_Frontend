@@ -1,9 +1,45 @@
 import React, { useState } from "react";
 import { AlertCircle, Check, CheckCircle2Icon } from "lucide-react";
+import paymentService from "../../services/paymentService";
 
 const PaymentStep = ({ onNext, productName, price }) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const handlePayment = async () => {
+    if (!selectedPayment) return;
+
+    // Hiện tại chỉ xử lý VNPay
+    if (selectedPayment !== "vnpay") {
+      alert("Phương thức này chưa được hỗ trợ");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const orderId = 123;
+
+      // Convert "1.200.000 ₫" → 1200000
+      const amount = Number(price.replace(/[^\d]/g, ""));
+
+      const res = await paymentService.createVnpayPayment({
+        orderId,
+        amount,
+      });
+
+      if (!res?.paymentUrl) {
+        throw new Error("Không nhận được paymentUrl từ VNPay");
+      }
+
+      window.location.href = res.paymentUrl;
+    } catch (error) {
+      console.error(error);
+      alert("Không thể khởi tạo thanh toán VNPay");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   const paymentMethods = [
     {
@@ -43,17 +79,6 @@ const PaymentStep = ({ onNext, productName, price }) => {
       description: "Thanh toán qua PayPal",
     },
   ];
-
-  const handlePayment = async () => {
-    if (!selectedPayment) return;
-
-    setIsLoading(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsLoading(false);
-      onNext();
-    }, 1500);
-  };
 
   return (
     <div className="space-y-8">
