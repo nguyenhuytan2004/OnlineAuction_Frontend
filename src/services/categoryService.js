@@ -17,7 +17,7 @@ const categoryService = {
   createCategory: (data) => apiClient.post(API_ENDPOINTS.CATEGORIES, data),
 
   updateCategory: (id, data) =>
-    apiClient.put(`${API_ENDPOINTS.CATEGORIES}/${id}`, data),
+    apiClient.patch(`${API_ENDPOINTS.CATEGORIES}/${id}`, data),
 
   deleteCategory: (id) => apiClient.delete(`${API_ENDPOINTS.CATEGORIES}/${id}`),
 };

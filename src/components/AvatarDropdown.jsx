@@ -13,10 +13,6 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import helpers from "../utils/helpers";
 
-/**
- * Component Avatar Dropdown Menu
- * Hiển thị avatar user và dropdown menu với các tùy chọn
- */
 const AvatarDropdown = () => {
   const { user, role, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);

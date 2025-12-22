@@ -18,7 +18,8 @@ const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, role, logout } = useAuth();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -26,10 +27,25 @@ const AdminLayout = () => {
     const pathRequiresAuth = ["/admin"].some((path) =>
       location.pathname.startsWith(path),
     );
-    if (pathRequiresAuth && !isAuthenticated) {
-      navigate(ROUTES.LOGIN);
+
+    if (pathRequiresAuth) {
+      if (!isAuthenticated) {
+        navigate(ROUTES.LOGIN, { replace: true });
+        return;
+      }
+      if (isAuthenticated && role !== "ADMIN") {
+        navigate(ROUTES.HOME, { replace: true });
+        return;
+      }
     }
-  }, [isAuthenticated, location.pathname, navigate]);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsAuthorized(true);
+  }, [isAuthenticated, role, location.pathname, navigate]);
+
+  if (isAuthorized === false) {
+    return null;
+  }
 
   const navItems = [
     {
@@ -82,10 +98,10 @@ const AdminLayout = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-4 pr-12">
-            <button className="px-4 py-2 rounded-lg text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 transition-colors">
-              <span className="text-sm font-semibold">Admin</span>
-            </button>
-            <button className="p-2 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors">
+            <button
+              onClick={logout}
+              className="p-2 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
+            >
               <LogOut className="w-5 h-5" />
             </button>
           </div>

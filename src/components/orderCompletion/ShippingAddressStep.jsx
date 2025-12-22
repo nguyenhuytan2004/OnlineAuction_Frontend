@@ -1,11 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { MapPin, MapPinHouse, ChevronDown } from "lucide-react";
+import CustomDropdown from "../../components/common/CustomDropdown";
 
 const ShippingAddressStep = ({ onNext }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedCity, setSelectedCity] = useState("");
-  const dropdownRef = useRef(null);
+  const [selectedCityIndex, setSelectedCityIndex] = useState(null);
 
   const cities = [
     "Hà Nội",
@@ -34,9 +33,8 @@ const ShippingAddressStep = ({ onNext }) => {
   });
 
   const handleSelectCity = (index) => {
-    setSelectedCity(index);
+    setSelectedCityIndex(index);
     setValue("city", cities[index]);
-    setIsDropdownOpen(false);
   };
 
   const onSubmit = async (data) => {
@@ -46,20 +44,6 @@ const ShippingAddressStep = ({ onNext }) => {
       onNext();
     }, 1000);
   };
-
-  // Listen for clicks outside the dropdown to close it
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
 
   return (
     <div className="space-y-8">
@@ -223,7 +207,7 @@ const ShippingAddressStep = ({ onNext }) => {
               {...register("ward", {
                 required: "Vui lòng nhập phường/xã",
               })}
-              className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm border-slate-600/50 ${
+              className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                 errors.ward ? "border-red-500/50" : "border-slate-600/50"
               }`}
             />
@@ -248,7 +232,7 @@ const ShippingAddressStep = ({ onNext }) => {
               {...register("district", {
                 required: "Vui lòng nhập quận/huyện",
               })}
-              className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm border-slate-600/50 ${
+              className={`w-full px-5 py-3.5 bg-slate-800/50 text-slate-100 font-semibold border rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 placeholder-slate-500 backdrop-blur-sm ${
                 errors.district ? "border-red-500/50" : "border-slate-600/50"
               }`}
             />
@@ -264,88 +248,30 @@ const ShippingAddressStep = ({ onNext }) => {
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label
-              htmlFor="city"
+              htmlFor="district"
               className="block text-gray-300 font-semibold mb-2 font-['Montserrat']"
             >
               Thành phố <span className="text-red-400">*</span>
             </label>
-
-            {/* Custom Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              {/* Dropdown trigger button */}
-              <button
-                type="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`w-full px-5 py-3.5 bg-slate-800/50 text-left flex items-center justify-between border rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm font-['Montserrat'] ${
-                  errors.city ? "border-red-500/50" : "border-slate-600/50"
-                } ${
-                  isDropdownOpen &&
-                  "border-amber-500/70 ring-2 ring-amber-500/30"
-                }`}
-              >
-                <span
-                  className={`font-semibold ${
-                    selectedCity !== null ? "text-white" : "text-slate-400"
-                  }`}
-                >
-                  {selectedCity !== null
-                    ? cities[selectedCity]
-                    : "Chọn thành phố"}
-                </span>
-                <ChevronDown
-                  className={`w-5 h-5 text-amber-400 transition-transform duration-300 ${
-                    isDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Dropdown list */}
-              {isDropdownOpen && (
-                <ul className="absolute z-50 w-full max-h-56 mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl shadow-amber-500/20 overflow-auto animate-in fade-in zoom-in-95 duration-200">
-                  {cities.map((city, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleSelectCity(index)}
-                      className={`
-                        relative overflow-hidden cursor-pointer transition-all duration-300 border-b border-slate-700/30 hover:border-l-4 hover:border-amber-500/70
-                        ${
-                          selectedCity === index
-                            ? "bg-amber-900/40 border-l-4 border-amber-500/70"
-                            : "hover:bg-slate-700/30"
-                        }
-                      `}
-                    >
-                      {/* Content */}
-                      <div className="relative z-10 px-5 py-4 flex items-center gap-3 group">
-                        {/* City name */}
-                        <div className="flex-1">
-                          <p
-                            className={`font-semibold transition-colors duration-200 ${
-                              selectedCity === index
-                                ? "text-amber-300 text-base"
-                                : "text-slate-200 group-hover:text-amber-300"
-                            }`}
-                          >
-                            {cities[index]}
-                          </p>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {/* Hidden input for form registration */}
-              <input
-                id="city"
-                type="hidden"
-                {...register("city", {
-                  required: "Vui lòng chọn thành phố",
-                })}
-                value={cities[selectedCity]}
-              />
-            </div>
-
+            <CustomDropdown
+              options={cities}
+              selectedIndex={selectedCityIndex}
+              onSelect={handleSelectCity}
+              placeholder="Chọn thành phố"
+              accentColor="amber"
+              error={!!errors.city}
+            />
+            {/* Hidden input for form registration */}
+            <input
+              id="city"
+              type="hidden"
+              {...register("city", {
+                required: "Vui lòng chọn thành phố",
+              })}
+              value={
+                selectedCityIndex !== null ? cities[selectedCityIndex] : ""
+              }
+            />
             {errors.city && (
               <p className="text-red-400 text-sm mt-2 font-['Montserrat']">
                 {errors.city.message}
