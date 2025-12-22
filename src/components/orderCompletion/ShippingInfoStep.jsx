@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Truck, FileText, DollarSign } from "lucide-react";
+import orderService from "../../services/orderService";
 
 const ShippingInfoStep = ({ onNext }) => {
   const [formData, setFormData] = useState({
@@ -58,6 +59,22 @@ const ShippingInfoStep = ({ onNext }) => {
       setIsLoading(false);
       onNext();
     }, 1000);
+  };
+  const handleConfirmPayment = async () => {
+    try {
+      const orderId = 1;
+
+      setIsLoading(true);
+
+      await orderService.sellerConfirmPayment(orderId);
+
+      setPaymentConfirmed(true);
+      setErrors((prev) => ({ ...prev, payment: "" }));
+    } catch (error) {
+      alert("Xác nhận nhận tiền thất bại");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -160,25 +177,25 @@ const ShippingInfoStep = ({ onNext }) => {
 
         {/* Payment Confirmation */}
         <div
-          className={`p-6 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
+          className={`p-6 rounded-xl border-2 transition-all duration-300 ${
             paymentConfirmed
               ? "bg-emerald-900/30 border-emerald-500"
-              : "bg-slate-800/30 border-slate-700/50 hover:border-slate-600"
+              : "bg-slate-800/30 border-slate-700/50"
           }`}
-          onClick={() => setPaymentConfirmed(!paymentConfirmed)}
         >
           <div className="flex items-start gap-4">
             <div
               className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 mt-1 ${
                 paymentConfirmed
                   ? "bg-gradient-to-br from-emerald-500 to-emerald-600 border-emerald-400"
-                  : "border-slate-600 hover:border-emerald-500"
+                  : "border-slate-600"
               }`}
             >
               {paymentConfirmed && (
                 <i className="fa-solid fa-check text-white text-sm"></i>
               )}
             </div>
+
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <DollarSign className="w-5 h-5 text-emerald-400" />
@@ -186,19 +203,37 @@ const ShippingInfoStep = ({ onNext }) => {
                   Xác nhận đã nhận tiền thanh toán
                 </h4>
               </div>
-              <p className="text-sm text-gray-400 font-['Montserrat']">
-                Tôi xác nhận rằng đã nhận được toàn bộ tiền thanh toán từ khách
-                hàng thông qua các phương thức thanh toán trước đó.
+
+              <p className="text-sm text-gray-400 font-['Montserrat'] mb-4">
+                Tôi xác nhận rằng đã nhận được toàn bộ tiền thanh toán từ khách hàng
+                thông qua các phương thức thanh toán trước đó.
               </p>
+
+              {/* BUTTON GỌI BACKEND */}
+              {!paymentConfirmed ? (
+                <button
+                  type="button"
+                  onClick={handleConfirmPayment}
+                  disabled={isLoading}
+                  className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat']"
+                >
+                  {isLoading ? "Đang xác nhận..." : "Xác nhận đã nhận tiền"}
+                </button>
+              ) : (
+                <div className="text-emerald-400 font-semibold font-['Montserrat']">
+                  ✔ Đã xác nhận nhận tiền
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {errors.payment && (
-          <p className="text-red-400 text-sm font-['Montserrat']">
+          <p className="text-red-400 text-sm font-['Montserrat'] mt-2">
             {errors.payment}
           </p>
         )}
+
 
         {/* Info Box */}
         <div className="p-5 bg-gradient-to-r from-blue-900/30 via-blue-800/20 to-blue-900/30 border border-blue-500/50 rounded-xl">

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { MapPin, MapPinHouse, ChevronDown } from "lucide-react";
 import CustomDropdown from "../../components/common/CustomDropdown";
+import orderService from "../../services/orderService";
 
 const ShippingAddressStep = ({ onNext }) => {
   const [selectedCityIndex, setSelectedCityIndex] = useState(null);
@@ -38,12 +39,42 @@ const ShippingAddressStep = ({ onNext }) => {
   };
 
   const onSubmit = async (data) => {
-    console.log("Shipping Address Data:", data);
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const orderId = 1;
+
+      const shippingAddress = [
+        data.fullName,
+        data.phone,
+        data.address,
+        data.ward,
+        data.district,
+        data.city,
+        data.postalCode,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      await orderService.setShippingAddress(orderId, shippingAddress);
+
       onNext();
-    }, 1000);
+    } catch (error) {
+      alert("Không thể lưu địa chỉ giao hàng");
+    }
   };
+
+  // Listen for clicks outside the dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   return (
     <div className="space-y-8">
