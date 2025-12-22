@@ -2,7 +2,7 @@ import apiClient from "../utils/apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 const productService = {
-  getAllProducts: async (options = {}) => {
+  getProducts: async (options = {}) => {
     const queryParams = new URLSearchParams(options);
     const endpoint = `${API_ENDPOINTS.PRODUCTS}?${queryParams.toString()}`;
     const products = await apiClient.get(endpoint);
@@ -133,6 +133,19 @@ const productService = {
       return response;
     } catch (error) {
       console.error("Create product error:", error);
+      throw error;
+    }
+  },
+
+  updateProduct: async (productId, updatedData) => {
+    try {
+      const response = await apiClient.patch(
+        `${API_ENDPOINTS.PRODUCTS}/${productId}`,
+        updatedData,
+      );
+      return response;
+    } catch (error) {
+      console.error("Update product error:", error);
       throw error;
     }
   },

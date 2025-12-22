@@ -252,7 +252,7 @@ const ProductList = () => {
               options,
             );
           } else {
-            products = await productService.getAllProducts(options);
+            products = await productService.getProducts(options);
           }
         }
 

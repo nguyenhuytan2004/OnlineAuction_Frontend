@@ -1348,10 +1348,6 @@ const ProductDetail = () => {
 
             <div className="mb-8 p-5 bg-gradient-to-r from-amber-900/30 via-orange-900/20 to-amber-900/30 border border-amber-500/50 rounded-xl relative z-[5]">
               <p className="text-amber-200 text-sm font-['Montserrat'] flex items-start gap-2">
-                <i
-                  className="fa-solid fa-lightbulb mt-0.5"
-                  style={{ color: "#fbbf24" }}
-                ></i>
                 <span>
                   Hệ thống sẽ tự động tăng giá theo các mức tăng để giúp bạn
                   thắng đấu giá.
@@ -1444,10 +1440,6 @@ const ProductDetail = () => {
 
             <div className="mb-8 p-5 bg-gradient-to-r from-red-900/30 via-orange-900/20 to-red-900/30 border border-red-500/50 rounded-xl relative z-10">
               <p className="text-red-200 text-sm font-['Montserrat'] flex items-start gap-2">
-                <i
-                  className="fa-solid fa-exclamation-circle mt-0.5"
-                  style={{ color: "#f87171" }}
-                ></i>
                 <span>
                   Phiên đấu giá sẽ kết thúc ngay lập tức và bạn sẽ trở thành
                   người chiến thắng.

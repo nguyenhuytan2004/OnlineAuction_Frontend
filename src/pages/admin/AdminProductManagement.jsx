@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { ROUTES } from "../../constants/routes";
+import { Link } from "react-router-dom";
 import {
   Trash2,
   Archive,
@@ -7,90 +9,71 @@ import {
   Filter,
   AlertTriangle,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
+  LinkIcon,
+  StopCircle,
+  PlayCircle,
+  X,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
-/**
- * Admin - Product Management
- * Quản lý sản phẩm: deactivate/archive sản phẩm
- */
+import productService from "../../services/productService";
 
-// Action Modal Component
-const ActionModal = ({
+import CustomDropdown from "../../components/common/CustomDropdown";
+import Tooltip from "../../components/common/Tooltip";
+
+import formatters from "../../utils/formatters";
+import { notify } from "../../utils/toast";
+
+const StopModal = ({
   isModalOpen,
   selectedProduct,
-  modalAction,
   setIsModalOpen,
-  handleConfirmAction,
+  handleStopProduct,
 }) => {
   if (!isModalOpen || !selectedProduct) return null;
 
-  const isArchive = modalAction === "archive";
-  const hasAuctions = selectedProduct.auctionCount > 0;
+  const hasAuctions = selectedProduct.bidCount > 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl w-full max-w-md overflow-hidden border border-slate-700 shadow-2xl animate-in zoom-in-95 duration-300">
         <div
-          className={`bg-gradient-to-r ${
-            isArchive
-              ? "from-amber-600 to-orange-600"
-              : "from-red-600 to-rose-600"
-          } p-6 text-white`}
+          className={`bg-gradient-to-r from-amber-600 to-orange-600 p-6 text-white`}
         >
-          <div className="flex items-center gap-3 mb-2">
-            {hasAuctions && !isArchive ? (
-              <AlertTriangle className="w-6 h-6" />
-            ) : isArchive ? (
-              <Archive className="w-6 h-6" />
-            ) : (
-              <Trash2 className="w-6 h-6" />
-            )}
-            <h2 className="text-xl font-black">
-              {isArchive ? "Lưu Trữ Sản Phẩm" : "Xóa Sản Phẩm"}
-            </h2>
+          <div className="flex items-center gap-3 p-2">
+            <h2 className="text-xl font-black">Dừng Hoạt Động Sản Phẩm</h2>
           </div>
-          <p className="text-sm text-white/90">
-            {isArchive
-              ? "Sản phẩm sẽ được lưu trữ"
-              : "Thao tác này không thể hoàn tác"}
-          </p>
         </div>
 
         <div className="p-6">
           <div className="bg-slate-800/50 rounded-xl p-4 mb-6">
             <p className="text-sm text-slate-400 mb-2">Sản phẩm</p>
-            <p className="font-bold text-slate-100 text-lg">
-              {selectedProduct.name}
+            <p className="font-semibold text-slate-100 text-lg">
+              {selectedProduct.productName}
             </p>
-            <p className="text-xs text-slate-500 mt-1">
-              Người bán: {selectedProduct.sellerName}
+            <p className="text-sm text-slate-500 mt-2">
+              Danh mục: {selectedProduct.category.categoryName}
             </p>
           </div>
 
-          {hasAuctions && !isArchive && (
+          {hasAuctions && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-              <p className="text-sm font-semibold text-red-300 mb-2 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Không thể xóa
-              </p>
               <p className="text-sm text-red-200/80">
-                Sản phẩm có {selectedProduct.auctionCount} lượt tham gia đấu
-                giá. Vui lòng dùng "Lưu trữ" thay vào đó.
+                Sản phẩm có {selectedProduct.bidCount} lượt tham gia đấu giá.
+                Cân nhắc việc dừng hoạt động sản phẩm này.
               </p>
             </div>
           )}
 
-          {isArchive && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
-              <p className="text-sm font-semibold text-amber-300 mb-1">
-                Về sản phẩm này
-              </p>
-              <p className="text-sm text-amber-200/80">
-                Sản phẩm sẽ bị ẩn khỏi danh sách công khai nhưng dữ liệu vẫn
-                được lưu giữ.
-              </p>
-            </div>
-          )}
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
+            <p className="text-sm text-amber-200/80">
+              Sản phẩm sẽ bị ẩn khỏi danh sách công khai nhưng dữ liệu vẫn được
+              lưu giữ.
+            </p>
+          </div>
 
           <div className="flex gap-3">
             <button
@@ -100,16 +83,222 @@ const ActionModal = ({
               Hủy
             </button>
             <button
-              onClick={handleConfirmAction}
-              disabled={!isArchive && hasAuctions}
-              className={`flex-1 py-2.5 px-4 font-bold rounded-lg transition-all duration-300 ${
-                isArchive
-                  ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white hover:scale-105"
-                  : "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-              }`}
+              onClick={handleStopProduct}
+              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
             >
-              {isArchive ? "Lưu Trữ" : "Xóa"}
+              Dừng Hoạt Động
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DetailModal = ({ isOpen, product, onClose }) => {
+  if (!isOpen || !product) return null;
+
+  console.log("Product detail:", product);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-3xl w-full max-w-3xl border border-slate-700/50 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-sky-600 py-8 px-10 text-white relative overflow-hidden">
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-black">Chi Tiết Sản Phẩm</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:bg-white/20 rounded-full p-3 transition-all duration-300 hover:scale-110"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-10 space-y-8 max-h-[80vh] overflow-y-auto">
+          {/* Product Title and Category */}
+          <div>
+            <h3 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-4">
+              {product.productName}
+            </h3>
+            <div className="flex items-center gap-4">
+              <span className="px-4 py-2 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-indigo-300 font-semibold text-sm">
+                {product.category.categoryName}
+              </span>
+              <span
+                className={`px-4 py-2 rounded-full font-semibold text-sm ${
+                  product.isActive
+                    ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300"
+                    : "bg-red-500/20 border border-red-500/30 text-red-300"
+                }`}
+              >
+                {product.isActive ? "Hoạt Động" : "Dừng Hoạt Động"}
+              </span>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="bg-slate-800/40 rounded-xl border border-slate-700/50 p-6">
+            <h4 className="text-lg font-bold text-slate-100 mb-3">
+              Mô Tả Sản Phẩm
+            </h4>
+            <p className="text-slate-300 leading-relaxed text-sm">
+              {product.description}
+            </p>
+          </div>
+
+          {/* Pricing Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 rounded-xl p-5 hover:border-blue-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+              <p className="text-xs text-blue-400 font-semibold mb-2 uppercase tracking-wide">
+                Giá Khởi Động
+              </p>
+              <p className="text-xl font-black text-orange-300">
+                {formatters.formatCurrency(product.startPrice)}
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 rounded-xl p-5 hover:border-blue-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+              <p className="text-xs text-blue-400 font-semibold mb-2 uppercase tracking-wide">
+                Giá Hiện Tại
+              </p>
+              <p className="text-xl font-black text-cyan-300">
+                {formatters.formatCurrency(product.currentPrice)}
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 rounded-xl p-5 hover:border-blue-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+              <p className="text-xs text-blue-400 font-semibold mb-2 uppercase tracking-wide">
+                Mua Ngay
+              </p>
+              <p className="text-xl font-black text-green-300">
+                {formatters.formatCurrency(product.buyNowPrice) || "Không có"}
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 rounded-xl p-5 hover:border-blue-500/60 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+              <p className="text-xs text-blue-400 font-semibold mb-2 uppercase tracking-wide">
+                Bước Giá
+              </p>
+              <p className="text-xl font-black text-purple-300">
+                {formatters.formatCurrency(product.priceStep)}
+              </p>
+            </div>
+          </div>
+
+          {/* Auction & Bidding Info */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-slate-800/40 rounded-xl border border-slate-700/50 p-5">
+              <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                Lượt Tham Gia
+              </p>
+              <p className="text-2xl font-black text-indigo-400">
+                {product.bidCount}
+              </p>
+            </div>
+            <div className="bg-slate-800/40 rounded-xl border border-slate-700/50 p-5">
+              <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                Người Thắng Giá
+              </p>
+              <p className="text-sm font-bold text-slate-200">
+                {product.highestBidder || "Chưa có"}
+              </p>
+            </div>
+            <div className="bg-slate-800/40 rounded-xl border border-slate-700/50 p-5">
+              <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                Tự Động Gia Hạn
+              </p>
+              <span
+                className={`inline-block px-3 py-1 rounded-full font-bold text-xs ${
+                  product.isAutoRenew
+                    ? "bg-emerald-500/20 text-emerald-300"
+                    : "bg-slate-700/50 text-slate-400"
+                }`}
+              >
+                {product.isAutoRenew ? "Có" : "Không"}
+              </span>
+            </div>
+          </div>
+
+          {/* Seller Info */}
+          <div className="bg-gradient-to-br from-slate-800/40 to-slate-700/40 rounded-xl border border-slate-700/50 p-6">
+            <h4 className="text-lg font-bold text-slate-100 mb-4">
+              Thông Tin Người Bán
+            </h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-slate-400 font-semibold mb-2">
+                  Tên Người Bán
+                </p>
+                <p className="text-slate-200 font-semibold">
+                  {product.seller.fullName}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 font-semibold mb-2">
+                  Email
+                </p>
+                <p className="text-slate-200 font-semibold text-sm">
+                  {product.seller.email}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-20 mt-4 pt-4 mr-16 border-t border-slate-700/50">
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-center">
+                <p className="text-xs text-yellow-400 font-semibold mb-2 uppercase">
+                  Điểm Đánh Giá
+                </p>
+                <p className="text-2xl font-black text-yellow-300">
+                  {product.seller.ratingScore}
+                </p>
+              </div>
+              <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-4 text-center">
+                <p className="text-xs text-cyan-400 font-semibold mb-2 uppercase">
+                  Số Lần Đánh Giá
+                </p>
+                <p className="text-2xl font-black text-cyan-300">
+                  {product.seller.ratingCount}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/40 rounded-xl border border-slate-700/50 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-300 font-semibold">
+                  Cho Phép Bidder Chưa Đánh Giá
+                </p>
+                <p className="text-sm text-slate-500 mt-1">
+                  Cho phép những người dùng chưa có đánh giá tham gia đấu giá
+                </p>
+              </div>
+              {product.allowUnratedBidder ? (
+                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              ) : (
+                <XCircle className="w-6 h-6 text-rose-400" />
+              )}
+            </div>
+          </div>
+
+          {/* Start Time & End Time */}
+          <div className="bg-gradient-to-r from-slate-800/40 to-slate-700/40 rounded-xl border border-slate-700/50 p-6 flex justify-around">
+            <div className="flex flex-col items-center">
+              <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                Thời Gian Tạo
+              </p>
+              <p className="text-lg font-bold text-slate-100">
+                {formatters.formatDate(product.createdAt)}
+              </p>
+            </div>
+            <div className="flex flex-col items-center">
+              <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+                Thời Gian Kết Thúc
+              </p>
+              <p className="text-lg font-bold text-slate-100">
+                {formatters.formatDate(product.endTime)}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -119,93 +308,112 @@ const ActionModal = ({
 
 const AdminProductManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "iPhone 15 Pro Max",
-      category: "Điện thoại",
-      status: "active",
-      sellerName: "Tech Store",
-      startPrice: 15000000,
-      endTime: "2025-12-20",
-      auctionCount: 45,
-    },
-    {
-      id: 2,
-      name: "MacBook Pro 16",
-      category: "Laptop",
-      status: "active",
-      sellerName: "Apple Reseller",
-      startPrice: 35000000,
-      endTime: "2025-12-25",
-      auctionCount: 23,
-    },
-    {
-      id: 3,
-      name: "iPad Air",
-      category: "Máy tính bảng",
-      status: "archived",
-      sellerName: "Mobile Plus",
-      startPrice: 12000000,
-      endTime: "2025-12-18",
-      auctionCount: 0,
-    },
-    {
-      id: 4,
-      name: "AirPods Pro",
-      category: "Tai nghe",
-      status: "active",
-      sellerName: "Audio Store",
-      startPrice: 5000000,
-      endTime: "2025-12-22",
-      auctionCount: 78,
-    },
-  ]);
+  const [filterStatus, setFilterStatus] = useState("Tất cả");
+  const [filterStatusIndex, setFilterStatusIndex] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalAction, setModalAction] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const queryParams = {
+          status:
+            filterStatus === "Tất cả"
+              ? "all"
+              : filterStatus === "Hoạt động"
+              ? "active"
+              : "inactive",
+          page: currentPage - 1,
+          size: 5,
+        };
+        const productPage = await productService.getProducts(queryParams);
+        const products = productPage.content;
+        setProducts(products);
+        setTotalPages(productPage.totalPages || 1);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [currentPage, filterStatus]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, searchTerm]);
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sellerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" || product.status === filterStatus;
-    return matchesSearch && matchesFilter;
+    const matchesSearch = product.productName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const isActive = product.isActive;
+    const matchesStatus =
+      filterStatus === "Tất cả" ||
+      (filterStatus === "Hoạt động" && isActive) ||
+      (filterStatus === "Dừng hoạt động" && !isActive);
+    return matchesSearch && matchesStatus;
   });
 
-  const handleOpenModal = (product, action) => {
-    setSelectedProduct(product);
-    setModalAction(action);
-    setIsModalOpen(true);
-  };
-
-  const handleConfirmAction = () => {
-    if (selectedProduct && modalAction) {
-      setProducts(
-        products.map((p) =>
-          p.id === selectedProduct.id
-            ? {
-                ...p,
-                status: modalAction === "archive" ? "archived" : p.status,
-              }
-            : p,
-        ),
-      );
+  const handleStopProduct = async () => {
+    if (selectedProduct) {
+      try {
+        const updatedProduct = await productService.updateProduct(
+          selectedProduct.productId,
+          { isActive: false },
+        );
+        setProducts((prevProducts) =>
+          prevProducts.map((prod) =>
+            prod.productId === updatedProduct.productId
+              ? { ...prod, ...updatedProduct }
+              : prod,
+          ),
+        );
+        notify.success("Sản phẩm đã bị dừng hoạt động.");
+      } catch (error) {
+        console.error("Error stopping product:", error);
+        notify.error(
+          "Đã xảy ra lỗi khi dừng hoạt động sản phẩm. Vui lòng thử lại.",
+        );
+      }
       setIsModalOpen(false);
       setSelectedProduct(null);
     }
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      minimumFractionDigits: 0,
-    }).format(value);
+  const handleReactivateProduct = async (product) => {
+    try {
+      const updatedProduct = await productService.updateProduct(
+        product.productId,
+        { isActive: true },
+      );
+      setProducts((prevProducts) =>
+        prevProducts.map((prod) =>
+          prod.productId === updatedProduct.productId
+            ? { ...prod, ...updatedProduct }
+            : prod,
+        ),
+      );
+      notify.success("Sản phẩm đã được tái hoạt động.");
+    } catch (error) {
+      console.error("Error reactivating product:", error);
+      notify.error(
+        "Đã xảy ra lỗi khi tái hoạt động sản phẩm. Vui lòng thử lại.",
+      );
+    }
   };
+
+  const filterStatusOptions = useMemo(
+    () => ["Tất cả", "Hoạt động", "Dừng hoạt động"],
+    [],
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -230,7 +438,7 @@ const AdminProductManagement = () => {
 
         {/* Search & Filter */}
         <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50 mb-8 shadow-lg">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="relative">
               <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-500" />
               <input
@@ -243,15 +451,17 @@ const AdminProductManagement = () => {
             </div>
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-slate-500" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="flex-1 px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
-              >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="active">Đang hoạt động</option>
-                <option value="archived">Đã lưu trữ</option>
-              </select>
+              <div className="w-full">
+                <CustomDropdown
+                  options={filterStatusOptions}
+                  selectedIndex={filterStatusIndex}
+                  onSelect={(index) =>
+                    setFilterStatus(filterStatusOptions[index]) ||
+                    setFilterStatusIndex(index)
+                  }
+                  accentColor="purple"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -269,9 +479,6 @@ const AdminProductManagement = () => {
                     Danh Mục
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
-                    Người Bán
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
                     Giá Khởi Động
                   </th>
                   <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
@@ -286,84 +493,111 @@ const AdminProductManagement = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700/50">
-                {filteredProducts.map((product) => (
-                  <tr
-                    key={product.id}
-                    className="hover:bg-slate-800/30 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-bold text-slate-100">
-                          {product.name}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          ID: {product.id}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-slate-700 text-slate-300">
-                        {product.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-300">
-                      {product.sellerName}
-                    </td>
-                    <td className="px-6 py-4 font-bold text-slate-100">
-                      {formatCurrency(product.startPrice)}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-flex px-3 py-1 text-sm font-bold rounded-lg bg-blue-500/20 text-blue-300">
-                        {product.auctionCount}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`inline-flex px-3 py-1 text-xs font-bold rounded-full ${
-                          product.status === "active"
-                            ? "bg-emerald-500/20 text-emerald-300"
-                            : "bg-slate-700/50 text-slate-400"
-                        }`}
-                      >
-                        {product.status === "active" ? "Hoạt động" : "Lưu trữ"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {product.status === "active" && (
-                          <>
-                            <button
-                              onClick={() =>
-                                handleOpenModal(product, "archive")
-                              }
-                              className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
-                              title="Lưu trữ"
+                {filteredProducts.map((product) => {
+                  return (
+                    <tr
+                      key={product.productId}
+                      className="hover:bg-slate-800/30 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={product.mainImageUrl || null}
+                            alt={product.productName}
+                            className="w-12 h-12 object-cover rounded-lg border border-slate-600"
+                          />
+                          <div className="max-w-xs">
+                            <Link
+                              target="_blank"
+                              to={`${ROUTES.PRODUCT}/${product.productId}`}
+                              className="flex"
                             >
-                              <Archive className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => handleOpenModal(product, "delete")}
-                              disabled={product.auctionCount > 0}
-                              className="p-2 text-red-400 hover:bg-red-500/20 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg transition-colors"
-                              title={
-                                product.auctionCount > 0
-                                  ? "Không thể xóa (có lượt tham gia)"
-                                  : "Xóa"
-                              }
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </>
-                        )}
-                        {product.status === "archived" && (
-                          <span className="text-xs text-slate-500">
-                            Không có hành động
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                              <p className="font-bold text-slate-100 truncate hover:underline hover:scale-105 transition-all duration-300">
+                                {product.productName}
+                              </p>
+                              <LinkIcon className="w-4 h-4 ml-1 text-slate-500 mt-1" />
+                            </Link>
+                            <p className="text-xs text-slate-500">
+                              ID: {product.productId}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-slate-700 text-slate-300">
+                          {product.category.categoryName}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-bold text-slate-100">
+                        {formatters.formatCurrency(product.currentPrice)}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex px-3 py-1 text-sm font-bold rounded-lg bg-blue-500/20 text-blue-300">
+                          {product.bidCount}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span
+                          className={`inline-flex px-3 py-1 text-xs font-bold rounded-full ${
+                            product.isActive
+                              ? "bg-emerald-500/20 text-emerald-300"
+                              : "bg-slate-700/50 text-slate-400"
+                          }`}
+                        >
+                          {product.isActive
+                            ? "Hoạt động"
+                            : new Date(product.endTime) > new Date()
+                            ? "Dừng hoạt động"
+                            : "Đã kết thúc"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors hover:scale-110 duration-200"
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
+                          {product.isActive ? (
+                            <div className="group relative">
+                              <button
+                                onClick={() =>
+                                  setSelectedProduct(product) ||
+                                  setIsModalOpen(true)
+                                }
+                                className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
+                              >
+                                <StopCircle className="w-5 h-5" />
+                              </button>
+                              <Tooltip
+                                text="Dừng hoạt động"
+                                position="right-full bottom-1/2"
+                              />
+                            </div>
+                          ) : new Date(product.endTime) > new Date() ? (
+                            <div className="group relative">
+                              <button
+                                onClick={() => handleReactivateProduct(product)}
+                                className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
+                              >
+                                <PlayCircle className="w-5 h-5" />
+                              </button>
+                              <Tooltip
+                                text="Tái hoạt động"
+                                position="right-full bottom-1/2"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -376,15 +610,80 @@ const AdminProductManagement = () => {
               </p>
             </div>
           )}
+
+          {filteredProducts.length > 0 && (
+            <div className="bg-slate-800/30 border-t border-slate-700/50 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-slate-400">
+                  Trang{" "}
+                  <span className="font-bold text-slate-200">
+                    {currentPage}
+                  </span>{" "}
+                  trên{" "}
+                  <span className="font-bold text-slate-200">{totalPages}</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1 || isLoading}
+                    className="flex items-center gap-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-slate-300 font-semibold rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Trước
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          disabled={isLoading}
+                          className={`w-8 h-8 font-bold rounded-lg transition-colors ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white"
+                              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {page}
+                        </button>
+                      ),
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages || isLoading}
+                    className="flex items-center gap-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-slate-300 font-semibold rounded-lg transition-colors"
+                  >
+                    Sau
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <ActionModal
+      <StopModal
         isModalOpen={isModalOpen}
         selectedProduct={selectedProduct}
-        modalAction={modalAction}
         setIsModalOpen={setIsModalOpen}
-        handleConfirmAction={handleConfirmAction}
+        handleStopProduct={handleStopProduct}
+      />
+
+      <DetailModal
+        isOpen={isDetailModalOpen}
+        product={selectedProduct}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedProduct(null);
+        }}
       />
     </div>
   );

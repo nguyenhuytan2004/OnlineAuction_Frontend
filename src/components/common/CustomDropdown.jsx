@@ -69,44 +69,43 @@ const CustomDropdown = ({
   const accentClasses = getAccentClasses();
 
   return (
-    <div>
-      <div className="relative" ref={dropdownRef}>
-        {/* Dropdown trigger button */}
-        <button
-          type="button"
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className={`w-full px-5 py-3.5 bg-slate-800/50 text-left flex items-center justify-between border rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm font-['Montserrat'] ${
-            error ? "border-red-500/50" : "border-slate-600/50"
-          } ${isDropdownOpen && `${accentClasses.button} ring-2`}`}
+    <div className="relative" ref={dropdownRef}>
+      {/* Dropdown trigger button */}
+      <button
+        type="button"
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        className={`w-full px-5 py-3.5 bg-slate-800/50 text-left flex items-center justify-between border rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm font-['Montserrat'] ${
+          error ? "border-red-500/50" : "border-slate-600/50"
+        } ${isDropdownOpen && `${accentClasses.button} ring-2`}`}
+      >
+        <span
+          className={`font-semibold ${
+            selectedIndex !== null ? "text-white" : "text-slate-400"
+          }`}
         >
-          <span
-            className={`font-semibold ${
-              selectedIndex !== null ? "text-white" : "text-slate-400"
-            }`}
-          >
-            {selectedIndex !== null
-              ? options[selectedIndex]
-              : placeholder || "Chọn một tùy chọn"}
-          </span>
-          <ChevronDown
-            className={`w-5 h-5 ${
-              accentClasses.chevron
-            } transition-transform duration-300 ${
-              isDropdownOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
+          {selectedIndex !== null
+            ? options[selectedIndex]
+            : placeholder || "Chọn một tùy chọn"}
+        </span>
+        <ChevronDown
+          className={`w-5 h-5 ${
+            accentClasses.chevron
+          } transition-transform duration-300 ${
+            isDropdownOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
 
-        {/* Dropdown list */}
-        {isDropdownOpen && (
-          <ul
-            className={`absolute z-50 w-full max-h-56 mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl ${accentClasses.listBg} overflow-auto animate-in fade-in zoom-in-95 duration-200`}
-          >
-            {options.map((option, index) => (
-              <li
-                key={index}
-                onClick={() => handleSelectOption(index)}
-                className={`
+      {/* Dropdown list */}
+      {isDropdownOpen && (
+        <ul
+          className={`absolute z-50 w-full max-h-56 mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl ${accentClasses.listBg} overflow-auto animate-in fade-in zoom-in-95 duration-200`}
+        >
+          {options.map((option, index) => (
+            <li
+              key={index}
+              onClick={() => handleSelectOption(index)}
+              className={`
                   relative overflow-hidden cursor-pointer transition-all duration-300 border-b border-slate-700/30 hover:border-l-4 ${
                     accentClasses.itemHover
                   }
@@ -116,27 +115,26 @@ const CustomDropdown = ({
                       : "hover:bg-slate-700/30"
                   }
                 `}
-              >
-                {/* Content */}
-                <div className="relative z-10 px-5 py-4 flex items-center gap-3 group">
-                  {/* Option name */}
-                  <div className="flex-1">
-                    <p
-                      className={`font-semibold transition-colors duration-200 ${
-                        selectedIndex === index
-                          ? "text-base"
-                          : "text-slate-200 group-hover:text-slate-100"
-                      }`}
-                    >
-                      {option}
-                    </p>
-                  </div>
+            >
+              {/* Content */}
+              <div className="relative z-10 px-5 py-4 flex items-center gap-3 group">
+                {/* Option name */}
+                <div className="flex-1">
+                  <p
+                    className={`font-semibold transition-colors duration-200 ${
+                      selectedIndex === index
+                        ? "text-base"
+                        : "text-slate-200 group-hover:text-slate-100"
+                    }`}
+                  >
+                    {option}
+                  </p>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

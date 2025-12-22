@@ -58,23 +58,9 @@ const ShippingAddressStep = ({ onNext }) => {
 
       onNext();
     } catch (error) {
-      alert("Không thể lưu địa chỉ giao hàng");
+      console.error("Error submitting shipping address:", error);
     }
   };
-
-  // Listen for clicks outside the dropdown to close it
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
 
   return (
     <div className="space-y-8">

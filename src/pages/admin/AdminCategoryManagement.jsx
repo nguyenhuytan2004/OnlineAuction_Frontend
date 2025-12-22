@@ -774,7 +774,7 @@ const AdminCategoryManagement = () => {
               className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors hover:scale-110 duration-200"
               title="Xem chi tiết"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="w-5 h-5" />
             </button>
             <button
               onClick={() => {
@@ -784,14 +784,14 @@ const AdminCategoryManagement = () => {
               className="p-2 rounded-lg hover:bg-purple-500/20 text-purple-400 hover:text-purple-300 transition-colors hover:scale-110 duration-200"
               title="Sửa"
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-5 h-5" />
             </button>
             {category.children.length > 0 ? (
               <button
                 disabled
                 className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors hover:scale-110 duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative group"
               >
-                <Trash2 className="w-4 h-4 " />
+                <Trash2 className="w-5 h-5 " />
                 <Tooltip
                   text="Không thể xóa danh mục có danh mục con"
                   position="right-1/2 bottom-1/4 mb-2"
@@ -802,7 +802,7 @@ const AdminCategoryManagement = () => {
                 disabled
                 className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors hover:scale-110 duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative group"
               >
-                <Trash2 className="w-4 h-4 " />
+                <Trash2 className="w-5 h-5 " />
                 <Tooltip
                   text="Không thể xóa danh mục có sản phẩm"
                   position="right-1/2 bottom-1/4 mb-2"
@@ -816,7 +816,7 @@ const AdminCategoryManagement = () => {
                 }}
                 className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors hover:scale-110 duration-200 relative group"
               >
-                <Trash2 className="w-4 h-4 " />
+                <Trash2 className="w-5 h-5 " />
                 <Tooltip
                   text="Xóa danh mục"
                   position="right-1/2 bottom-1/3 mb-2"
