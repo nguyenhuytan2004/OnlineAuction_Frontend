@@ -67,6 +67,14 @@ export const UserRouter = [
         element: <UpgradeToSellerRequest />,
       },
       {
+        path: "/user/upgrade-to-seller",
+        element: <UpgradeToSellerRequest />,
+      },
+      {
+        path: "/payment-result",
+        element: <OrderCompletion />,
+      },
+      {
         path: "*",
         element: <NotFound />,
       },

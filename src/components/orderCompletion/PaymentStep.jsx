@@ -2,43 +2,47 @@ import React, { useState } from "react";
 import { AlertCircle, Check, CheckCircle2Icon } from "lucide-react";
 import paymentService from "../../services/paymentService";
 
-const PaymentStep = ({ onNext, productName, price }) => {
+const PaymentStep = ({ productId, productName, price, userRole }) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePayment = async () => {
-    if (!selectedPayment) return;
-
-    if (selectedPayment !== "vnpay") {
-      alert("Phương thức này chưa được hỗ trợ");
-      return;
-    }
-
     try {
-      onNext();
-      /*setIsLoading(true);
-      const orderId = 123;
+      setIsLoading(true);
 
-      const amount = Number(price.replace(/[^\d]/g, ""));
+      const amount = 2000; // test
+      const draftOrder = {
+        productId,
+        productName,
+        price,
+        userRole,
+        createdAt: Date.now(),
+      };
 
-      const res = await paymentService.createVnpayPayment({
-        orderId,
+      // ✅ DÙNG sessionStorage
+      sessionStorage.setItem(
+        "paymentContext",
+        JSON.stringify(draftOrder)
+      );
+
+      const res = await paymentService.createMomoPayment({
         amount,
+        orderInfo: `Thanh toán ${productName}`,
       });
 
-      if (!res?.paymentUrl) {
-        throw new Error("Không nhận được paymentUrl từ VNPay");
+      if (!res?.payUrl) {
+        throw new Error("Không nhận được payUrl từ MoMo");
       }
 
-      window.location.href = res.paymentUrl;*/
-    } catch (error) {
-      console.error(error);
-      alert("Không thể khởi tạo thanh toán VNPay");
+      window.location.href = res.payUrl;
+
+    } catch (err) {
+      console.error(err);
+      alert("Không thể khởi tạo thanh toán MoMo");
     } finally {
       setIsLoading(false);
     }
   };
-
 
   const paymentMethods = [
     {

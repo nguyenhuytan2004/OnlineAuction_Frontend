@@ -6,63 +6,122 @@ import PaymentStep from "../../components/orderCompletion/PaymentStep";
 import ShippingAddressStep from "../../components/orderCompletion/ShippingAddressStep";
 import ShippingInfoStep from "../../components/orderCompletion/ShippingInfoStep";
 import ConfirmationStep from "../../components/orderCompletion/ConfirmationStep";
+import { useSearchParams } from "react-router-dom";
 
 const OrderCompletion = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Get data from navigation state
-  const { productId, productName, price, userRole } = location.state || {};
+  // ⚠️ KHÔNG phụ thuộc hoàn toàn location.state
+  const state = location.state;
+
+  const [ctx, setCtx] = useState(
+    state || JSON.parse(sessionStorage.getItem("paymentContext") || "null")
+  );
+
+  const { productId, productName, price, userRole } = ctx || {};
 
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Scroll to top on currentStep change
+  /**
+   * 1️⃣ Nếu vào từ /payment-result → redirect về URL đúng
+   */
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentStep]);
+    if (location.pathname === "/payment-result") {
+      if (!ctx?.productId) {
+        navigate("/", { replace: true });
+        return;
+      }
 
-  useEffect(() => {
-    if (!productId || !productName || !price || !userRole) {
-      navigate(-1);
+      navigate(
+        `/products/${ctx.productId}/order-completion${location.search}`,
+        { replace: true, state: ctx }
+      );
     }
-  }, [productId, productName, price, userRole, navigate]);
+  }, [location.pathname, location.search, ctx, navigate]);
+
+  /**
+   * 2️⃣ Khởi tạo step theo role
+   */
+  useEffect(() => {
+    if (userRole === "seller") setCurrentStep(3);
+    else if (userRole === "buyer") setCurrentStep(1);
+  }, [userRole]);
+
+  /**
+   * 3️⃣ MoMo success → sang step nhập địa chỉ
+   */
+  useEffect(() => {
+    if (userRole !== "buyer") return;
+    const resultCode = searchParams.get("resultCode");
+    if (resultCode === "0") {
+      setCompletedSteps((p) => (p.includes(1) ? p : [...p, 1]));
+      setCurrentStep(2);
+    }
+  }, [searchParams, userRole]);
+
+  /**
+   * 4️⃣ Validate: nếu không có context → về Home
+   */
+  useEffect(() => {
+    if (!ctx) navigate("/", { replace: true });
+  }, [ctx, navigate]);
+
+  /**
+   * 5️⃣ Cleanup sau khi hoàn tất
+   */
+  useEffect(() => {
+    if (showSuccess) {
+      sessionStorage.removeItem("paymentContext");
+    }
+  }, [showSuccess]);
 
   const handleNextStep = () => {
-    setCompletedSteps([...completedSteps, currentStep]);
+    setCompletedSteps((prev) =>
+      prev.includes(currentStep) ? prev : [...prev, currentStep]
+    );
 
     if (userRole === "buyer") {
-      // Buyer flow: 1 -> 2 -> 4
-      if (currentStep === 1) {
-        setCurrentStep(2);
-      } else if (currentStep === 2) {
+      if (currentStep === 2) {
         setCurrentStep(4);
       } else if (currentStep === 4) {
         setShowSuccess(true);
       }
-    } else {
-      // Seller flow: only step 3
+    }
+
+    if (userRole === "seller") {
       if (currentStep === 3) {
+        setCompletedSteps((prev) =>
+          prev.includes(3) ? prev : [...prev, 3]
+        );
         setShowSuccess(true);
       }
     }
   };
 
+
   const renderStepContent = () => {
+    if (userRole === "seller") {
+      return currentStep === 3
+        ? <ShippingInfoStep onNext={handleNextStep} />
+        : null;
+    }
+
     switch (currentStep) {
       case 1:
         return (
           <PaymentStep
-            onNext={handleNextStep}
+            productId={productId}
             productName={productName}
             price={price}
+            userRole={userRole}
           />
         );
       case 2:
         return <ShippingAddressStep onNext={handleNextStep} />;
-      case 3:
-        return <ShippingInfoStep onNext={handleNextStep} />;
       case 4:
         return <ConfirmationStep onNext={handleNextStep} />;
       default:

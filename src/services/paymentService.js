@@ -17,6 +17,14 @@ const paymentService = {
       throw error;
     }
   },
+
+  createMomoPayment: async ({ amount, orderInfo }) => {
+    const res = await apiClient.post(
+      "/payments/momo/create",
+      { amount, orderInfo }
+    );
+    return res;
+  },
 };
 
 export default paymentService;
