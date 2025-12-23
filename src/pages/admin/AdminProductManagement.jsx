@@ -26,6 +26,7 @@ import Tooltip from "../../components/common/Tooltip";
 
 import formatters from "../../utils/formatters";
 import { notify } from "../../utils/toast";
+import BackgroundDecoration from "../../components/common/BackgroundDecoration";
 
 const StopModal = ({
   isModalOpen,
@@ -41,14 +42,15 @@ const StopModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl w-full max-w-md overflow-hidden border border-slate-700 shadow-2xl animate-in zoom-in-95 duration-300">
         <div
-          className={`bg-gradient-to-r from-amber-600 to-orange-600 p-6 text-white`}
+          className={`bg-gradient-to-r from-red-600 to-rose-600 p-6 text-white`}
         >
           <div className="flex items-center gap-3 p-2">
             <h2 className="text-xl font-black">Dừng Hoạt Động Sản Phẩm</h2>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 relative">
+          <BackgroundDecoration accentColor="red" />
           <div className="bg-slate-800/50 rounded-xl p-4 mb-6">
             <p className="text-sm text-slate-400 mb-2">Sản phẩm</p>
             <p className="font-semibold text-slate-100 text-lg">
@@ -84,7 +86,7 @@ const StopModal = ({
             </button>
             <button
               onClick={handleStopProduct}
-              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
+              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
             >
               Dừng Hoạt Động
             </button>
@@ -101,7 +103,7 @@ const DetailModal = ({ isOpen, product, onClose }) => {
   console.log("Product detail:", product);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-3xl w-full max-w-3xl border border-slate-700/50 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 rounded-3xl w-full max-w-2xl border border-slate-700/50 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-sky-600 py-8 px-10 text-white relative overflow-hidden">
           <div className="relative z-10 flex items-center justify-between">
@@ -365,9 +367,23 @@ const AdminProductManagement = () => {
   const handleStopProduct = async () => {
     if (selectedProduct) {
       try {
+        const updateData = {
+          categoryId: selectedProduct.category.categoryId,
+          productName: selectedProduct.productName,
+          description: selectedProduct.description,
+          currentPrice: selectedProduct.currentPrice,
+          startPrice: selectedProduct.startPrice,
+          priceStep: selectedProduct.priceStep,
+          buyNowPrice: selectedProduct.buyNowPrice,
+          endTime: selectedProduct.endTime,
+          isAutoRenew: selectedProduct.isAutoRenew,
+          allowUnratedBidder: selectedProduct.allowUnratedBidder,
+          mainImageUrl: selectedProduct.mainImageUrl,
+          isActive: false,
+        };
         const updatedProduct = await productService.updateProduct(
           selectedProduct.productId,
-          { isActive: false },
+          updateData,
         );
         setProducts((prevProducts) =>
           prevProducts.map((prod) =>
@@ -390,9 +406,23 @@ const AdminProductManagement = () => {
 
   const handleReactivateProduct = async (product) => {
     try {
+      const updateData = {
+        categoryId: product.category.categoryId,
+        productName: product.productName,
+        description: product.description,
+        currentPrice: product.currentPrice,
+        startPrice: product.startPrice,
+        priceStep: product.priceStep,
+        buyNowPrice: product.buyNowPrice,
+        endTime: product.endTime,
+        isAutoRenew: product.isAutoRenew,
+        allowUnratedBidder: product.allowUnratedBidder,
+        mainImageUrl: product.mainImageUrl,
+        isActive: true,
+      };
       const updatedProduct = await productService.updateProduct(
         product.productId,
-        { isActive: true },
+        updateData,
       );
       setProducts((prevProducts) =>
         prevProducts.map((prod) =>
@@ -469,137 +499,145 @@ const AdminProductManagement = () => {
         {/* Products Table */}
         <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl border border-slate-700/50 overflow-hidden shadow-lg">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-800/50 border-b border-slate-700">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
-                    Sản Phẩm
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
-                    Danh Mục
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
-                    Giá Khởi Động
-                  </th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
-                    Lượt Tham Gia
-                  </th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
-                    Trạng Thái
-                  </th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
-                    Hành Động
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700/50">
-                {filteredProducts.map((product) => {
-                  return (
-                    <tr
-                      key={product.productId}
-                      className="hover:bg-slate-800/30 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={product.mainImageUrl || null}
-                            alt={product.productName}
-                            className="w-12 h-12 object-cover rounded-lg border border-slate-600"
-                          />
-                          <div className="max-w-xs">
-                            <Link
-                              target="_blank"
-                              to={`${ROUTES.PRODUCT}/${product.productId}`}
-                              className="flex"
-                            >
-                              <p className="font-bold text-slate-100 truncate hover:underline hover:scale-105 transition-all duration-300">
-                                {product.productName}
+            {isLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <div className="w-12 h-12 border-4 border-t-4 border-slate-600 border-t-cyan-500 rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-slate-800/50 border-b border-slate-700">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
+                      Sản Phẩm
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
+                      Danh Mục
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-slate-300 uppercase tracking-wider">
+                      Giá Khởi Động
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
+                      Lượt Tham Gia
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
+                      Trạng Thái
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
+                      Hành Động
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/50">
+                  {filteredProducts.map((product) => {
+                    return (
+                      <tr
+                        key={product.productId}
+                        className="hover:bg-slate-800/30 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={product.mainImageUrl || null}
+                              alt={product.productName}
+                              className="w-12 h-12 object-cover rounded-lg border border-slate-600"
+                            />
+                            <div className="max-w-xs">
+                              <Link
+                                target="_blank"
+                                to={`${ROUTES.PRODUCT}/${product.productId}`}
+                                className="flex"
+                              >
+                                <p className="font-bold text-slate-100 truncate hover:underline hover:scale-105 transition-all duration-300">
+                                  {product.productName}
+                                </p>
+                                <LinkIcon className="w-4 h-4 ml-1 text-slate-500 mt-1" />
+                              </Link>
+                              <p className="text-xs text-slate-500">
+                                ID: {product.productId}
                               </p>
-                              <LinkIcon className="w-4 h-4 ml-1 text-slate-500 mt-1" />
-                            </Link>
-                            <p className="text-xs text-slate-500">
-                              ID: {product.productId}
-                            </p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-slate-700 text-slate-300">
-                          {product.category.categoryName}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-bold text-slate-100">
-                        {formatters.formatCurrency(product.currentPrice)}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="inline-flex px-3 py-1 text-sm font-bold rounded-lg bg-blue-500/20 text-blue-300">
-                          {product.bidCount}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`inline-flex px-3 py-1 text-xs font-bold rounded-full ${
-                            product.isActive
-                              ? "bg-emerald-500/20 text-emerald-300"
-                              : "bg-slate-700/50 text-slate-400"
-                          }`}
-                        >
-                          {product.isActive
-                            ? "Hoạt động"
-                            : new Date(product.endTime) > new Date()
-                            ? "Dừng hoạt động"
-                            : "Đã kết thúc"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedProduct(product);
-                              setIsDetailModalOpen(true);
-                            }}
-                            className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors hover:scale-110 duration-200"
-                            title="Xem chi tiết"
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-slate-700 text-slate-300">
+                            {product.category.categoryName}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-bold text-slate-100">
+                          {formatters.formatCurrency(product.currentPrice)}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="inline-flex px-3 py-1 text-sm font-bold rounded-lg bg-blue-500/20 text-blue-300">
+                            {product.bidCount}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-bold rounded-full ${
+                              product.isActive
+                                ? "bg-emerald-500/20 text-emerald-300"
+                                : "bg-slate-700/50 text-slate-400"
+                            }`}
                           >
-                            <Eye className="w-5 h-5" />
-                          </button>
-                          {product.isActive ? (
-                            <div className="group relative">
-                              <button
-                                onClick={() =>
-                                  setSelectedProduct(product) ||
-                                  setIsModalOpen(true)
-                                }
-                                className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
-                              >
-                                <StopCircle className="w-5 h-5" />
-                              </button>
-                              <Tooltip
-                                text="Dừng hoạt động"
-                                position="right-full bottom-1/2"
-                              />
-                            </div>
-                          ) : new Date(product.endTime) > new Date() ? (
-                            <div className="group relative">
-                              <button
-                                onClick={() => handleReactivateProduct(product)}
-                                className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
-                              >
-                                <PlayCircle className="w-5 h-5" />
-                              </button>
-                              <Tooltip
-                                text="Tái hoạt động"
-                                position="right-full bottom-1/2"
-                              />
-                            </div>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {product.isActive
+                              ? "Hoạt động"
+                              : new Date(product.endTime) > new Date()
+                              ? "Dừng hoạt động"
+                              : "Đã kết thúc"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedProduct(product);
+                                setIsDetailModalOpen(true);
+                              }}
+                              className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors hover:scale-110 duration-200"
+                              title="Xem chi tiết"
+                            >
+                              <Eye className="w-5 h-5" />
+                            </button>
+                            {product.isActive ? (
+                              <div className="group relative">
+                                <button
+                                  onClick={() =>
+                                    setSelectedProduct(product) ||
+                                    setIsModalOpen(true)
+                                  }
+                                  className="p-2 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors"
+                                >
+                                  <StopCircle className="w-5 h-5" />
+                                </button>
+                                <Tooltip
+                                  text="Dừng hoạt động"
+                                  position="right-full bottom-1/2"
+                                />
+                              </div>
+                            ) : new Date(product.endTime) > new Date() ? (
+                              <div className="group relative">
+                                <button
+                                  onClick={() =>
+                                    handleReactivateProduct(product)
+                                  }
+                                  className="p-2 text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
+                                >
+                                  <PlayCircle className="w-5 h-5" />
+                                </button>
+                                <Tooltip
+                                  text="Tái hoạt động"
+                                  position="right-full bottom-1/2"
+                                />
+                              </div>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {filteredProducts.length === 0 && (
@@ -643,7 +681,7 @@ const AdminProductManagement = () => {
                           disabled={isLoading}
                           className={`w-8 h-8 font-bold rounded-lg transition-colors ${
                             currentPage === page
-                              ? "bg-blue-600 text-white"
+                              ? "bg-cyan-600 text-white"
                               : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >

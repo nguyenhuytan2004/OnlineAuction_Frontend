@@ -22,6 +22,7 @@ import CustomDropdown from "../../components/common/CustomDropdown";
 import Tooltip from "../../components/common/Tooltip";
 import { notify } from "../../utils/toast";
 import { Toaster } from "react-hot-toast";
+import BackgroundDecoration from "../../components/common/BackgroundDecoration";
 
 const DetailModal = ({ isDetailOpen, setIsDetailOpen, selectedCategory }) => {
   if (!isDetailOpen || !selectedCategory) return null;
@@ -157,7 +158,8 @@ const CreateModal = ({
           </button>
         </div>
 
-        <form onSubmit={checkOnSubmit(onSubmit)} className="p-6">
+        <form onSubmit={checkOnSubmit(onSubmit)} className="p-6 relative">
+          <BackgroundDecoration accentColor="green" />
           {/* Danh Mục Cha */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-slate-300 mb-2">
@@ -193,7 +195,7 @@ const CreateModal = ({
                 },
               })}
               placeholder="Nhập tên danh mục..."
-              className={`w-full px-4 py-2.5 bg-slate-900 border rounded-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all ${
+              className={`w-full px-4 py-2.5 bg-slate-800/50 border rounded-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all ${
                 errors.categoryName
                   ? "border-red-500 focus:border-red-500"
                   : "border-slate-600 focus:border-emerald-500"
@@ -214,7 +216,7 @@ const CreateModal = ({
             <textarea
               {...register("description")}
               placeholder="Nhập mô tả danh mục..."
-              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all resize-none h-24"
+              className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all resize-none h-24"
             />
           </div>
 
@@ -312,6 +314,7 @@ const EditModal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl w-full max-w-md overflow-hidden border border-slate-700 shadow-2xl animate-in zoom-in-95 duration-300">
+        {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white flex items-center justify-between">
           <div className="flex items-center gap-3 p-2">
             <h2 className="text-xl font-black">Sửa Danh Mục</h2>
@@ -324,7 +327,8 @@ const EditModal = ({
           </button>
         </div>
 
-        <form onSubmit={checkOnSubmit(onSubmit)} className="p-6">
+        <form onSubmit={checkOnSubmit(onSubmit)} className="p-6 relative">
+          <BackgroundDecoration accentColor="purple" />
           {/* Danh Mục Cha */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-slate-300 mb-2">
@@ -360,7 +364,7 @@ const EditModal = ({
                 },
               })}
               placeholder="Nhập tên danh mục..."
-              className={`w-full px-4 py-2.5 bg-slate-900 border rounded-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all ${
+              className={`w-full px-4 py-2.5 bg-slate-800/50 border rounded-lg text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all ${
                 errors.categoryName
                   ? "border-red-500 focus:border-red-500"
                   : "border-slate-600 focus:border-indigo-500"
@@ -381,7 +385,7 @@ const EditModal = ({
             <textarea
               {...register("description")}
               placeholder="Nhập mô tả danh mục..."
-              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none h-24"
+              className="w-full px-4 py-2.5 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none h-24"
             />
           </div>
 

@@ -24,6 +24,9 @@ export const API_ENDPOINTS = {
   // Profile
   USER_PROFILE: "/user-profile",
 
+  // Users
+  USERS: "/users",
+
   // Ratings
   RATINGS: "/ratings",
 

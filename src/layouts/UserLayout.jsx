@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 
 import { ROUTES } from "../constants/routes";
@@ -13,6 +13,7 @@ const UserLayout = () => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   // Scroll to top when route changes
   useEffect(() => {
@@ -23,8 +24,16 @@ const UserLayout = () => {
     );
     if (pathRequiresAuth && !isAuthenticated) {
       navigate(ROUTES.LOGIN);
+      return;
     }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsAuthorized(true);
   }, [isAuthenticated, location.pathname, navigate]);
+
+  if (isAuthorized === false) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex flex-col">
