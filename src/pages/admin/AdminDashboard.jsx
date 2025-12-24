@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BarChart3,
   Users,
@@ -9,6 +9,8 @@ import {
   CreditCard,
   Activity,
 } from "lucide-react";
+
+import adminDashboardService from "../../services/adminDashboardService";
 
 // Stat Card Component
 const StatCard = ({ icon: Icon, label, value, subtext, color }) => (
@@ -80,8 +82,13 @@ const ChartContainer = ({
 );
 
 // Bar Chart
-const BarChart = ({ data }) => {
-  const maxValue = Math.max(...data.map((d) => d.count));
+const BarChart = ({ data, valueKey = "count" }) => {
+  if (!data || data.length === 0) {
+    return <p className="text-slate-500">Không có dữ liệu</p>;
+  }
+
+  const values = data.map((d) => d[valueKey] ?? 0);
+  const maxValue = Math.max(...values, 1);
   return (
     <div className="w-full flex items-flex-end justify-around gap-2 px-4 py-8">
       {data.map((item, idx) => (
@@ -93,7 +100,7 @@ const BarChart = ({ data }) => {
                hover:from-blue-600 hover:to-blue-500 cursor-pointer group 
                transform origin-bottom"
               style={{
-                height: `${(item.count / maxValue) * 120}px`,
+                height: `${(item[valueKey] / maxValue) * 120}px`,
                 animation: `scaleUp 0.7s ease-out ${idx * 0.1}s both`,
                 transformOrigin: "bottom",
               }}
@@ -113,24 +120,40 @@ const BarChart = ({ data }) => {
 };
 
 // Line Chart
-const LineChart = ({ data }) => {
-  const maxValue = Math.max(...data.map((d) => d.revenue / 1000000));
+const LineChart = ({ data, valueKey }) => {
+  if (!data || data.length === 0) {
+    return <p className="text-slate-500">Không có dữ liệu</p>;
+  }
+
+  if (data.length === 1) {
+    return (
+      <div className="text-slate-400 text-sm">
+        {data[0].month}: {(data[0][valueKey] ?? 0).toLocaleString()}
+      </div>
+    );
+  }
+
+  const values = data.map((d) => d[valueKey] ?? 0);
+  const maxValue = Math.max(...values, 1);
+
   const points = data.map((item, idx) => {
     const x = (idx / (data.length - 1)) * 100;
-    const y = 100 - (item.revenue / 1000000 / maxValue) * 80;
-    return { x, y, value: item.revenue };
+    const y = 100 - (item[valueKey] / maxValue) * 80;
+    return { x, y, value: item[valueKey] };
   });
 
-  const pathLength =
-    Math.sqrt(
-      points.reduce((sum, p, idx) => {
-        if (idx === 0) return 0;
-        const prev = points[idx - 1];
-        return (
-          sum + Math.sqrt(Math.pow(p.x - prev.x, 2) + Math.pow(p.y - prev.y, 2))
-        );
-      }, 0),
-    ) * 4;
+  if (!data || data.length === 0) {
+    return <p className="text-slate-500">Không có dữ liệu</p>;
+  }
+
+  if (data.length === 1) {
+    return (
+      <div className="text-slate-400 text-sm">
+        {data[0].month}: {data[0].revenue.toLocaleString()}
+      </div>
+    );
+  }
+
 
   return (
     <>
@@ -232,67 +255,71 @@ const LineChart = ({ data }) => {
   );
 };
 
-const AdminDashboard = () => {
-  const [statsData] = useState({
-    totalAuctions: 1250,
-    totalRevenue: 125500000,
-    totalUsers: 3450,
-    newAuctions: 85,
-    newSellers: 12,
-    successRate: 87.5,
-    topProduct: "iPhone 15 Pro Max",
-    paymentStatus: 92,
-  });
 
-  // Chart view states
+
+const AdminDashboard = () => {
+  const [loading, setLoading] = useState(true);
+  const [statsData, setStatsData] = useState(null);
+  const [chartData, setChartData] = useState(null);
+
   const [chartViews, setChartViews] = useState({
-    auctions: true, // true = bar, false = line
+    auctions: true,
     revenue: true,
     users: true,
     upgrades: true,
   });
 
-  const [chartData] = useState({
-    auctionsTrend: [
-      { month: "Jan", count: 45 },
-      { month: "Feb", count: 52 },
-      { month: "Mar", count: 48 },
-      { month: "Apr", count: 61 },
-      { month: "May", count: 55 },
-      { month: "Jun", count: 67 },
-    ],
-    revenueTrend: [
-      { month: "Jan", revenue: 8500000 },
-      { month: "Feb", revenue: 9200000 },
-      { month: "Mar", revenue: 8900000 },
-      { month: "Apr", revenue: 11200000 },
-      { month: "May", revenue: 10500000 },
-      { month: "Jun", revenue: 12600000 },
-    ],
-    usersTrend: [
-      { month: "Jan", users: 450 },
-      { month: "Feb", users: 520 },
-      { month: "Mar", users: 580 },
-      { month: "Apr", users: 720 },
-      { month: "May", users: 850 },
-      { month: "Jun", users: 1050 },
-    ],
-    upgradesTrend: [
-      { month: "Jan", count: 3 },
-      { month: "Feb", count: 5 },
-      { month: "Mar", count: 4 },
-      { month: "Apr", count: 7 },
-      { month: "May", count: 6 },
-      { month: "Jun", count: 12 },
-    ],
-  });
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const data = await adminDashboardService.getDashboard();
+        const { overview, charts } = data;
 
-  const toggleChartView = (chartKey) => {
+        // ===== OVERVIEW =====
+        setStatsData({
+          totalAuctions: overview.totalAuctions,
+          totalRevenue: overview.totalRevenue,
+          totalUsers: overview.totalUsers,
+          newAuctions: overview.newAuctionsThisMonth,
+          newSellers: overview.newSellersThisMonth,
+          successRate: overview.successRate,
+          topProduct: overview.topProduct,
+          paymentStatus: overview.paymentSuccessRate,
+        });
+
+        // ===== CHARTS =====
+        setChartData({
+          auctionsTrend: charts.auctionsTrend,
+          revenueTrend: charts.revenueTrend,
+          usersTrend: charts.usersTrend,
+          upgradesTrend: charts.upgradesTrend,
+        });
+      } catch (error) {
+        console.error("Failed to load dashboard", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  const toggleChartView = (key) => {
     setChartViews((prev) => ({
       ...prev,
-      [chartKey]: !prev[chartKey],
+      [key]: !prev[key],
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-400">
+        Đang tải dashboard...
+      </div>
+    );
+  }
+
+  if (!statsData || !chartData) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -324,6 +351,7 @@ const AdminDashboard = () => {
             subtext="Tất cả các lần"
             color="text-blue-400"
           />
+
           <StatCard
             icon={Banknote}
             label="Doanh Thu Hệ Thống"
@@ -331,6 +359,7 @@ const AdminDashboard = () => {
             subtext="Tính đến hôm nay"
             color="text-emerald-400"
           />
+
           <StatCard
             icon={Users}
             label="Tổng Người Dùng"
@@ -338,11 +367,12 @@ const AdminDashboard = () => {
             subtext="Đang hoạt động"
             color="text-purple-400"
           />
+
           <StatCard
             icon={Activity}
             label="Sàn Mới (Tháng này)"
             value={statsData.newAuctions}
-            subtext="Tăng 15% so với tháng trước"
+            subtext={`Seller mới: ${statsData.newSellers}`}
             color="text-amber-400"
           />
         </div>
@@ -358,7 +388,7 @@ const AdminDashboard = () => {
             {chartViews.auctions ? (
               <BarChart data={chartData.auctionsTrend} />
             ) : (
-              <LineChart data={chartData.auctionsTrend} />
+              <LineChart data={chartData.auctionsTrend} valueKey="count" />
             )}
           </ChartContainer>
 
@@ -369,14 +399,9 @@ const AdminDashboard = () => {
             onToggle={() => toggleChartView("revenue")}
           >
             {chartViews.revenue ? (
-              <BarChart
-                data={chartData.revenueTrend.map((item) => ({
-                  month: item.month,
-                  count: Math.round(item.revenue / 1000000),
-                }))}
-              />
+              <BarChart data={chartData.revenueTrend} valueKey="revenue" />
             ) : (
-              <LineChart data={chartData.revenueTrend} />
+              <LineChart data={chartData.revenueTrend} valueKey="revenue" />
             )}
           </ChartContainer>
 
@@ -389,12 +414,7 @@ const AdminDashboard = () => {
             {chartViews.users ? (
               <BarChart data={chartData.usersTrend} />
             ) : (
-              <LineChart
-                data={chartData.usersTrend.map((item) => ({
-                  month: item.month,
-                  revenue: item.users * 100000,
-                }))}
-              />
+              <LineChart data={chartData.usersTrend} valueKey="count" />
             )}
           </ChartContainer>
 
@@ -407,12 +427,7 @@ const AdminDashboard = () => {
             {chartViews.upgrades ? (
               <BarChart data={chartData.upgradesTrend} />
             ) : (
-              <LineChart
-                data={chartData.upgradesTrend.map((item) => ({
-                  month: item.month,
-                  revenue: item.count * 1000000,
-                }))}
-              />
+              <LineChart data={chartData.upgradesTrend} valueKey="count" />
             )}
           </ChartContainer>
         </div>
