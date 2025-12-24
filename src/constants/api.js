@@ -36,4 +36,7 @@ export const API_ENDPOINTS = {
 
   PAYMENTS: "/payments",
   ORDERS: "/orders",
+
+  ADMIN_SELLER_UPGRADE_REQUESTS:
+    "/admin/seller-upgrade-requests",
 };
