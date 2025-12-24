@@ -61,6 +61,14 @@ const CustomDropdown = ({
         itemSelected: "bg-green-900/40 border-l-green-500/70 text-green-300",
         itemHover: "hover:border-l-green-500/70",
       },
+      emerald: {
+        button: "border-emerald-500/70 ring-emerald-500/30",
+        chevron: "text-emerald-400",
+        listBg: "shadow-emerald-500/20",
+        itemSelected:
+          "bg-emerald-900/40 border-l-emerald-500/70 text-emerald-300",
+        itemHover: "hover:border-l-emerald-500/70",
+      },
     };
 
     return accentMap[accentColor] || accentMap.amber;
