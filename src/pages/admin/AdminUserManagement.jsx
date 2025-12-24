@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   Shield,
@@ -13,6 +13,11 @@ import {
   Package,
 } from "lucide-react";
 
+import adminUserService from "../../services/adminUserService";
+import { notify } from "../../utils/toast";
+import CreateUserModal from "./CreateUserModal";
+import EditUserModal from "./EditUserModal";
+
 /**
  * Admin - User Management
  * Quản lý người dùng: admin, bidder, seller
@@ -25,28 +30,35 @@ const UserDetailModal = ({
   setIsDetailOpen,
   getRoleIcon,
   getRoleLabel,
+  handleDeleteUser,
+  onEdit,
 }) => {
   if (!isDetailOpen || !selectedUser) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl w-full max-w-2xl overflow-hidden border border-slate-700 shadow-2xl animate-in zoom-in-95 duration-300 max-h-96 overflow-y-auto">
+
         <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-6 text-white sticky top-0">
-          <div className="flex items-center gap-3 mb-2">
-            {getRoleIcon(selectedUser.role)}
-            <h2 className="text-xl font-black">{selectedUser.name}</h2>
-            <span
-              className={`ml-auto px-3 py-1 rounded-full text-xs font-bold ${
-                selectedUser.role === "admin"
-                  ? "bg-purple-500/30 text-purple-300"
-                  : selectedUser.role === "seller"
-                  ? "bg-emerald-500/30 text-emerald-300"
-                  : "bg-blue-500/30 text-blue-300"
-              }`}
-            >
-              {getRoleLabel(selectedUser.role)}
-            </span>
+          <div className="flex items-center justify-between mb-2">
+            {/* Left: User info */}
+            <div className="flex items-center gap-3">
+              {getRoleIcon(selectedUser.role)}
+              <h2 className="text-xl font-black">{selectedUser.name}</h2>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  selectedUser.role === "admin"
+                    ? "bg-purple-500/30 text-purple-300"
+                    : selectedUser.role === "seller"
+                    ? "bg-emerald-500/30 text-emerald-300"
+                    : "bg-blue-500/30 text-blue-300"
+                }`}
+              >
+                {getRoleLabel(selectedUser.role)}
+              </span>
+            </div>
           </div>
+
           <p className="text-sm text-white/90">{selectedUser.email}</p>
         </div>
 
@@ -141,8 +153,17 @@ const UserDetailModal = ({
             >
               Đóng
             </button>
-            <button className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105">
-              Khóa Tài Khoản
+            <button
+              onClick={onEdit}
+              className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg"
+            >
+              Chỉnh sửa
+            </button>
+            <button
+              onClick={handleDeleteUser}
+              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-lg transition-all duration-300 hover:scale-105"
+            >
+              Xóa Tài Khoản
             </button>
           </div>
         </div>
@@ -154,65 +175,78 @@ const UserDetailModal = ({
 const AdminUserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
-  const [users] = useState([
-    {
-      id: 1,
-      name: "Admin System",
-      email: "admin@auction.vn",
-      phone: "0900000001",
-      role: "admin",
-      location: "Hà Nội",
-      status: "active",
-      joinDate: "2024-01-01",
-    },
-    {
-      id: 2,
-      name: "Nguyễn Văn A",
-      email: "nguyenvanA@email.com",
-      phone: "0901234567",
-      role: "seller",
-      location: "TP. Hồ Chí Minh",
-      status: "active",
-      joinDate: "2024-03-15",
-      sellerInfo: { products: 45, sales: 150000000 },
-    },
-    {
-      id: 3,
-      name: "Trần Thị B",
-      email: "tranThiB@email.com",
-      phone: "0902345678",
-      role: "bidder",
-      location: "Đà Nẵng",
-      status: "active",
-      joinDate: "2024-05-20",
-      bidderInfo: { bids: 23, wins: 5 },
-    },
-    {
-      id: 4,
-      name: "Lê Văn C",
-      email: "levanC@email.com",
-      phone: "0903456789",
-      role: "seller",
-      location: "Hải Phòng",
-      status: "inactive",
-      joinDate: "2024-04-10",
-      sellerInfo: { products: 12, sales: 45000000 },
-    },
-    {
-      id: 5,
-      name: "Phạm Thị D",
-      email: "phamThiD@email.com",
-      phone: "0904567890",
-      role: "bidder",
-      location: "Cần Thơ",
-      status: "active",
-      joinDate: "2024-06-01",
-      bidderInfo: { bids: 45, wins: 12 },
-    },
-  ]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+
+      const res = await adminUserService.getAllUsers();
+
+      console.log("USERS RAW:", res);
+
+      // apiClient trả array trực tiếp
+      const raw = Array.isArray(res) ? res : [];
+
+      const normalized = raw.map((u) => ({
+        id: u.userId,
+        name: u.fullName,
+        email: u.email,
+        phone: u.phone ?? "N/A",
+        location: u.address ?? "N/A",
+        role: u.role.toLowerCase(), // ADMIN / SELLER / BIDDER
+        status: u.isActive ? "active" : "inactive",
+        joinDate: new Date(u.createdAt).toLocaleDateString("vi-VN"),
+
+        // optional – nếu backend chưa có
+        sellerInfo: u.sellerInfo ?? null,
+        bidderInfo: u.bidderInfo ?? null,
+      }));
+
+      setUsers(normalized);
+    } catch (error) {
+      notify.error("Không thể tải danh sách người dùng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleCreateUser = async (payload) => {
+    try {
+      const created = await adminUserService.createUser(payload);
+
+      setUsers((prev) => [
+        {
+          id: created.userId,
+          name: created.fullName,
+          email: created.email,
+          role: created.role.toLowerCase(),
+          status: created.isActive ? "active" : "inactive",
+          joinDate: new Date(created.createdAt).toLocaleDateString("vi-VN"),
+          phone: created.phone ?? "N/A",
+          location: created.address ?? "N/A",
+        },
+        ...prev,
+      ]);
+
+      notify.success("Tạo người dùng thành công");
+      setIsCreateOpen(false);
+    } catch (e) {
+      notify.error("Tạo người dùng thất bại");
+    }
+  };
+
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -222,10 +256,68 @@ const AdminUserManagement = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleOpenDetail = (user) => {
-    setSelectedUser(user);
-    setIsDetailOpen(true);
+  const handleOpenDetail = async (user) => {
+    try {
+      const res = await adminUserService.getUserById(user.id);
+
+      setSelectedUser({
+        ...user,
+        ...{
+          phone: res.phone ?? user.phone,
+          location: res.address ?? user.location,
+          sellerInfo: res.sellerInfo,
+          bidderInfo: res.bidderInfo,
+        },
+      });
+
+      setIsDetailOpen(true);
+    } catch (error) {
+      notify.error("Không thể tải chi tiết người dùng");
+    }
   };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    if (!window.confirm("Bạn có chắc muốn xóa người dùng này?")) return;
+
+    try {
+      await adminUserService.deleteUser(selectedUser.id);
+
+      notify.success("Đã xóa người dùng");
+
+      setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
+      setIsDetailOpen(false);
+    } catch (error) {
+      notify.error("Xóa người dùng thất bại");
+    }
+  };
+
+  const handleUpdateUser = async (payload) => {
+    try {
+      const updated = await adminUserService.updateUser(
+        selectedUser.id,
+        payload,
+      );
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === selectedUser.id
+            ? {
+                ...u,
+                name: updated.fullName,
+                role: updated.role.toLowerCase(),
+                status: updated.isActive ? "active" : "inactive",
+              }
+            : u,
+        ),
+      );
+
+      notify.success("Cập nhật người dùng thành công");
+    } catch (e) {
+      notify.error("Cập nhật thất bại");
+    }
+  };
+
 
   const getRoleIcon = (role) => {
     switch (role) {
@@ -273,19 +365,32 @@ const AdminUserManagement = () => {
         <div className="mb-8">
           <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-cyan-500/20 p-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/10 to-blue-600/10"></div>
-            <div className="flex items-center gap-4 relative z-10">
-              <Users className="w-12 h-12 text-cyan-400" />
-              <div>
-                <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-2 tracking-tight">
-                  Quản Lý Người Dùng
-                </h1>
-                <p className="text-slate-300 font-semibold tracking-wide">
-                  Quản lý admin, người bán, người mua
-                </p>
+
+            <div className="flex items-center justify-between relative z-10">
+              {/* Left */}
+              <div className="flex items-center gap-4">
+                <Users className="w-12 h-12 text-cyan-400" />
+                <div>
+                  <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-2 tracking-tight">
+                    Quản Lý Người Dùng
+                  </h1>
+                  <p className="text-slate-300 font-semibold tracking-wide">
+                    Quản lý admin, người bán, người mua
+                  </p>
+                </div>
               </div>
+
+              {/* Right: Create User Button */}
+              <button
+                onClick={() => setIsCreateOpen(true)}
+                className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg transition-all hover:scale-105"
+              >
+                + Tạo người dùng
+              </button>
             </div>
           </div>
         </div>
+
 
         {/* Search & Filter */}
         <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50 mb-8 shadow-lg">
@@ -434,6 +539,24 @@ const AdminUserManagement = () => {
         setIsDetailOpen={setIsDetailOpen}
         getRoleIcon={getRoleIcon}
         getRoleLabel={getRoleLabel}
+        handleDeleteUser={handleDeleteUser}
+        onEdit={() => {
+          setIsDetailOpen(false);
+          setIsEditOpen(true);
+        }}
+      />
+
+      <CreateUserModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSubmit={handleCreateUser}
+      />
+
+      <EditUserModal
+        isOpen={isEditOpen}
+        user={selectedUser}
+        onClose={() => setIsEditOpen(false)}
+        onSubmit={handleUpdateUser}
       />
     </div>
   );
