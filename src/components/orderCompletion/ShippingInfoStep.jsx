@@ -2,14 +2,12 @@ import React, { useState } from "react";
 import { Truck, FileText, DollarSign } from "lucide-react";
 import orderService from "../../services/orderService";
 
-const ShippingInfoStep = ({ onNext/*, productId*/ }) => {
+const ShippingInfoStep = ({ onNext, productId }) => {
   const [formData, setFormData] = useState({
     trackingCode: "",
     shippingCompany: "",
     notes: "",
   });
-
-  const productId = 99; // testtttttttttttttttttttttt
 
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

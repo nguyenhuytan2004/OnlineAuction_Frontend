@@ -65,6 +65,16 @@ const orderService = {
       throw error;
     }
   },
+
+  getStatus: async (orderId) => {
+    try {
+      const res = await apiClient.get(`${API_ENDPOINTS.ORDERS}/${orderId}/status`);
+      return res.data; // { orderId, status, shippingAddressPresent, finalPrice }
+    } catch (error) {
+      console.error("Get order status error:", error);
+      throw error;
+    }
+  }
 };
 
 export default orderService;

@@ -25,6 +25,78 @@ const OrderCompletion = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [appOrderId, setAppOrderId] = useState(
+    Number(sessionStorage.getItem("appOrderId"))
+  );
+
+  const mapStatusToStep = (userRole, statusRes) => {
+    const { status, shippingAddressPresent } = statusRes || {};
+
+    if (userRole === "seller") {
+      if (status === "PAID" || status === "ON_DELIVERING") return 3;
+      if (status === "COMPLETED") return "SUCCESS";
+      if (status === "CANCELLED") return "CANCELLED";
+      return 3;
+    }
+
+    // Buyer:
+    if (status === "WAIT_PAYMENT") return 1;
+
+    if (status === "PAID") {
+      if (!shippingAddressPresent) return 2;
+      return 4;
+    }
+
+    if (status === "ON_DELIVERING") {
+      return 4;
+    }
+
+    if (status === "COMPLETED") return "SUCCESS";
+    if (status === "CANCELLED") return "CANCELLED";
+
+    return 1;
+  };
+
+  useEffect(() => {
+    if (!appOrderId) return;
+    if (!userRole) return;
+
+    const loadStatus = async () => {
+      try {
+        console.log("CALL getStatus", appOrderId);
+
+        const statusRes = await orderService.getStatus(appOrderId);
+        const step = mapStatusToStep(userRole, statusRes);
+
+        if (step === "SUCCESS") {
+          setShowSuccess(true);
+          return;
+        }
+
+        if (step === "CANCELLED") {
+          alert("Đơn hàng đã bị hủy");
+          navigate("/user/activity", { replace: true });
+          return;
+        }
+
+        setCurrentStep(step);
+
+        if (userRole === "buyer") {
+          if (step === 1) setCompletedSteps([]);
+          if (step === 2) setCompletedSteps([1]);
+          if (step === 4) setCompletedSteps([1, 2]);
+        } else {
+          // seller
+          setCompletedSteps([]);
+        }
+
+      } catch (err) {
+        console.error("Load order status failed", err);
+      }
+    };
+
+    loadStatus();
+  }, [appOrderId, userRole, navigate]);
 
   useEffect(() => {
     if (location.pathname === "/payment-result") {
@@ -88,9 +160,12 @@ const OrderCompletion = () => {
         amount: Number(amount),
         paymentRef: orderId,
       })
-      .then(() => {
+      .then((data) => {
+        if (data?.orderId) {
+          sessionStorage.setItem("appOrderId", String(data.orderId));
+          setAppOrderId(data.orderId);
+        }
         sessionStorage.setItem("orderCreated", "true");
-        console.log("Order created");
       })
       .catch((err) => {
         console.error("Create order failed", err);
