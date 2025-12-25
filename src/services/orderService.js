@@ -28,15 +28,32 @@ const orderService = {
   },
 
   buyerConfirmReceived: async (orderId) => {
-  try {
-    await apiClient.post(
-      `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-received`
-    );
-  } catch (error) {
-    console.error("Buyer confirm received error:", error);
-    throw error;
-  }
-},
+    try {
+      await apiClient.post(
+        `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-received`
+      );
+    } catch (error) {
+      console.error("Buyer confirm received error:", error);
+      throw error;
+    }
+  },
+
+  payAndCreateOrder: async ({ productId, amount, paymentRef }) => {
+    try {
+      const res = await apiClient.post(
+        `${API_ENDPOINTS.ORDERS}/pay`,
+        {
+          productId,
+          amount,
+          paymentRef,
+        }
+      );
+      return res.data;
+    } catch (error) {
+      console.error("Pay and create order error:", error);
+      throw error;
+    }
+  },
 };
 
 export default orderService;

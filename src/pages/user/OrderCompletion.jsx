@@ -7,13 +7,13 @@ import ShippingAddressStep from "../../components/orderCompletion/ShippingAddres
 import ShippingInfoStep from "../../components/orderCompletion/ShippingInfoStep";
 import ConfirmationStep from "../../components/orderCompletion/ConfirmationStep";
 import { useSearchParams } from "react-router-dom";
+import orderService from "../../services/orderService";
 
 const OrderCompletion = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // ⚠️ KHÔNG phụ thuộc hoàn toàn location.state
   const state = location.state;
 
   const [ctx, setCtx] = useState(
@@ -26,9 +26,6 @@ const OrderCompletion = () => {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  /**
-   * 1️⃣ Nếu vào từ /payment-result → redirect về URL đúng
-   */
   useEffect(() => {
     if (location.pathname === "/payment-result") {
       if (!ctx?.productId) {
@@ -43,17 +40,11 @@ const OrderCompletion = () => {
     }
   }, [location.pathname, location.search, ctx, navigate]);
 
-  /**
-   * 2️⃣ Khởi tạo step theo role
-   */
   useEffect(() => {
     if (userRole === "seller") setCurrentStep(3);
     else if (userRole === "buyer") setCurrentStep(1);
   }, [userRole]);
 
-  /**
-   * 3️⃣ MoMo success → sang step nhập địa chỉ
-   */
   useEffect(() => {
     if (userRole !== "buyer") return;
     const resultCode = searchParams.get("resultCode");
@@ -62,22 +53,59 @@ const OrderCompletion = () => {
       setCurrentStep(2);
     }
   }, [searchParams, userRole]);
-
-  /**
-   * 4️⃣ Validate: nếu không có context → về Home
-   */
   useEffect(() => {
     if (!ctx) navigate("/", { replace: true });
   }, [ctx, navigate]);
 
-  /**
-   * 5️⃣ Cleanup sau khi hoàn tất
-   */
+  useEffect(() => {
+    if (userRole !== "buyer") return;
+
+    const resultCode = searchParams.get("resultCode");
+    if (resultCode !== "0") return;
+
+    const orderId = searchParams.get("orderId");
+    const amount = searchParams.get("amount");
+
+    const storedCtx = JSON.parse(
+      sessionStorage.getItem("paymentContext") || "null"
+    );
+
+    if (!storedCtx?.productId || !amount) {
+      console.warn("Missing paymentContext or amount");
+      return;
+    }
+
+    if (sessionStorage.getItem("orderCreated") === "true") {
+      console.log("Order already created");
+      return;
+    }
+
+    console.log("CALL CREATE ORDER API");
+
+    orderService
+      .payAndCreateOrder({
+        productId: storedCtx.productId,
+        amount: Number(amount),
+        paymentRef: orderId,
+      })
+      .then(() => {
+        sessionStorage.setItem("orderCreated", "true");
+        console.log("Order created");
+      })
+      .catch((err) => {
+        console.error("Create order failed", err);
+        alert("Tạo đơn hàng thất bại");
+      });
+  }, [searchParams, userRole]);
+
+
   useEffect(() => {
     if (showSuccess) {
       sessionStorage.removeItem("paymentContext");
+      sessionStorage.removeItem("orderCreated");
     }
   }, [showSuccess]);
+
 
   const handleNextStep = () => {
     setCompletedSteps((prev) =>

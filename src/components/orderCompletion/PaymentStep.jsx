@@ -10,7 +10,7 @@ const PaymentStep = ({ productId, productName, price, userRole }) => {
     try {
       setIsLoading(true);
 
-      const amount = 2000; // test
+      const amount = parsePriceToNumber(price);
       const draftOrder = {
         productId,
         productName,
@@ -19,7 +19,6 @@ const PaymentStep = ({ productId, productName, price, userRole }) => {
         createdAt: Date.now(),
       };
 
-      // ✅ DÙNG sessionStorage
       sessionStorage.setItem(
         "paymentContext",
         JSON.stringify(draftOrder)
@@ -42,6 +41,16 @@ const PaymentStep = ({ productId, productName, price, userRole }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const parsePriceToNumber = (price) => {
+    if (typeof price === "number") return price;
+
+    if (typeof price === "string") {
+      return Number(price.replace(/[^\d]/g, ""));
+    }
+
+    return 0;
   };
 
   const paymentMethods = [
