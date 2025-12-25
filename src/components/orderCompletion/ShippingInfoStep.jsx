@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Truck, FileText, DollarSign } from "lucide-react";
 import orderService from "../../services/orderService";
 
-const ShippingInfoStep = ({ onNext }) => {
+const ShippingInfoStep = ({ onNext/*, productId*/ }) => {
   const [formData, setFormData] = useState({
     trackingCode: "",
     shippingCompany: "",
     notes: "",
   });
+
+  const productId = 99; // testtttttttttttttttttttttt
 
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +78,39 @@ const ShippingInfoStep = ({ onNext }) => {
       setIsLoading(false);
     }
   };
+
+  const handleCancelOrder = async () => {
+    if (!productId) {
+      alert("Không xác định được sản phẩm");
+      return;
+    }
+
+    const confirmCancel = window.confirm(
+      "Bạn có chắc chắn muốn hủy đơn hàng này không?\nHành động này không thể hoàn tác."
+    );
+
+    if (!confirmCancel) return;
+
+    try {
+      setIsLoading(true);
+
+      await orderService.cancelOrderByProduct(productId);
+
+      alert("Đơn hàng đã được hủy thành công");
+
+      // Cleanup session
+      sessionStorage.removeItem("paymentContext");
+      sessionStorage.removeItem("orderCreated");
+
+      // Điều hướng (tùy bạn)
+      window.location.href = "/user/activity";
+    } catch (error) {
+      alert("Hủy đơn hàng thất bại");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="space-y-8">
@@ -254,6 +289,15 @@ const ShippingInfoStep = ({ onNext }) => {
             className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']"
           >
             Hủy
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCancelOrder}
+            disabled={isLoading}
+            className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat']"
+          >
+            Hủy đơn hàng
           </button>
           <button
             type="submit"

@@ -54,6 +54,17 @@ const orderService = {
       throw error;
     }
   },
+
+  cancelOrderByProduct: async (productId) => {
+    try {
+      await apiClient.patch(
+        `/auction-results/product/${productId}/cancel`
+      );
+    } catch (error) {
+      console.error("Cancel order error:", error);
+      throw error;
+    }
+  },
 };
 
 export default orderService;

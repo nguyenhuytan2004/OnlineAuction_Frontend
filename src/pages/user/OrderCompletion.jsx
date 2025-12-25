@@ -134,7 +134,12 @@ const OrderCompletion = () => {
   const renderStepContent = () => {
     if (userRole === "seller") {
       return currentStep === 3
-        ? <ShippingInfoStep onNext={handleNextStep} />
+        ? (
+          <ShippingInfoStep
+            onNext={handleNextStep}
+            productId={productId}
+          />
+        )
         : null;
     }
 
