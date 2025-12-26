@@ -11,6 +11,31 @@ export const authService = {
         password: userData.password,
       });
 
+      return response;
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
+  },
+
+  resendVerifyEmailOtp: async (email) => {
+    try {
+      const endpoint = `${
+        API_ENDPOINTS.AUTH
+      }/resend-verify-email-otp?email=${encodeURIComponent(email)}`;
+      const response = await apiClient.get(endpoint);
+      return response;
+    } catch (error) {
+      console.error("Resend verify email OTP error:", error);
+      throw error;
+    }
+  },
+
+  verifyEmail: async (email, otp) => {
+    try {
+      const endpoint = `${API_ENDPOINTS.AUTH}/verify-email`;
+      const response = await apiClient.post(endpoint, { email, otp });
+
       // Lưu token
       if (response.accessToken) {
         localStorage.setItem("accessToken", response.accessToken);
@@ -22,7 +47,7 @@ export const authService = {
 
       return response;
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Verify email error:", error);
       throw error;
     }
   },

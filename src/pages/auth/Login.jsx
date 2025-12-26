@@ -159,11 +159,17 @@ const Login = () => {
               <span className="ml-2 font-semibold">Ghi nhớ tôi</span>
             </label>
             <Link
-              to="#"
+              to={ROUTES.FORGOT_PASSWORD}
               className="text-amber-400 hover:text-amber-300 transition-colors duration-300 font-bold"
             >
               Quên mật khẩu?
             </Link>
+          </div>
+
+          {/* Divider */}
+          <div className="my-8 flex items-center gap-4 relative z-10">
+            <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
+            <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
           </div>
 
           {/* Submit Button */}
@@ -206,16 +212,16 @@ const Login = () => {
         </form>
 
         {/* Divider */}
-        <div className="my-8 flex items-center gap-4 relative z-10">
+        {/* <div className="my-8 flex items-center gap-4 relative z-10">
           <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
           <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">
             Hoặc
           </span>
           <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
-        </div>
+        </div> */}
 
         {/* Social Login */}
-        <div className="space-y-3 relative z-10">
+        {/* <div className="space-y-3 relative z-10">
           <button className="group w-full py-3.5 bg-slate-800/50 text-slate-200 rounded-xl hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-600 transition-all duration-300 flex items-center justify-center gap-3 border border-slate-700 hover:border-slate-600 font-bold">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -225,7 +231,7 @@ const Login = () => {
             </svg>
             Đăng nhập bằng Google
           </button>
-        </div>
+        </div> */}
 
         {/* Register Link */}
         <div className="mt-8 text-center relative z-10">

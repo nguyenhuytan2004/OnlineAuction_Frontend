@@ -249,29 +249,13 @@ const Ratings = () => {
                                 ? "Người bán"
                                 : "Người mua"}
                             </span>
-                            {rating.reviewer.ratingScore &&
-                              rating.reviewer.ratingCount > 0 && (
-                                <>
-                                  <span>•</span>
-                                  {Array.from(
-                                    {
-                                      length: helpers.getRatingStars(
-                                        rating.reviewer.ratingScore,
-                                        rating.reviewer.ratingCount,
-                                      ),
-                                    },
-                                    (_, i) => (
-                                      <Star
-                                        key={i}
-                                        className="w-3 h-3 text-amber-400 fill-amber-400"
-                                      />
-                                    ),
-                                  )}
-                                  <span className="text-slate-500">
-                                    ({rating.reviewer.ratingCount} đánh giá)
-                                  </span>
-                                </>
-                              )}
+                            <span>•</span>
+                            <span className="text-emerald-400 ml-2 font-semibold">
+                              {rating.reviewer.ratingScore}
+                            </span>
+                            <span className="text-slate-500 text-xs">
+                              ({rating.reviewer.ratingCount} đánh giá)
+                            </span>
                           </div>
                         </div>
                       </div>

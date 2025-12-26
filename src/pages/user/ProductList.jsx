@@ -226,6 +226,7 @@ const ProductList = () => {
       setError(null);
       try {
         const params = new URLSearchParams();
+        params.append("status", "active");
         params.append("page", currentPage - 1);
         params.append("size", ITEMS_PER_PAGE);
         params.append("sort", currentSort);
@@ -291,6 +292,7 @@ const ProductList = () => {
       setCurrentPage(page);
       setSearchParams({
         category: selectedCategory,
+        keyword: currentKeyword,
         page,
         size: ITEMS_PER_PAGE,
         sort: currentSort,
@@ -305,6 +307,7 @@ const ProductList = () => {
     setCurrentPage(1);
     setSearchParams({
       category: selectedCategory,
+      keyword: currentKeyword,
       page: 1,
       size: ITEMS_PER_PAGE,
       sort,
@@ -393,7 +396,7 @@ const ProductList = () => {
                       onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
                       className="w-full px-4 py-3.5 bg-slate-800/50 font-bold text-slate-200 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500 focus:shadow-lg focus:shadow-amber-500/20 hover:border-amber-500/50 transition-all duration-300 cursor-pointer backdrop-blur-sm flex items-center justify-between"
                     >
-                      <span>
+                      <span className="text-start">
                         {currentSort === ""
                           ? "Mặc định"
                           : currentSort === "endTime,asc"
@@ -411,49 +414,51 @@ const ProductList = () => {
                       />
                     </button>
 
-                    {isSortDropdownOpen && (
-                      <ul
-                        className={`absolute z-50 w-full mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl shadow-amber-500/20 overflow-hidden animate-slide-down`}
-                      >
-                        {[
-                          {
-                            value: "",
-                            label: "Mặc định",
-                          },
-                          {
-                            value: "endTime,asc",
-                            label: "Thời gian kết thúc (Sớm nhất)",
-                          },
-                          {
-                            value: "endTime,desc",
-                            label: "Thời gian kết thúc (Muộn nhất)",
-                          },
-                          {
-                            value: "currentPrice,asc",
-                            label: "Giá (Thấp đến Cao)",
-                          },
-                          {
-                            value: "currentPrice,desc",
-                            label: "Giá (Cao đến Thấp)",
-                          },
-                        ].map((option) => (
-                          <li
-                            key={option.value}
-                            onClick={() => {
-                              handleSortChange(option.value);
-                              setIsSortDropdownOpen(false);
-                            }}
-                            className={`px-4 py-3 cursor-pointer transition-all duration-200 font-semibold ${
-                              currentSort === option.value
-                                ? "bg-gradient-to-r from-amber-600/30 to-orange-600/30 text-amber-400 border-l-4 border-amber-500"
-                                : "text-slate-300 hover:bg-slate-700/50 hover:text-amber-400 hover:border-l-4 hover:border-amber-500/50"
-                            }`}
-                          >
-                            {option.label}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <ul
+                      className={`absolute z-50 w-full mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl shadow-amber-500/20 overflow-hidden ${
+                        isSortDropdownOpen
+                          ? "animate-slide-down"
+                          : "animate-slide-down-reverse pointer-events-none"
+                      }`}
+                    >
+                      {[
+                        {
+                          value: "",
+                          label: "Mặc định",
+                        },
+                        {
+                          value: "endTime,asc",
+                          label: "Thời gian kết thúc (Sớm nhất)",
+                        },
+                        {
+                          value: "endTime,desc",
+                          label: "Thời gian kết thúc (Muộn nhất)",
+                        },
+                        {
+                          value: "currentPrice,asc",
+                          label: "Giá (Thấp đến Cao)",
+                        },
+                        {
+                          value: "currentPrice,desc",
+                          label: "Giá (Cao đến Thấp)",
+                        },
+                      ].map((option) => (
+                        <li
+                          key={option.value}
+                          onClick={() => {
+                            handleSortChange(option.value);
+                            setIsSortDropdownOpen(false);
+                          }}
+                          className={`px-4 py-3 cursor-pointer transition-all duration-200 font-semibold ${
+                            currentSort === option.value
+                              ? "bg-gradient-to-r from-amber-600/30 to-orange-600/30 text-amber-400 border-l-4 border-amber-500"
+                              : "text-slate-300 hover:bg-slate-700/50 hover:text-amber-400 hover:border-l-4 hover:border-amber-500/50"
+                          }`}
+                        >
+                          {option.label}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
 
@@ -571,20 +576,17 @@ const ProductList = () => {
             {!loading && products.length > 0 ? (
               <>
                 <div className="grid grid-cols-3 gap-8 justify-items-center">
-                  {products.map(
-                    (product, index) =>
-                      product.isActive && (
-                        <div
-                          key={product.productId}
-                          className="animate-slide-in-up"
-                          style={{
-                            animationDelay: `${index * 200}ms`,
-                          }}
-                        >
-                          <ProductCard product={product} />
-                        </div>
-                      ),
-                  )}
+                  {products.map((product, index) => (
+                    <div
+                      key={product.productId}
+                      className="animate-slide-in-up"
+                      style={{
+                        animationDelay: `${index * 200}ms`,
+                      }}
+                    >
+                      <ProductCard product={product} />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Pagination */}
