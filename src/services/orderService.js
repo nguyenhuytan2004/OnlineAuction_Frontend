@@ -2,13 +2,26 @@ import apiClient from "../utils/apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 const orderService = {
+  getOrderByProductId: async (productId) => {
+    try {
+      const res = await apiClient.get(
+        `${API_ENDPOINTS.PRODUCTS}/${productId}/auction-order`,
+      );
+
+      return res;
+    } catch (error) {
+      console.error("Get order by product ID error:", error);
+      throw error;
+    }
+  },
+
   setShippingAddress: async (orderId, shippingAddress) => {
     try {
-      await apiClient.put(
+      await apiClient.patch(
         `${API_ENDPOINTS.ORDERS}/${orderId}/shipping-address`,
         {
-            shippingAddress
-        }
+          shippingAddress,
+        },
       );
     } catch (error) {
       console.error("Set shipping address error:", error);
@@ -18,8 +31,8 @@ const orderService = {
 
   sellerConfirmPayment: async (orderId) => {
     try {
-      await apiClient.post(
-        `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-payment`
+      await apiClient.patch(
+        `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-payment`,
       );
     } catch (error) {
       console.error("Seller confirm payment error:", error);
@@ -29,8 +42,8 @@ const orderService = {
 
   buyerConfirmReceived: async (orderId) => {
     try {
-      await apiClient.post(
-        `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-received`
+      await apiClient.patch(
+        `${API_ENDPOINTS.ORDERS}/${orderId}/confirm-received`,
       );
     } catch (error) {
       console.error("Buyer confirm received error:", error);
@@ -40,14 +53,11 @@ const orderService = {
 
   payAndCreateOrder: async ({ productId, amount, paymentRef }) => {
     try {
-      const res = await apiClient.post(
-        `${API_ENDPOINTS.ORDERS}/pay`,
-        {
-          productId,
-          amount,
-          paymentRef,
-        }
-      );
+      const res = await apiClient.post(`${API_ENDPOINTS.ORDERS}/pay`, {
+        productId,
+        amount,
+        paymentRef,
+      });
       return res.data;
     } catch (error) {
       console.error("Pay and create order error:", error);
@@ -57,9 +67,7 @@ const orderService = {
 
   cancelOrderByProduct: async (productId) => {
     try {
-      await apiClient.patch(
-        `/auction-results/product/${productId}/cancel`
-      );
+      await apiClient.patch(`/auction-results/product/${productId}/cancel`);
     } catch (error) {
       console.error("Cancel order error:", error);
       throw error;
@@ -68,13 +76,15 @@ const orderService = {
 
   getStatus: async (orderId) => {
     try {
-      const res = await apiClient.get(`${API_ENDPOINTS.ORDERS}/${orderId}/status`);
+      const res = await apiClient.get(
+        `${API_ENDPOINTS.ORDERS}/${orderId}/status`,
+      );
       return res.data; // { orderId, status, shippingAddressPresent, finalPrice }
     } catch (error) {
       console.error("Get order status error:", error);
       throw error;
     }
-  }
+  },
 };
 
 export default orderService;

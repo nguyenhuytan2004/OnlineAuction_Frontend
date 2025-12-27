@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, CheckCircle2 } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ChevronLeft, CheckCircle2, MoveLeft } from "lucide-react";
 import OrderStepper from "../../components/orderCompletion/OrderStepper";
 import PaymentStep from "../../components/orderCompletion/PaymentStep";
 import ShippingAddressStep from "../../components/orderCompletion/ShippingAddressStep";
@@ -16,18 +17,32 @@ const OrderCompletion = () => {
 
   const state = location.state;
 
-  const [ctx, setCtx] = useState(
-    state || JSON.parse(sessionStorage.getItem("paymentContext") || "null")
-  );
+  const ctx =
+    state || JSON.parse(sessionStorage.getItem("paymentContext") || "null");
 
   const { productId, productName, price, userRole } = ctx || {};
 
-  const [currentStep, setCurrentStep] = useState(1);
-  const [completedSteps, setCompletedSteps] = useState([]);
+  const [order, setOrder] = useState(null);
+  const [currentStep, setCurrentStep] = useState(null);
+  const [, setCompletedSteps] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [appOrderId, setAppOrderId] = useState(
-    Number(sessionStorage.getItem("appOrderId"))
+    Number(sessionStorage.getItem("appOrderId")),
   );
+
+  useEffect(() => {
+    const fetchOrderData = async () => {
+      try {
+        const order = await orderService.getOrderByProductId(productId);
+        setOrder(order);
+        console.log("Dữ liệu đơn hàng:", order);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu đơn hàng:", error);
+      }
+    };
+
+    fetchOrderData();
+  }, [productId]);
 
   const mapStatusToStep = (userRole, statusRes) => {
     const { status, shippingAddressPresent } = statusRes || {};
@@ -89,7 +104,6 @@ const OrderCompletion = () => {
           // seller
           setCompletedSteps([]);
         }
-
       } catch (err) {
         console.error("Load order status failed", err);
       }
@@ -107,15 +121,10 @@ const OrderCompletion = () => {
 
       navigate(
         `/products/${ctx.productId}/order-completion${location.search}`,
-        { replace: true, state: ctx }
+        { replace: true, state: ctx },
       );
     }
   }, [location.pathname, location.search, ctx, navigate]);
-
-  useEffect(() => {
-    if (userRole === "seller") setCurrentStep(3);
-    else if (userRole === "buyer") setCurrentStep(1);
-  }, [userRole]);
 
   useEffect(() => {
     if (userRole !== "buyer") return;
@@ -125,6 +134,7 @@ const OrderCompletion = () => {
       setCurrentStep(2);
     }
   }, [searchParams, userRole]);
+
   useEffect(() => {
     if (!ctx) navigate("/", { replace: true });
   }, [ctx, navigate]);
@@ -139,7 +149,7 @@ const OrderCompletion = () => {
     const amount = searchParams.get("amount");
 
     const storedCtx = JSON.parse(
-      sessionStorage.getItem("paymentContext") || "null"
+      sessionStorage.getItem("paymentContext") || "null",
     );
 
     if (!storedCtx?.productId || !amount) {
@@ -173,7 +183,6 @@ const OrderCompletion = () => {
       });
   }, [searchParams, userRole]);
 
-
   useEffect(() => {
     if (showSuccess) {
       sessionStorage.removeItem("paymentContext");
@@ -181,10 +190,9 @@ const OrderCompletion = () => {
     }
   }, [showSuccess]);
 
-
   const handleNextStep = () => {
     setCompletedSteps((prev) =>
-      prev.includes(currentStep) ? prev : [...prev, currentStep]
+      prev.includes(currentStep) ? prev : [...prev, currentStep],
     );
 
     if (userRole === "buyer") {
@@ -197,25 +205,46 @@ const OrderCompletion = () => {
 
     if (userRole === "seller") {
       if (currentStep === 3) {
-        setCompletedSteps((prev) =>
-          prev.includes(3) ? prev : [...prev, 3]
-        );
+        setCompletedSteps((prev) => (prev.includes(3) ? prev : [...prev, 3]));
         setShowSuccess(true);
       }
     }
   };
 
+  useEffect(() => {
+    if (userRole === "seller") {
+      if (order?.status === "ON_DELIVERING" || order?.status === "COMPLETED") {
+        setShowSuccess(true);
+      }
+      setCurrentStep(3);
+    } else if (userRole === "buyer") {
+      switch (order?.status) {
+        case "WAIT_PAYMENT":
+          setCurrentStep(1);
+          break;
+        case "PAID":
+          if (order?.shippingAddress) {
+            setCurrentStep(4);
+          } else {
+            setCurrentStep(2);
+          }
+          break;
+        case "ON_DELIVERING":
+          setCurrentStep(4);
+          break;
+        case "COMPLETED":
+          setShowSuccess(true);
+          setCurrentStep(4);
+          break;
+      }
+    }
+  }, [order?.shippingAddress, order?.status, userRole]);
 
   const renderStepContent = () => {
     if (userRole === "seller") {
-      return currentStep === 3
-        ? (
-          <ShippingInfoStep
-            onNext={handleNextStep}
-            productId={productId}
-          />
-        )
-        : null;
+      return currentStep === 3 ? (
+        <ShippingInfoStep onNext={handleNextStep} order={order} />
+      ) : null;
     }
 
     switch (currentStep) {
@@ -229,13 +258,17 @@ const OrderCompletion = () => {
           />
         );
       case 2:
-        return <ShippingAddressStep onNext={handleNextStep} />;
+        return <ShippingAddressStep onNext={handleNextStep} order={order} />;
       case 4:
-        return <ConfirmationStep onNext={handleNextStep} />;
+        return <ConfirmationStep onNext={handleNextStep} order={order} />;
       default:
         return null;
     }
   };
+
+  if (!currentStep) {
+    return null;
+  }
 
   if (showSuccess) {
     return (
@@ -247,10 +280,8 @@ const OrderCompletion = () => {
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-emerald-500/20 to-transparent rounded-tr-full"></div>
 
             {/* Success Icon */}
-            <div className="relative z-10 flex justify-center mb-8">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-2xl shadow-emerald-500/50">
-                <CheckCircle2 className="w-14 h-14 text-white" />
-              </div>
+            <div className="relative z-10 flex justify-center my-8">
+              <CheckCircle2 className="w-20 h-20 text-emerald-500 animate-bounce" />
             </div>
 
             {/* Success Message */}
@@ -258,11 +289,19 @@ const OrderCompletion = () => {
               Thành công!
             </h1>
 
-            <p className="text-xl text-gray-300 mb-8 font-['Montserrat'] relative z-10">
-              {userRole === "buyer"
-                ? "Đơn hàng của bạn đã được hoàn tất. Cảm ơn bạn đã mua sắm!"
-                : "Đơn hàng đã được xác nhận. Cảm ơn bạn đã bán hàng!"}
-            </p>
+            <div className="text-lg text-gray-300 mb-8 font-['Montserrat'] relative z-10 py-4">
+              {userRole === "buyer" ? (
+                <div>
+                  <p>Đơn hàng của bạn đã được hoàn tất</p>
+                  <p>Cảm ơn bạn đã tham gia đấu giá!</p>
+                </div>
+              ) : (
+                <div>
+                  <p>Đơn hàng đã được xác nhận</p>
+                  <p> Cảm ơn bạn tạo cuộc đấu giá!</p>
+                </div>
+              )}
+            </div>
 
             <div className="mb-8 p-6 bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 rounded-xl border border-emerald-500/50 relative z-10">
               <h3 className="text-emerald-300 font-semibold mb-4 font-['Montserrat']">
@@ -289,19 +328,12 @@ const OrderCompletion = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 relative z-10">
-              <button
-                onClick={() => navigate("/user/activity")}
-                className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']"
-              >
-                Quay lại trang chủ
-              </button>
-              <button
-                onClick={() => navigate("/user/activity")}
-                className="flex-1 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-emerald-500/50 font-['Montserrat']"
-              >
-                Xem hoạt động của tôi
-              </button>
+            <div className="flex gap-4 relative z-10 justify-center">
+              <Link to="/">
+                <button className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
+                  Về trang chủ
+                </button>
+              </Link>
             </div>
           </div>
         </div>

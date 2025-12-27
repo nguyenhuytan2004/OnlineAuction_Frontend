@@ -1,23 +1,26 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Truck, FileText, DollarSign } from "lucide-react";
+import { Truck } from "lucide-react";
 import CustomDropdown from "../common/CustomDropdown";
 import orderService from "../../services/orderService";
+import Tooltip from "../common/Tooltip";
 
-const ShippingInfoStep = ({ onNext, productId }) => {
+const ShippingInfoStep = ({ onNext, order }) => {
   const {
     register,
     handleSubmit: checkOnSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm({
     defaultValues: {
       trackingCode: "",
       shippingCompany: "",
       notes: "",
+      paymentConfirm: false,
     },
   });
 
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCompanyIndex, setSelectedCompanyIndex] = useState(null);
 
@@ -27,54 +30,22 @@ const ShippingInfoStep = ({ onNext, productId }) => {
     "J&T Express",
     "Shopee Express",
     "Grab Express",
-    "Khác",
   ];
-
-  const handleSelectCompany = (index) => {
-    setSelectedCompanyIndex(index);
-  };
 
   const handleSubmit = async (data) => {
     console.log(data);
-
-    if (!paymentConfirmed) {
-      return;
-    }
-
-    // Validate shipping company selection
-    if (selectedCompanyIndex === null) {
-      return;
-    }
-
-    setIsLoading(true);
-    // Simulate form submission
-    setTimeout(() => {
-      setIsLoading(false);
-      onNext();
-    }, 1000);
-  };
-  const handleConfirmPayment = async () => {
     try {
-      const orderId = 1;
-
       setIsLoading(true);
-
-      await orderService.sellerConfirmPayment(orderId);
-
-      setPaymentConfirmed(true);
+      await orderService.sellerConfirmPayment(order.orderId);
+      onNext();
     } catch (error) {
-      console.error("Lỗi xác nhận thanh toán:", error);
+      console.error("Lỗi khi xác nhận thanh toán:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCancelOrder = async () => {
-    if (!productId) {
-      console.error("Không xác định được sản phẩm");
-      return;
-    }
-
     const confirmCancel = window.confirm(
       "Bạn có chắc chắn muốn hủy đơn hàng này không?\nHành động này không thể hoàn tác.",
     );
@@ -84,7 +55,7 @@ const ShippingInfoStep = ({ onNext, productId }) => {
     try {
       setIsLoading(true);
 
-      await orderService.cancelOrderByProduct(productId);
+      await orderService.cancelOrderByProduct(order.product.productId);
 
       alert("Đơn hàng đã được hủy thành công");
 
@@ -120,17 +91,6 @@ const ShippingInfoStep = ({ onNext, productId }) => {
         </div>
       </div>
 
-      {/* Info Alert */}
-      <div className="p-5 bg-gradient-to-r from-emerald-900/30 via-emerald-800/20 to-emerald-900/30 border border-emerald-500/50 rounded-xl">
-        <p className="text-emerald-200 text-sm font-['Montserrat'] flex items-start gap-3">
-          <i className="fa-solid fa-check-circle mt-0.5 text-emerald-400"></i>
-          <span>
-            Bạn đã nhận được tiền thanh toán từ khách hàng. Vui lòng xác nhận và
-            gửi hoá đơn vận chuyển để bắt đầu quá trình giao hàng.
-          </span>
-        </p>
-      </div>
-
       {/* Form */}
       <form onSubmit={checkOnSubmit(handleSubmit)} className="space-y-6">
         {/* Tracking Code */}
@@ -163,7 +123,10 @@ const ShippingInfoStep = ({ onNext, productId }) => {
           <CustomDropdown
             options={shippingCompanies}
             selectedIndex={selectedCompanyIndex}
-            onSelect={handleSelectCompany}
+            onSelect={(index) => {
+              setSelectedCompanyIndex(index);
+              setValue("shippingCompany", shippingCompanies[index]);
+            }}
             placeholder="Chọn hãng vận chuyển"
             accentColor="emerald"
             error={false}
@@ -173,9 +136,6 @@ const ShippingInfoStep = ({ onNext, productId }) => {
             type="hidden"
             {...register("shippingCompany", {
               required: "Vui lòng chọn hãng vận chuyển",
-              validate: () =>
-                selectedCompanyIndex !== null ||
-                "Vui lòng chọn hãng vận chuyển",
             })}
             value={
               selectedCompanyIndex !== null
@@ -204,48 +164,45 @@ const ShippingInfoStep = ({ onNext, productId }) => {
         </div>
 
         {/* Payment Confirmation */}
-        <div
-          className={`py-6 px-8 rounded-xl border-2 transition-all duration-300 ${
-            paymentConfirmed
-              ? "bg-emerald-900/30 border-emerald-500"
-              : "bg-slate-800/30 border-slate-700/50"
-          }`}
-        >
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h4 className="text-white font-semibold font-['Montserrat']">
-                  Xác nhận đã nhận tiền thanh toán
-                </h4>
-              </div>
-
-              <p className="text-sm text-gray-400 font-['Montserrat'] mb-4">
-                Tôi xác nhận rằng đã nhận được toàn bộ tiền thanh toán từ khách
-                hàng thông qua các phương thức thanh toán trước đó.
-              </p>
-
-              {/* BUTTON GỌI BACKEND */}
-              {!paymentConfirmed ? (
-                <button
-                  type="button"
-                  onClick={handleConfirmPayment}
-                  disabled={isLoading}
-                  className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat']"
+        {order?.status === "PAID" && (
+          <div
+            className={`py-6 px-8 rounded-xl border-2 transition-all duration-300 ${
+              watch("paymentConfirm")
+                ? "bg-emerald-900/20 border-emerald-500/50"
+                : "bg-slate-800/30 border-slate-700/50"
+            }`}
+          >
+            <div className="flex items-start gap-4">
+              <input
+                type="checkbox"
+                id="paymentConfirm"
+                {...register("paymentConfirm", {
+                  required:
+                    "Vui lòng xác nhận đã nhận được tiền thanh toán từ khách hàng",
+                })}
+                className="w-6 h-6 mt-1 flex-shrink-0 cursor-pointer transition-all duration-200 accent-emerald-500"
+              />
+              <div className="flex-1">
+                <label
+                  htmlFor="paymentConfirm"
+                  className="flex items-center gap-3 mb-2 cursor-pointer"
                 >
-                  {isLoading ? "Đang xác nhận..." : "Xác nhận đã nhận tiền"}
-                </button>
-              ) : (
-                <div className="text-emerald-400 font-semibold font-['Montserrat']">
-                  Đã xác nhận nhận tiền
-                </div>
-              )}
+                  <h4 className="text-white font-semibold font-['Montserrat']">
+                    Xác nhận đã nhận tiền thanh toán
+                  </h4>
+                </label>
+
+                <p className="text-sm text-gray-400 font-['Montserrat']">
+                  Tôi xác nhận rằng đã nhận được toàn bộ tiền thanh toán từ
+                  khách hàng.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-
-        {errors.payment && (
-          <p className="text-red-400 text-sm font-['Montserrat'] mt-2">
-            {errors.payment}
+        )}
+        {errors.paymentConfirm && (
+          <p className="text-red-400 text-sm font-['Montserrat'] animate-in fade-in">
+            {errors.paymentConfirm.message}
           </p>
         )}
 
@@ -264,7 +221,7 @@ const ShippingInfoStep = ({ onNext, productId }) => {
         <div className="flex gap-4">
           <button
             type="button"
-            className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']"
+            className="basis-1/3 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']"
           >
             Hủy
           </button>
@@ -273,39 +230,56 @@ const ShippingInfoStep = ({ onNext, productId }) => {
             type="button"
             onClick={handleCancelOrder}
             disabled={isLoading}
-            className="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat']"
+            className="basis-1/3 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-['Montserrat']"
           >
             Hủy đơn hàng
           </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex-1 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-emerald-500/50 font-['Montserrat'] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Đang xử lý...
-              </span>
-            ) : (
-              "Xác nhận và gửi"
-            )}
-          </button>
+          {order?.status !== "PAID" || !order?.shippingAddress ? (
+            <div className="basis-1/3 group relative">
+              <button
+                disabled
+                className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-emerald-500/50 font-['Montserrat'] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 w-full"
+              >
+                Xác nhận gửi hàng
+              </button>
+              {!order?.shippingAddress && (
+                <Tooltip text="Khách hàng chưa cung cấp địa chỉ giao hàng" />
+              )}
+              {order?.status !== "PAID" && (
+                <Tooltip text="Chờ khách hàng thanh toán trước khi gửi hàng" />
+              )}
+            </div>
+          ) : (
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="basis-1/3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-emerald-500/50 font-['Montserrat'] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Đang xử lý...
+                </span>
+              ) : (
+                "Xác nhận gửi hàng"
+              )}
+            </button>
+          )}
         </div>
       </form>
     </div>

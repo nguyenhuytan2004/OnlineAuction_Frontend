@@ -3,8 +3,10 @@ import { useForm } from "react-hook-form";
 import { MapPin, MapPinHouse, ChevronDown } from "lucide-react";
 import CustomDropdown from "../../components/common/CustomDropdown";
 import orderService from "../../services/orderService";
+import { Link } from "react-router-dom";
+import { ROUTES } from "../../constants/routes";
 
-const ShippingAddressStep = ({ onNext }) => {
+const ShippingAddressStep = ({ onNext, order }) => {
   const [selectedCityIndex, setSelectedCityIndex] = useState(null);
 
   const cities = [
@@ -40,8 +42,6 @@ const ShippingAddressStep = ({ onNext }) => {
 
   const onSubmit = async (data) => {
     try {
-      const orderId = 1;
-
       const shippingAddress = [
         data.fullName,
         data.phone,
@@ -54,7 +54,7 @@ const ShippingAddressStep = ({ onNext }) => {
         .filter(Boolean)
         .join(", ");
 
-      await orderService.setShippingAddress(orderId, shippingAddress);
+      await orderService.setShippingAddress(order.orderId, shippingAddress);
 
       onNext();
     } catch (error) {
@@ -314,21 +314,21 @@ const ShippingAddressStep = ({ onNext }) => {
         </div>
 
         {/* Info Box */}
-        <div className="p-5 bg-gradient-to-r from-amber-900/30 via-amber-800/20 to-amber-900/30 border border-amber-500/50 rounded-xl">
-          <p className="text-amber-200 text-sm font-semibold flex items-start gap-3">
-            Vui lòng kiểm tra kỹ thông tin địa chỉ để tránh lỗi giao hàng. Nếu
-            có thay đổi, bạn có thể cập nhật trong bước xác nhận.
+        <div className="p-5 bg-gradient-to-r from-red-900/30 via-red-800/20 to-red-900/30 border border-red-500/50 rounded-xl">
+          <p className="text-red-200 text-xs font-semibold flex items-start gap-3">
+            Địa chỉ này sẽ không thể thay đổi sau khi bạn đã đặt hàng. Vui lòng
+            kiểm tra kỹ thông tin trước khi tiếp tục.
           </p>
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-4">
-          <button
-            type="button"
-            className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']"
+          <Link
+            to={`${ROUTES.PRODUCT}/${order?.product?.productId}`}
+            className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat'] text-center"
           >
             Hủy
-          </button>
+          </Link>
           <button
             type="submit"
             disabled={isSubmitting}
