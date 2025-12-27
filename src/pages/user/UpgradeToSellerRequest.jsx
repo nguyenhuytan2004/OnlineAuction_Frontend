@@ -149,7 +149,7 @@ const UpgradeToSellerRequest = () => {
           </p>
 
           <button
-            onClick={() => navigate("/user/profile")}
+            onClick={() => navigate("/")}
             className="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold py-3 rounded-xl"
           >
             Quay lại Profile
@@ -193,10 +193,10 @@ const UpgradeToSellerRequest = () => {
             Vui lòng chờ trong vòng 24 giờ.
           </p>
           <button
-            onClick={() => navigate("/user/profile")}
+            onClick={() => navigate("/")}
             className="bg-amber-500 text-black px-6 py-3 rounded-xl font-semibold"
           >
-            Quay lại Profile
+            Quay lại trang chủ
           </button>
         </div>
       </div>
