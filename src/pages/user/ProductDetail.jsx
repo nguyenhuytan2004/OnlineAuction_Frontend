@@ -700,13 +700,23 @@ const ProductDetail = () => {
               {/* Action Buttons */}
               <div className="flex gap-4 flex-grow items-center relative z-10">
                 {isBlocked ? (
-                  <div className="flex-1 p-2 bg-gradient-to-r from-red-900/30 via-orange-900/20 to-red-900/30 border border-red-500/50 rounded-xl">
+                  <div className="flex-1 p-4 bg-gradient-to-r from-red-900/30 via-orange-900/20 to-red-900/30 border border-red-500/50 rounded-xl">
                     <p className="text-red-200 font-semibold font-['Montserrat'] flex justify-center text-center gap-2">
                       Bạn không thể đấu giá sản phẩm này
                     </p>
                   </div>
                 ) : isCurrentUserSeller ? (
-                  <div></div>
+                  <div className="flex-1 p-4 bg-gradient-to-r from-slate-900/80 to-slate-800/60 border border-slate-700/50 rounded-xl">
+                    <p className="text-gray-400 font-semibold font-['Montserrat'] flex justify-center text-center gap-2">
+                      Bạn là người bán sản phẩm này
+                    </p>
+                  </div>
+                ) : !isEligible ? (
+                  <div className="flex-1 p-4 bg-gradient-to-r from-amber-900/30 via-orange-600/20 to-amber-900/30 border border-amber-500/50 rounded-xl">
+                    <p className="text-amber-200 font-semibold font-['Montserrat'] flex justify-center text-center gap-2">
+                      Bạn không đủ điều kiện để đặt giá
+                    </p>
+                  </div>
                 ) : (
                   <>
                     <button

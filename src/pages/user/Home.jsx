@@ -102,6 +102,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { isAuthenticated, user } = useAuth();
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -133,8 +135,6 @@ const Home = () => {
 
     fetchProducts();
   }, []);
-
-  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
@@ -186,13 +186,15 @@ const Home = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
             ) : (
-              <Link
-                to={ROUTES.SELLER_REGISTER}
-                className="group relative bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-10 rounded-full hover:shadow-2xl hover:shadow-amber-500/50 transition-all duration-300 transform hover:scale-105 uppercase tracking-wider text-sm overflow-hidden"
-              >
-                <span className="relative z-10">Đăng Ký Bán Hàng</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </Link>
+              user.role === "BIDDER" && (
+                <Link
+                  to={ROUTES.SELLER_REGISTER}
+                  className="group relative bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-10 rounded-full hover:shadow-2xl hover:shadow-amber-500/50 transition-all duration-300 transform hover:scale-105 uppercase tracking-wider text-sm overflow-hidden"
+                >
+                  <span className="relative z-10">Đăng Ký Bán Hàng</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Link>
+              )
             )}
             <Link
               to={ROUTES.PRODUCT}

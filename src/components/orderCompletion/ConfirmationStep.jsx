@@ -31,12 +31,11 @@ const ConfirmationStep = ({ onNext }) => {
 
       onNext();
     } catch (error) {
-      alert("Xác nhận nhận hàng thất bại");
+      console.error("Lỗi khi xác nhận nhận hàng và đánh giá:", error);
     } finally {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="space-y-8">
@@ -121,7 +120,6 @@ const ConfirmationStep = ({ onNext }) => {
             </p>
           )}
         </div>
-
 
         {/* Rating Section */}
         <div>

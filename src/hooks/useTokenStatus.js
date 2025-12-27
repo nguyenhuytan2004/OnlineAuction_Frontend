@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTokenExpiresIn, isTokenExpired } from "../utils/tokenUtils";
 
-/**
- * Custom hook để theo dõi tình trạng token
- * @param {number} updateInterval - Khoảng thời gian cập nhật (ms), mặc định 5000ms
- * @returns {Object} - { isExpired, expiresIn, token }
- */
 export const useTokenStatus = (updateInterval = 60000) => {
   const [tokenStatus, setTokenStatus] = useState(() => {
     const token = localStorage.getItem("accessToken");

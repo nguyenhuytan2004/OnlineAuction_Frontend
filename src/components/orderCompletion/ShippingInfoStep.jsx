@@ -1,17 +1,25 @@
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Truck, FileText, DollarSign } from "lucide-react";
+import CustomDropdown from "../common/CustomDropdown";
 import orderService from "../../services/orderService";
 
 const ShippingInfoStep = ({ onNext, productId }) => {
-  const [formData, setFormData] = useState({
-    trackingCode: "",
-    shippingCompany: "",
-    notes: "",
+  const {
+    register,
+    handleSubmit: checkOnSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      trackingCode: "",
+      shippingCompany: "",
+      notes: "",
+    },
   });
 
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [selectedCompanyIndex, setSelectedCompanyIndex] = useState(null);
 
   const shippingCompanies = [
     "GHN (Giao Hàng Nhanh)",
@@ -22,36 +30,21 @@ const ShippingInfoStep = ({ onNext, productId }) => {
     "Khác",
   ];
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.trackingCode.trim())
-      newErrors.trackingCode = "Vui lòng nhập mã vận đơn";
-    if (!formData.shippingCompany.trim())
-      newErrors.shippingCompany = "Vui lòng chọn hãng vận chuyển";
-    if (!paymentConfirmed)
-      newErrors.payment = "Vui lòng xác nhận đã nhận tiền thanh toán";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleSelectCompany = (index) => {
+    setSelectedCompanyIndex(index);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+  const handleSubmit = async (data) => {
+    console.log(data);
+
+    if (!paymentConfirmed) {
+      return;
     }
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+    // Validate shipping company selection
+    if (selectedCompanyIndex === null) {
+      return;
+    }
 
     setIsLoading(true);
     // Simulate form submission
@@ -69,9 +62,8 @@ const ShippingInfoStep = ({ onNext, productId }) => {
       await orderService.sellerConfirmPayment(orderId);
 
       setPaymentConfirmed(true);
-      setErrors((prev) => ({ ...prev, payment: "" }));
     } catch (error) {
-      alert("Xác nhận nhận tiền thất bại");
+      console.error("Lỗi xác nhận thanh toán:", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,12 +71,12 @@ const ShippingInfoStep = ({ onNext, productId }) => {
 
   const handleCancelOrder = async () => {
     if (!productId) {
-      alert("Không xác định được sản phẩm");
+      console.error("Không xác định được sản phẩm");
       return;
     }
 
     const confirmCancel = window.confirm(
-      "Bạn có chắc chắn muốn hủy đơn hàng này không?\nHành động này không thể hoàn tác."
+      "Bạn có chắc chắn muốn hủy đơn hàng này không?\nHành động này không thể hoàn tác.",
     );
 
     if (!confirmCancel) return;
@@ -103,12 +95,11 @@ const ShippingInfoStep = ({ onNext, productId }) => {
       // Điều hướng (tùy bạn)
       window.location.href = "/user/activity";
     } catch (error) {
-      alert("Hủy đơn hàng thất bại");
+      console.error("Lỗi hủy đơn hàng:", error);
     } finally {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="space-y-8">
@@ -141,7 +132,7 @@ const ShippingInfoStep = ({ onNext, productId }) => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={checkOnSubmit(handleSubmit)} className="space-y-6">
         {/* Tracking Code */}
         <div>
           <label className="block text-gray-300 font-semibold mb-2 font-['Montserrat']">
@@ -149,9 +140,9 @@ const ShippingInfoStep = ({ onNext, productId }) => {
           </label>
           <input
             type="text"
-            name="trackingCode"
-            value={formData.trackingCode}
-            onChange={handleInputChange}
+            {...register("trackingCode", {
+              required: "Vui lòng nhập mã vận đơn",
+            })}
             placeholder="Nhập mã vận đơn (VD: 123456789ABC)"
             className={`w-full px-5 py-3 bg-gradient-to-r from-slate-800/80 to-slate-900/60 text-white border rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all font-['Montserrat'] placeholder:text-gray-500 ${
               errors.trackingCode ? "border-red-500/50" : "border-slate-600/50"
@@ -159,7 +150,7 @@ const ShippingInfoStep = ({ onNext, productId }) => {
           />
           {errors.trackingCode && (
             <p className="text-red-400 text-sm mt-2 font-['Montserrat']">
-              {errors.trackingCode}
+              {errors.trackingCode.message}
             </p>
           )}
         </div>
@@ -169,26 +160,32 @@ const ShippingInfoStep = ({ onNext, productId }) => {
           <label className="block text-gray-300 font-semibold mb-2 font-['Montserrat']">
             Hãng vận chuyển <span className="text-red-400">*</span>
           </label>
-          <select
-            name="shippingCompany"
-            value={formData.shippingCompany}
-            onChange={handleInputChange}
-            className={`w-full px-5 py-3 bg-gradient-to-r from-slate-800/80 to-slate-900/60 text-white border rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all font-['Montserrat'] ${
-              errors.shippingCompany
-                ? "border-red-500/50"
-                : "border-slate-600/50"
-            }`}
-          >
-            <option value="">-- Chọn hãng vận chuyển --</option>
-            {shippingCompanies.map((company) => (
-              <option key={company} value={company}>
-                {company}
-              </option>
-            ))}
-          </select>
+          <CustomDropdown
+            options={shippingCompanies}
+            selectedIndex={selectedCompanyIndex}
+            onSelect={handleSelectCompany}
+            placeholder="Chọn hãng vận chuyển"
+            accentColor="emerald"
+            error={false}
+          />
+          {/* Hidden input for form validation */}
+          <input
+            type="hidden"
+            {...register("shippingCompany", {
+              required: "Vui lòng chọn hãng vận chuyển",
+              validate: () =>
+                selectedCompanyIndex !== null ||
+                "Vui lòng chọn hãng vận chuyển",
+            })}
+            value={
+              selectedCompanyIndex !== null
+                ? shippingCompanies[selectedCompanyIndex]
+                : ""
+            }
+          />
           {errors.shippingCompany && (
             <p className="text-red-400 text-sm mt-2 font-['Montserrat']">
-              {errors.shippingCompany}
+              {errors.shippingCompany.message}
             </p>
           )}
         </div>
@@ -199,9 +196,7 @@ const ShippingInfoStep = ({ onNext, productId }) => {
             Ghi chú cho khách hàng (tuỳ chọn)
           </label>
           <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleInputChange}
+            {...register("notes")}
             placeholder="VD: Giao hàng vào buổi sáng, tránh địa điểm quá xa..."
             rows="4"
             className="w-full px-5 py-3 bg-gradient-to-r from-slate-800/80 to-slate-900/60 text-white border border-slate-600/50 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all font-['Montserrat'] placeholder:text-gray-500 resize-none"
@@ -210,36 +205,23 @@ const ShippingInfoStep = ({ onNext, productId }) => {
 
         {/* Payment Confirmation */}
         <div
-          className={`p-6 rounded-xl border-2 transition-all duration-300 ${
+          className={`py-6 px-8 rounded-xl border-2 transition-all duration-300 ${
             paymentConfirmed
               ? "bg-emerald-900/30 border-emerald-500"
               : "bg-slate-800/30 border-slate-700/50"
           }`}
         >
           <div className="flex items-start gap-4">
-            <div
-              className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 mt-1 ${
-                paymentConfirmed
-                  ? "bg-gradient-to-br from-emerald-500 to-emerald-600 border-emerald-400"
-                  : "border-slate-600"
-              }`}
-            >
-              {paymentConfirmed && (
-                <i className="fa-solid fa-check text-white text-sm"></i>
-              )}
-            </div>
-
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <DollarSign className="w-5 h-5 text-emerald-400" />
                 <h4 className="text-white font-semibold font-['Montserrat']">
                   Xác nhận đã nhận tiền thanh toán
                 </h4>
               </div>
 
               <p className="text-sm text-gray-400 font-['Montserrat'] mb-4">
-                Tôi xác nhận rằng đã nhận được toàn bộ tiền thanh toán từ khách hàng
-                thông qua các phương thức thanh toán trước đó.
+                Tôi xác nhận rằng đã nhận được toàn bộ tiền thanh toán từ khách
+                hàng thông qua các phương thức thanh toán trước đó.
               </p>
 
               {/* BUTTON GỌI BACKEND */}
@@ -254,7 +236,7 @@ const ShippingInfoStep = ({ onNext, productId }) => {
                 </button>
               ) : (
                 <div className="text-emerald-400 font-semibold font-['Montserrat']">
-                  ✔ Đã xác nhận nhận tiền
+                  Đã xác nhận nhận tiền
                 </div>
               )}
             </div>
@@ -267,11 +249,9 @@ const ShippingInfoStep = ({ onNext, productId }) => {
           </p>
         )}
 
-
         {/* Info Box */}
         <div className="p-5 bg-gradient-to-r from-blue-900/30 via-blue-800/20 to-blue-900/30 border border-blue-500/50 rounded-xl">
           <p className="text-blue-200 text-sm font-['Montserrat'] flex items-start gap-3">
-            <i className="fa-solid fa-info-circle mt-0.5 text-blue-400"></i>
             <span>
               Khách hàng sẽ nhận được hoá đơn vận chuyển và có thể theo dõi đơn
               hàng thông qua mã vận đơn. Đảm bảo thông tin chính xác để tránh

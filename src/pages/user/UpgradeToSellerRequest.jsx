@@ -172,7 +172,7 @@ const UpgradeToSellerRequest = () => {
                       }`}
                     >
                       {selectedPlan === key && (
-                        <div className="absolute top-3 right-3 w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <div className="absolute top-8 right-8 w-3 h-3 bg-orange-500 rounded-full"></div>
                       )}
                       <h3 className="text-lg font-bold text-slate-100 mb-2">
                         {plan.name}
@@ -218,18 +218,12 @@ const UpgradeToSellerRequest = () => {
 
                 {/* Terms & Conditions */}
                 <div className="mt-6 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-                  <div className="flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-amber-100 mb-1">
-                        Lưu ý quan trọng
-                      </p>
-                      <p className="text-xs text-amber-100/80">
-                        Sau khi thanh toán, tài khoản của bạn sẽ được nâng cấp
-                        lên Seller trong 24 giờ. Bạn sẽ nhận được email xác nhận
-                        và hướng dẫn chi tiết để bắt đầu bán hàng.
-                      </p>
-                    </div>
+                  <div className="flex gap-3 items-center">
+                    <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                    <p className="text-xs text-amber-100/80">
+                      Sau khi thanh toán, tài khoản của bạn sẽ được nâng cấp lên
+                      Seller trong 24 giờ.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -317,11 +311,18 @@ const UpgradeToSellerRequest = () => {
                 </div>
 
                 <button
+                  disabled={selectedPlan === "premium"}
                   onClick={handleSubmitRequest}
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 group"
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
                 >
-                  Tiếp Tục Thanh Toán
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  {selectedPlan === "premium" ? (
+                    "Sắp phát hành"
+                  ) : (
+                    <>
+                      Tiếp Tục Thanh Toán
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
                 </button>
 
                 <p className="text-xs text-slate-400 text-center mt-4">
