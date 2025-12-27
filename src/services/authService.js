@@ -76,6 +76,42 @@ export const authService = {
     }
   },
 
+  forgotPassword: async (email) => {
+    try {
+      const endpoint = `${API_ENDPOINTS.AUTH}/forgot-password`;
+      const response = await apiClient.post(endpoint, { email });
+      return response;
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      throw error;
+    }
+  },
+
+  verifyResetPasswordOtp: async (email, otp) => {
+    try {
+      const endpoint = `${API_ENDPOINTS.AUTH}/verify-reset-password-otp`;
+      const response = await apiClient.post(endpoint, { email, otp });
+      return response;
+    } catch (error) {
+      console.error("Verify reset password OTP error:", error);
+      throw error;
+    }
+  },
+
+  resetPassword: async (email, newPassword) => {
+  try {
+    const endpoint = `${API_ENDPOINTS.AUTH}/reset-password`;
+    const response = await apiClient.post(endpoint, {
+      email,
+      newPassword,
+    });
+    return response;
+  } catch (error) {
+    console.error("[AUTH][RESET_PASSWORD][ERROR]", error);
+    throw error;
+  }
+},
+
   logout: () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
