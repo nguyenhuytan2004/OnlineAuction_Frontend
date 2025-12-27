@@ -1,85 +1,44 @@
-import React, { useState } from "react";
-import { Toaster, toast } from "react-hot-toast";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import PaymentStep from "../../components/orderCompletion/PaymentStep";
+import bidService from "../../services/bidService";
+import { Toaster } from "react-hot-toast";
 import {
-  ShoppingBag,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Copy,
-  Download,
-  ArrowRight,
   Zap,
+  Star,
+  CheckCircle,
   Shield,
   TrendingUp,
-  Star,
+  AlertCircle,
+  Clock,
+  ArrowRight,
 } from "lucide-react";
 
-// QR Code Component (SVG-based placeholder with pattern)
-const QRCodeDisplay = () => (
-  <div className="relative w-full max-w-xs mx-auto bg-white rounded-2xl p-8 shadow-2xl shadow-orange-500/30 border-4 border-orange-500">
-    {/* QR Code SVG Pattern */}
-    <svg viewBox="0 0 200 200" className="w-full h-auto">
-      {/* QR Pattern Simulation */}
-      <rect x="10" y="10" width="30" height="30" fill="black" />
-      <rect x="50" y="10" width="30" height="30" fill="black" />
-      <rect x="130" y="10" width="30" height="30" fill="black" />
-
-      <rect x="10" y="50" width="30" height="30" fill="black" />
-      <rect x="130" y="50" width="30" height="30" fill="black" />
-
-      <rect x="10" y="130" width="30" height="30" fill="black" />
-      <rect x="50" y="130" width="30" height="30" fill="black" />
-      <rect x="130" y="130" width="30" height="30" fill="black" />
-
-      {/* Random data pattern */}
-      <rect x="50" y="30" width="10" height="10" fill="black" />
-      <rect x="70" y="30" width="10" height="10" fill="black" />
-      <rect x="90" y="30" width="10" height="10" fill="black" />
-      <rect x="110" y="30" width="10" height="10" fill="black" />
-
-      <rect x="30" y="60" width="10" height="10" fill="black" />
-      <rect x="50" y="60" width="10" height="10" fill="black" />
-      <rect x="70" y="60" width="10" height="10" fill="black" />
-      <rect x="90" y="60" width="10" height="10" fill="black" />
-      <rect x="110" y="60" width="10" height="10" fill="black" />
-
-      <rect x="30" y="80" width="10" height="10" fill="black" />
-      <rect x="50" y="80" width="10" height="10" fill="black" />
-      <rect x="70" y="80" width="10" height="10" fill="black" />
-
-      <rect x="50" y="100" width="10" height="10" fill="black" />
-      <rect x="70" y="100" width="10" height="10" fill="black" />
-      <rect x="90" y="100" width="10" height="10" fill="black" />
-
-      <rect x="30" y="110" width="10" height="10" fill="black" />
-      <rect x="50" y="110" width="10" height="10" fill="black" />
-      <rect x="70" y="110" width="10" height="10" fill="black" />
-      <rect x="90" y="110" width="10" height="10" fill="black" />
-    </svg>
-
-    {/* Center logo/text */}
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-2">
-        <ShoppingBag className="w-6 h-6 text-orange-600" />
-      </div>
-    </div>
-
-    {/* Payment Info */}
-    <div className="mt-6 text-center">
-      <p className="text-sm text-slate-600 font-semibold mb-1">Mã thanh toán</p>
-      <p className="text-xs text-slate-500">UPGRADE-2024-SELLER-001</p>
-    </div>
-  </div>
-);
-
-/**
- * Upgrade to Seller Request Page
- * Bidder gửi yêu cầu nâng cấp lên Seller với thanh toán qua QR
- */
 const UpgradeToSellerRequest = () => {
-  const [hasRequested, setHasRequested] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState("pending"); // pending, paid, processing
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
   const [selectedPlan, setSelectedPlan] = useState("basic");
+  const [upgradeStatus, setUpgradeStatus] = useState("NONE");
+  const [loadingStatus, setLoadingStatus] = useState(true);
+  const [ctx, setCtx] = useState(() =>
+    JSON.parse(sessionStorage.getItem("paymentContext") || "null")
+  );
+  const [showSuccess, setShowSuccess] = useState(false);
+
+
+  useEffect(() => {
+    const paid = sessionStorage.getItem("sellerUpgradePaid");
+
+    if (paid === "true") {
+      setLoadingStatus(false);
+      return;
+    }
+
+    fetchUpgradeStatus();
+  }, []);
 
   const plans = {
     basic: {
@@ -111,22 +70,181 @@ const UpgradeToSellerRequest = () => {
   const paymentDeadline = new Date();
   paymentDeadline.setDate(paymentDeadline.getDate() + currentPlan.duration);
 
-  const handleSubmitRequest = () => {
-    setHasRequested(true);
+
+  /* ======================
+     GUARD: NO CONTEXT (SAU REDIRECT)
+  ======================= */
+  useEffect(() => {
+    if (!ctx && location.search.includes("resultCode")) {
+      navigate("/user/profile", { replace: true });
+    }
+  }, [ctx, navigate, location.search]);
+
+  /* ======================
+     HANDLE MOMO RESULT
+  ======================= */
+  useEffect(() => {
+    if (loadingStatus) return;
+    if (upgradeStatus !== "NONE") return;
+
+    const paid = sessionStorage.getItem("sellerUpgradePaid");
+    if (paid !== "true") return;
+
+    if (sessionStorage.getItem("upgradeCreated") === "true") return;
+
+    bidService.createSellerUpgradeRequest()
+      .then(() => {
+        sessionStorage.setItem("upgradeCreated", "true");
+        sessionStorage.removeItem("sellerUpgradePaid");
+        fetchUpgradeStatus();
+      })
+      .catch(err => {
+        console.error("Create upgrade request failed", err);
+      });
+
+  }, [loadingStatus, upgradeStatus]);
+
+
+
+  /* ======================
+     CLEAN SESSION WHEN DONE
+  ======================= */
+  useEffect(() => {
+    if (showSuccess) {
+      sessionStorage.removeItem("paymentContext");
+      sessionStorage.removeItem("upgradeCreated");
+    }
+  }, [showSuccess]);
+
+  const fetchUpgradeStatus = async () => {
+    try {
+      const res = await bidService.getSellerUpgradeStatus();
+      setUpgradeStatus(res.status); // PENDING | APPROVED | REJECTED
+    } catch (err) {
+      if (err?.status === 404) {
+        setUpgradeStatus("NONE");
+      } else {
+        console.error("Check upgrade status failed", err);
+      }
+    } finally {
+      setLoadingStatus(false);
+    }
   };
 
-  const handleCopyPaymentCode = () => {
-    navigator.clipboard.writeText("UPGRADE-2024-SELLER-001");
-    toast.success("Đã sao chép mã giao dịch", {
-      duration: 2000,
-      style: {
-        background: "rgba(16, 185, 129, 0.2)", // bg-emerald-500/20
-        color: "#D1FAE5", // text-emerald-200
-        border: "1px solid #10B981", // border-emerald-500
-        padding: "12px 16px",
-      },
-    });
+
+  /* ======================
+     SUCCESS SCREEN
+  ======================= */
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="max-w-xl w-full bg-slate-900 p-12 rounded-3xl border border-slate-700 text-center">
+          <h2 className="text-3xl font-black text-emerald-400 mb-4">
+            Thanh toán thành công 🎉
+          </h2>
+          <p className="text-slate-300 mb-8">
+            Yêu cầu nâng cấp Seller đã được ghi nhận.
+            <br />
+            Tài khoản sẽ được duyệt trong 24 giờ.
+          </p>
+
+          <button
+            onClick={() => navigate("/user/profile")}
+            className="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold py-3 rounded-xl"
+          >
+            Quay lại Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ======================
+     START PAYMENT
+  ======================= */
+  const handleSubmitRequest = () => {
+    const payload = {
+      upgrade: true,
+      plan: selectedPlan,
+      price: currentPlan.price,
+    };
+
+    sessionStorage.setItem("paymentContext", JSON.stringify(payload));
+    setCtx(payload);
   };
+
+  if (loadingStatus) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-300">
+        Đang kiểm tra trạng thái nâng cấp...
+      </div>
+    );
+  }
+
+  if (upgradeStatus === "PENDING") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-slate-900 p-10 rounded-2xl border border-amber-500 text-center">
+          <h2 className="text-2xl font-bold text-amber-400 mb-4">
+            Yêu cầu đang được duyệt ⏳
+          </h2>
+          <p className="text-slate-300 mb-6">
+            Yêu cầu nâng cấp Seller của bạn đang được xử lý.<br />
+            Vui lòng chờ trong vòng 24 giờ.
+          </p>
+          <button
+            onClick={() => navigate("/user/profile")}
+            className="bg-amber-500 text-black px-6 py-3 rounded-xl font-semibold"
+          >
+            Quay lại Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (upgradeStatus === "APPROVED") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-slate-900 p-10 rounded-2xl border border-emerald-500 text-center">
+          <h2 className="text-2xl font-bold text-emerald-400 mb-4">
+            Bạn đã là Seller 🎉
+          </h2>
+          <p className="text-slate-300 mb-6">
+            Tài khoản của bạn đã được nâng cấp thành Seller, hãy đăng nhập lại nhé.
+          </p>
+          <button
+            onClick={() => navigate("/seller/dashboard")}
+            className="bg-emerald-500 text-black px-6 py-3 rounded-xl font-semibold"
+          >
+            Vào trang Seller
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (upgradeStatus === "REJECTED") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-slate-900 p-10 rounded-2xl border border-red-500 text-center">
+          <h2 className="text-2xl font-bold text-red-400 mb-4">
+            Yêu cầu bị từ chối 
+          </h2>
+          <p className="text-slate-300 mb-6">
+            Yêu cầu nâng cấp Seller trước đó không được chấp thuận.
+            Bạn có thể gửi lại yêu cầu mới.
+          </p>
+          <button
+            onClick={() => setUpgradeStatus("NONE")}
+            className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold"
+          >
+            Gửi lại yêu cầu
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -150,8 +268,21 @@ const UpgradeToSellerRequest = () => {
           </div>
         </div>
 
-        {!hasRequested ? (
-          <div className="grid lg:grid-cols-3 gap-8">
+        {ctx?.upgrade && !showSuccess ? (
+           /* Payment Screen */
+          <div className="max-w-2xl mx-auto">
+            <PaymentStep
+              productId={null}
+              productName={`Nâng cấp Seller – ${currentPlan.name}`}
+              price={currentPlan.price}
+              userRole="buyer"
+              upgradeMode
+            />
+          </div>
+
+          
+        ) : (
+         <div className="grid lg:grid-cols-3 gap-8">
             {/* Plan Selection */}
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700/50">
@@ -331,217 +462,9 @@ const UpgradeToSellerRequest = () => {
               </div>
             </div>
           </div>
-        ) : (
-          /* Payment Screen */
-          <div className="max-w-2xl mx-auto">
-            {paymentStatus === "pending" && (
-              <div className="space-y-6">
-                {/* Status Card */}
-                <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700/50">
-                  <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                      <Clock className="w-8 h-8 text-amber-400" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-slate-100 mb-2">
-                      Chờ Xác Nhận Thanh Toán
-                    </h2>
-                    <p className="text-slate-400">
-                      Vui lòng quét mã QR bên dưới để hoàn tất thanh toán
-                    </p>
-                  </div>
-
-                  {/* QR Code Section */}
-                  <div className="my-8">
-                    <p className="text-sm text-slate-400 text-center mb-6 font-semibold">
-                      Bước 1: Quét Mã QR
-                    </p>
-                    <QRCodeDisplay />
-                  </div>
-
-                  {/* Payment Info */}
-                  <div className="bg-slate-700/30 rounded-xl p-6 mb-6 border border-slate-700">
-                    <p className="text-sm text-slate-400 mb-4 font-semibold">
-                      Bước 2: Xác Nhận Thông Tin Thanh Toán
-                    </p>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-                        <span className="text-slate-400">Gói Nâng Cấp:</span>
-                        <span className="font-semibold text-slate-100">
-                          {currentPlan.name}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-                        <span className="text-slate-400">Số Tiền:</span>
-                        <span className="text-xl font-black text-orange-400">
-                          {currentPlan.price.toLocaleString()} đ
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center pb-3 border-b border-slate-700">
-                        <span className="text-slate-400">Mã Giao Dịch:</span>
-                        <div className="flex items-center gap-2">
-                          <code className="text-sm font-mono text-slate-200">
-                            UPGRADE-2024-SELLER-001
-                          </code>
-                          <button
-                            onClick={handleCopyPaymentCode}
-                            className="p-1 hover:bg-slate-600 rounded transition-colors"
-                            title="Copy mã giao dịch"
-                          >
-                            <Copy className="w-4 h-4 text-slate-400 hover:text-slate-200" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Hạn Thanh Toán:</span>
-                        <span className="text-sm font-semibold text-amber-400">
-                          {paymentDeadline.toLocaleDateString("vi-VN")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Instructions */}
-                  <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
-                    <p className="text-sm text-orange-100 font-semibold mb-3">
-                      Hướng dẫn thanh toán:
-                    </p>
-                    <ol className="text-xs text-orange-100/80 space-y-2">
-                      <li>
-                        1. Mở ứng dụng ngân hàng hoặc ứng dụng thanh toán của
-                        bạn
-                      </li>
-                      <li>2. Chọn "Quét mã QR" hoặc "Thanh toán bằng QR"</li>
-                      <li>3. Quét mã QR ở trên</li>
-                      <li>
-                        4. Xác nhận thông tin giao dịch và hoàn tất thanh toán
-                      </li>
-                      <li>
-                        5. Hệ thống sẽ tự động xác nhận và nâng cấp tài khoản
-                        của bạn
-                      </li>
-                    </ol>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setHasRequested(false)}
-                      className="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold rounded-xl transition-colors"
-                    >
-                      Quay Lại
-                    </button>
-                    <button
-                      onClick={() => setPaymentStatus("paid")}
-                      className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-amber-500/30"
-                    >
-                      Đã Thanh Toán
-                    </button>
-                  </div>
-                </div>
-
-                {/* Support Card */}
-                <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50">
-                  <p className="text-sm text-slate-400 mb-3 font-semibold">
-                    Gặp sự cố?
-                  </p>
-                  <p className="text-sm text-slate-300 mb-4">
-                    Nếu bạn không quét mã QR được hoặc có câu hỏi, hãy liên hệ
-                    với{" "}
-                    <a
-                      href="mailto:support@auction.com"
-                      target="_blank"
-                      className="text-cyan-400 hover:text-cyan-300"
-                    >
-                      support@auction.com
-                    </a>
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Success Screen */}
-            {paymentStatus === "paid" && (
-              <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-12 border border-slate-700/50 text-center">
-                <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-                  <CheckCircle className="w-10 h-10 text-emerald-400" />
-                </div>
-
-                <h2 className="text-3xl font-black text-slate-100 mb-3">
-                  Thanh Toán Thành Công!
-                </h2>
-                <p className="text-slate-400 mb-8 max-w-md mx-auto">
-                  Yêu cầu nâng cấp của bạn đã được ghi nhận. Tài khoản sẽ được
-                  nâng cấp lên Seller trong 24 giờ.
-                </p>
-
-                {/* Status Timeline */}
-                <div className="bg-slate-700/30 rounded-xl p-6 mb-8 border border-slate-700 text-left">
-                  <p className="text-sm font-bold text-slate-100 mb-4">
-                    Trạng Thái Xử Lý
-                  </p>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400" />
-                      <span className="text-sm text-slate-100">
-                        Thanh toán xác nhận
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 border-2 border-slate-500 rounded-full animate-spin"></div>
-                      <span className="text-sm text-slate-400">
-                        Đang xử lý nâng cấp tài khoản...
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 border border-slate-600 rounded-full"></div>
-                      <span className="text-sm text-slate-500">
-                        Gửi email xác nhận
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Confirmation Details */}
-                <div className="bg-slate-700/30 rounded-xl p-6 mb-8 border border-slate-700 text-left">
-                  <p className="text-sm font-bold text-slate-100 mb-4">
-                    Chi Tiết Giao Dịch
-                  </p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Mã Giao Dịch:</span>
-                      <span className="font-mono text-slate-200">
-                        UPGRADE-2024-SELLER-001
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Số Tiền:</span>
-                      <span className="text-emerald-400 font-bold">
-                        {currentPlan.price.toLocaleString()} đ
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Thời Gian:</span>
-                      <span className="text-slate-200">
-                        {new Date().toLocaleString("vi-VN")}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => (window.location.href = "/user/profile")}
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-orange-500/30"
-                >
-                  Quay Lại Profile
-                </button>
-              </div>
-            )}
-          </div>
         )}
       </div>
     </div>
   );
 };
-
 export default UpgradeToSellerRequest;

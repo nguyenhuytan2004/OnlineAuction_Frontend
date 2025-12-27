@@ -25,6 +25,17 @@ const bidService = {
 
         return response;
     },
+
+    createSellerUpgradeRequest: async () => {
+        const endpoint = API_ENDPOINTS.SELLER_UPGRADE_REQUEST;
+        return await apiClient.post(endpoint, {});
+    },
+
+    getSellerUpgradeStatus() {
+        return apiClient.get(
+        API_ENDPOINTS.SELLER_UPGRADE_STATUS
+        );
+    }
 };
 
 export default bidService;

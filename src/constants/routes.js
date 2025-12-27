@@ -11,7 +11,7 @@ export const ROUTES = {
   PRODUCT: "/products",
   POST_AUCTION: "/post-auction",
   PROFILE: "/profile",
-  SELLER_REGISTER: "/user/upgrade-to-seller",
+  SELLER_REGISTER: "/upgrade-to-seller",
 
   // Admin
   ADMIN_DASHBOARD: "/admin/dashboard",

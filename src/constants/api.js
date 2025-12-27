@@ -46,4 +46,8 @@ export const API_ENDPOINTS = {
   ADMIN_USERS: "/admin/users",
 
   ADMIN_DASHBOARD: "/admin/dashboard",
+
+  SELLER_UPGRADE_REQUEST: "/bids/seller-upgrade-request",
+  
+  SELLER_UPGRADE_STATUS:"/bids/seller-upgrade-request/status",
 };

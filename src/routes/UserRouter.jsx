@@ -12,6 +12,7 @@ import Ratings from "../pages/user/profile/Ratings";
 import AccountSettings from "../pages/user/profile/AccountSettings";
 import ChangePassword from "../pages/user/profile/ChangePassword";
 import UpgradeToSellerRequest from "../pages/user/UpgradeToSellerRequest";
+import PaymentResultRedirect from "../pages/user/PaymentResultRedirect";
 
 import NotFound from "../pages/NotFound";
 
@@ -63,16 +64,12 @@ export const UserRouter = [
         element: <ChangePassword />,
       },
       {
-        path: "/user/upgrade-to-seller",
-        element: <UpgradeToSellerRequest />,
-      },
-      {
-        path: "/user/upgrade-to-seller",
+        path: `${ROUTES.SELLER_REGISTER}`,
         element: <UpgradeToSellerRequest />,
       },
       {
         path: "/payment-result",
-        element: <OrderCompletion />,
+        element: <PaymentResultRedirect />,
       },
       {
         path: "*",
