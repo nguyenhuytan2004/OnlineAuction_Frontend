@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
+import { useLocation } from "react-router-dom";
+import { authService } from "../../services/authService";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -11,12 +13,23 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  //lấy mail tạo request
+  const location = useLocation();
+  const email = location.state?.email;
 
   // Validation states
   const [passwordErrors, setPasswordErrors] = useState([]);
   const [confirmError, setConfirmError] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  // không thể reset pass nếu ko xác thực otp và truyền email
+  useEffect(() => {
+    if (!email) return null;
+  }, [email, navigate]);
+
 
   // Password strength calculation
   const calculatePasswordStrength = (pwd) => {
@@ -91,7 +104,8 @@ const ResetPassword = () => {
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
 
-    // Validation
+    setSubmitError("");
+
     if (!password) {
       setPasswordErrors(["Vui lòng nhập mật khẩu"]);
       return;
@@ -116,16 +130,29 @@ const ResetPassword = () => {
     setPasswordErrors([]);
     setConfirmError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsUpdating(false);
+    try {
+      console.info("[RESET_PASSWORD][START]", { email });
+
+      await authService.resetPassword(email, password);
+
+      console.info("[RESET_PASSWORD][SUCCESS]", { email });
+
       setUpdateSuccess(true);
 
-      // Auto-redirect after 2 seconds
+      // Auto redirect
       setTimeout(() => {
         navigate(ROUTES.LOGIN, { replace: true });
       }, 2000);
-    }, 1500);
+
+    } catch (error) {
+      console.error("[RESET_PASSWORD][FAIL]", error);
+
+      setSubmitError(
+        error?.response?.data || "Không thể đặt lại mật khẩu"
+      );
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // Determine if form is valid
@@ -213,6 +240,7 @@ const ResetPassword = () => {
                     onChange={(e) => {
                       setPassword(e.target.value);
                       setPasswordErrors([]);
+                      setSubmitError("");
                     }}
                     placeholder="Nhập mật khẩu mới"
                     className={`w-full pr-12 pl-4 py-3.5 bg-gradient-to-br from-slate-800/60 to-slate-900/40 border-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 transition-all duration-300 font-['Montserrat'] font-semibold ${

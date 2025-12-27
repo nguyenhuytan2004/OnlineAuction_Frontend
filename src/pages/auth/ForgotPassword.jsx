@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Clock, Mail } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
+import authService from "../../services/authService";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
 
   // Stage 2: OTP states
   const [showOtpStage, setShowOtpStage] = useState(false);
@@ -26,7 +29,7 @@ const ForgotPassword = () => {
 
   // Countdown timer effect
   useEffect(() => {
-    if (!showOtpStage) return;
+    if (!showOtpStage || timeLeft === null) return;
 
     if (timeLeft === 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -50,6 +53,8 @@ const ForgotPassword = () => {
   // Handle send code
   const handleSendCode = async () => {
     setEmailError("");
+    setSubmitError("");
+    setSubmitSuccess("");
 
     if (!email.trim()) {
       setEmailError("Vui lòng nhập email");
@@ -63,15 +68,35 @@ const ForgotPassword = () => {
 
     setIsSending(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSending(false);
+    try {
+      console.info("[FORGOT_PASSWORD][SEND_OTP][START]", email);
+
+      await authService.forgotPassword(email);
+
+      console.info("[FORGOT_PASSWORD][SEND_OTP][SUCCESS]", email);
+
+      setSubmitSuccess("Mã OTP đã được gửi đến email");
       setShowOtpStage(true);
       setTimeLeft(60);
       setCanResend(false);
-      inputRefs.current[0]?.focus();
-    }, 1500);
+      setOtp(["", "", "", "", "", ""]);
+
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 100);
+
+    } catch (error) {
+      console.error("[FORGOT_PASSWORD][SEND_OTP][ERROR]", error);
+
+      setSubmitError(
+        error?.response?.data || "Không thể gửi mã OTP"
+      );
+    } finally {
+      setIsSending(false);
+    }
   };
+
+
 
   // Handle OTP input change
   const handleOtpChange = (index, value) => {
@@ -113,35 +138,64 @@ const ForgotPassword = () => {
   // Handle verify OTP
   const handleVerifyOtp = async () => {
     const otpCode = otp.join("");
+
     if (otpCode.length !== 6) {
-      alert("Vui lòng nhập đầy đủ 6 chữ số");
+      setOtpError("Vui lòng nhập đầy đủ 6 chữ số");
       return;
     }
 
     setIsVerifying(true);
+    setOtpError("");
+    setSubmitError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsVerifying(false);
-      navigate(ROUTES.RESET_PASSWORD, {
-        state: { email, otp: otpCode },
+    try {
+      console.info("[FORGOT_PASSWORD][VERIFY_OTP][START]", email);
+
+      await authService.verifyResetPasswordOtp(email, otpCode);
+
+      console.info("[FORGOT_PASSWORD][VERIFY_OTP][SUCCESS]", email);
+
+      navigate("/reset-password", {
+        state: { email },
       });
-    }, 1500);
+
+    } catch (error) {
+      console.error("[FORGOT_PASSWORD][VERIFY_OTP][ERROR]", error);
+
+      setOtpError(
+        error?.response?.data || "OTP không hợp lệ hoặc đã hết hạn"
+      );
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   // Handle resend code
-  const handleResendCode = async () => {
+  const handleResendOtp = async () => {
+    if (!canResend || isResending) return;
+
     setIsResending(true);
     setCanResend(false);
     setTimeLeft(60);
     setOtp(["", "", "", "", "", ""]);
     setOtpError("");
+    setSubmitError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsResending(false);
+    try {
+      console.info("[FORGOT_PASSWORD][RESEND_OTP][START]", email);
+
+      await authService.forgotPassword(email);
+
+      console.info("[FORGOT_PASSWORD][RESEND_OTP][SUCCESS]", email);
+
       inputRefs.current[0]?.focus();
-    }, 1000);
+    } catch (error) {
+      console.error("[FORGOT_PASSWORD][RESEND_OTP][ERROR]", error);
+
+      setOtpError("Gửi lại OTP thất bại");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -195,10 +249,14 @@ const ForgotPassword = () => {
                       }}
                       placeholder="Nhập email của bạn"
                       disabled={showOtpStage}
-                      className={`w-full pl-12 pr-4 py-3.5 bg-gradient-to-br from-slate-800/60 to-slate-900/40 border-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 transition-all duration-300 font-['Montserrat'] font-semibold ${
+                      className={`w-full pl-12 pr-4 py-3.5 bg-gradient-to-br ${
+                        showOtpStage
+                          ? "from-slate-800/30 to-slate-900/20 cursor-not-allowed"
+                          : "from-slate-800/60 to-slate-900/40"
+                      } border-2 rounded-xl text-white placeholder-slate-500 focus:outline-none transition-all duration-300 font-['Montserrat'] font-semibold ${
                         emailError
                           ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
-                          : "border-slate-600/50 hover:border-slate-500/70"
+                          : "border-slate-600/50 hover:border-slate-500/70 focus:border-amber-500 focus:ring-amber-500/30"
                       }`}
                     />
                   </div>
@@ -240,6 +298,22 @@ const ForgotPassword = () => {
                 </button>
               </div>
             )}
+
+            {/* Submit error */}
+            {submitError && (
+              <p className="mt-3 text-sm text-rose-400 font-['Montserrat'] font-medium flex items-center gap-2 animate-in fade-in">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                {submitError}
+              </p>
+            )}
+
+            {/* Submit success */}
+            {submitSuccess && (
+              <div className="mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-['Montserrat'] animate-in fade-in">
+                {submitSuccess}
+              </div>
+            )}
+
 
             {/* Stage 2: OTP Input */}
             {showOtpStage && (
@@ -293,7 +367,7 @@ const ForgotPassword = () => {
                       </span>
                     </div>
                     <button
-                      onClick={handleResendCode}
+                      onClick={handleResendOtp}
                       disabled={!canResend || isResending}
                       className={`text-sm font-['Montserrat'] font-semibold px-4 py-2 rounded-lg transition-all duration-300 ${
                         canResend && !isResending
