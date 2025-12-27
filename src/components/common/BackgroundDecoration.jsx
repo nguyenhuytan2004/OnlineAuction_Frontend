@@ -43,10 +43,14 @@ const BackgroundDecoration = ({ accentColor }) => {
   return (
     <>
       <div
-        className={`absolute top-0 right-0 w-32 h-32 ${accentClasses.topRight} rounded-bl-full`}
+        className={`absolute top-0 right-0 w-32 h-32 ${accentClasses.topRight}
+          rounded-bl-full
+          pointer-events-none z-0`}
       ></div>
       <div
-        className={`absolute bottom-0 left-0 w-32 h-32 ${accentClasses.bottomLeft} rounded-tr-full`}
+        className={`absolute bottom-0 left-0 w-32 h-32 ${accentClasses.bottomLeft}
+          rounded-tr-full
+          pointer-events-none z-0`}
       ></div>
     </>
   );
