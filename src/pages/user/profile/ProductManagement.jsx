@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Package,
@@ -15,6 +15,7 @@ import userProfileService from "../../../services/userProfileService";
 import ratingService from "../../../services/ratingService";
 import productService from "../../../services/productService";
 import auctionService from "../../../services/auctionService";
+import { useAuth } from "../../../hooks/useAuth";
 
 import BuyerRatingModal from "../../../components/profile/BuyerRatingModal";
 import CancelTransactionModal from "../../../components/profile/CancelTransactionModal";
@@ -35,6 +36,12 @@ const ProductManagement = () => {
   const [isAddDescModalOpen, setIsAddDescModalOpen] = useState(false);
   const [isCreateProductModalOpen, setIsCreateProductModalOpen] =
     useState(false);
+
+  const { user: seller } = useAuth();
+  const isSellerExpired = useMemo(
+    () => new Date(seller?.sellerExpiresAt) > new Date(),
+    [seller],
+  );
 
   useEffect(() => {
     const loadData = async () => {
@@ -119,7 +126,7 @@ const ProductManagement = () => {
         notify.success("Cập nhật đánh giá thành công");
       } catch (error) {
         console.error("Error updating rating:", error);
-        notify.error("Cập nhật đánh giá thất bại, vui lòng thử lại");
+        notify.error(error || "Cập nhật đánh giá thất bại, vui lòng thử lại");
       }
     } else {
       try {
@@ -135,7 +142,7 @@ const ProductManagement = () => {
         notify.success("Đánh giá người bán thành công");
       } catch (error) {
         console.error("Error rating buyer:", error);
-        notify.error("Đánh giá người bán thất bại, vui lòng thử lại");
+        notify.error(error || "Đánh giá người bán thất bại, vui lòng thử lại");
       }
     }
   };
@@ -154,7 +161,7 @@ const ProductManagement = () => {
       notify.success("Giao dịch đã được hủy thành công");
     } catch (error) {
       console.error("Error canceling transaction:", error);
-      notify.error("Hủy giao dịch thất bại, vui lòng thử lại");
+      notify.error(error || "Hủy giao dịch thất bại, vui lòng thử lại");
     }
   };
 
@@ -176,7 +183,9 @@ const ProductManagement = () => {
       notify.success("Bổ sung mô tả sản phẩm thành công");
     } catch (error) {
       console.error("Error adding description:", error);
-      notify.error("Bổ sung mô tả sản phẩm thất bại, vui lòng thử lại");
+      notify.error(
+        error || "Bổ sung mô tả sản phẩm thất bại, vui lòng thử lại",
+      );
     }
   };
 
@@ -193,7 +202,7 @@ const ProductManagement = () => {
       setActiveProducts(activeProducts);
     } catch (error) {
       console.error("Error creating product:", error);
-      notify.error("Tạo sản phẩm thất bại, vui lòng thử lại");
+      notify.error(error || "Tạo sản phẩm thất bại, vui lòng thử lại");
     }
   };
 
@@ -241,7 +250,7 @@ const ProductManagement = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="container mx-auto px-28 py-8">
           {/* Header */}
-          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-amber-500/20 p-8 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl shadow-2xl shadow-amber-500/20 py-8 px-12 mb-8 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-400/10"></div>
             <div className="flex items-center justify-between relative z-10">
               <div className="flex items-center gap-4">
@@ -255,13 +264,22 @@ const ProductManagement = () => {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsCreateProductModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-105"
-              >
-                <Plus className="w-5 h-5" />
-                Thêm Sản Phẩm
-              </button>
+              <div className="group relative">
+                <button
+                  onClick={() => setIsCreateProductModalOpen(true)}
+                  disabled={isSellerExpired} // Ngăn chặn bấm khi hết hạn
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-5 h-5" />
+                  Thêm sản phẩm
+                </button>
+                {isSellerExpired && (
+                  <Tooltip
+                    text="Quyền bán đã hết hạn. Vui lòng gia hạn để thêm sản phẩm mới."
+                    position="right-1/2 top-full mt-2"
+                  />
+                )}
+              </div>
             </div>
           </div>
 

@@ -186,7 +186,9 @@ const Home = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
             ) : (
-              user.role === "BIDDER" && (
+              (user.role === "BIDDER" ||
+                (user.role === "SELLER" &&
+                  new Date(user.sellerExpiresAt) > new Date())) && (
                 <Link
                   to={ROUTES.SELLER_REGISTER}
                   className="group relative bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black py-4 px-10 rounded-full hover:shadow-2xl hover:shadow-amber-500/50 transition-all duration-300 transform hover:scale-105 uppercase tracking-wider text-sm overflow-hidden"

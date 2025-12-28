@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 const CustomDropdown = ({
+  icon = null,
   options = [],
   selectedIndex,
   onSelect = () => {},
@@ -75,6 +76,7 @@ const CustomDropdown = ({
   };
 
   const accentClasses = getAccentClasses();
+  const Icon = icon;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -86,8 +88,11 @@ const CustomDropdown = ({
           error ? "border-red-500/50" : "border-slate-600/50"
         } ${isDropdownOpen && `${accentClasses.button} ring-2`}`}
       >
+        {icon && (
+          <Icon className="absolute top-4.5 left-3 w-5 h-5 text-slate-500" />
+        )}
         <span
-          className={`font-semibold ${
+          className={`font-semibold pl-6 ${
             selectedIndex !== null ? "text-white" : "text-slate-400"
           }`}
         >
@@ -107,7 +112,7 @@ const CustomDropdown = ({
       {/* Dropdown list */}
       {isDropdownOpen && (
         <ul
-          className={`absolute z-50 w-full max-h-56 mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl ${accentClasses.listBg} overflow-auto animate-in fade-in zoom-in-95 duration-200`}
+          className={`absolute z-50 w-full max-h-60 mt-2 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-2xl ${accentClasses.listBg} overflow-auto animate-in fade-in zoom-in-95 duration-200`}
         >
           {options.map((option, index) => (
             <li
