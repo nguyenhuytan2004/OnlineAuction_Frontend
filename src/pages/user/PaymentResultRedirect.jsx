@@ -15,10 +15,20 @@ const PaymentResultRedirect = () => {
       return;
     }
 
-    sessionStorage.setItem("sellerUpgradePaid", "true");
+    if (ctx.type === "ORDER") {
+      navigate(
+        `/products/${ctx.productId}/order-completion${location.search}`,
+        { replace: true, state: ctx }
+      );
+      return;
+    }
 
-    navigate("/upgrade-to-seller", { replace: true });
-    
+    if (ctx.type === "UPGRADE") {
+      sessionStorage.setItem("sellerUpgradePaid", "true");
+      navigate("/upgrade-to-seller", { replace: true });
+      return;
+    }
+
   }, [location.search, navigate]);
 
   return null;
