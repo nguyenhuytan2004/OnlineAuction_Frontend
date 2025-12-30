@@ -4,7 +4,7 @@ import { AlertCircle, Check, CheckCircle2Icon } from "lucide-react";
 import paymentService from "../../services/paymentService";
 import { ROUTES } from "../../constants/routes";
 
-const PaymentStep = ({ productId, productName, price, userRole }) => {
+const PaymentStep = ({ productId, productName, price, userRole, paymentType }) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -13,15 +13,20 @@ const PaymentStep = ({ productId, productName, price, userRole }) => {
       setIsLoading(true);
 
       const amount = parsePriceToNumber(price);
-      const draftOrder = {
+
+      const paymentContext = {
+        type: paymentType,
         productId,
         productName,
-        price,
+        price: amount,
         userRole,
         createdAt: Date.now(),
       };
 
-      sessionStorage.setItem("paymentContext", JSON.stringify(draftOrder));
+      sessionStorage.setItem(
+        "paymentContext",
+        JSON.stringify(paymentContext)
+      );
 
       const res = await paymentService.createMomoPayment({
         amount,
@@ -34,7 +39,7 @@ const PaymentStep = ({ productId, productName, price, userRole }) => {
 
       window.location.href = res.payUrl;
     } catch (err) {
-      console.error(err);
+      console.error("Init payment failed", err);
       alert("Không thể khởi tạo thanh toán MoMo");
     } finally {
       setIsLoading(false);

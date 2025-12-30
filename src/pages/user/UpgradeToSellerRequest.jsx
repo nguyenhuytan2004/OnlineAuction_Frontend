@@ -164,12 +164,15 @@ const UpgradeToSellerRequest = () => {
   ======================= */
   const handleSubmitRequest = () => {
     const payload = {
-      upgrade: true,
+      type: "UPGRADE",
       plan: selectedPlan,
       price: currentPlan.price,
     };
 
-    sessionStorage.setItem("paymentContext", JSON.stringify(payload));
+    sessionStorage.setItem(
+      "paymentContext",
+      JSON.stringify(payload)
+    );
     setCtx(payload);
   };
 
@@ -186,7 +189,7 @@ const UpgradeToSellerRequest = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-slate-900 p-10 rounded-2xl border border-amber-500 text-center">
           <h2 className="text-2xl font-bold text-amber-400 mb-4">
-            Yêu cầu đang được duyệt ⏳
+            Yêu cầu đang được duyệt
           </h2>
           <p className="text-slate-300 mb-6">
             Yêu cầu nâng cấp Seller của bạn đang được xử lý.<br />
@@ -208,7 +211,7 @@ const UpgradeToSellerRequest = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-slate-900 p-10 rounded-2xl border border-emerald-500 text-center">
           <h2 className="text-2xl font-bold text-emerald-400 mb-4">
-            Bạn đã là Seller 🎉
+            Bạn đã là Seller
           </h2>
           <p className="text-slate-300 mb-6">
             Tài khoản của bạn đã được nâng cấp thành Seller, hãy đăng nhập lại nhé.
@@ -268,7 +271,7 @@ const UpgradeToSellerRequest = () => {
           </div>
         </div>
 
-        {ctx?.upgrade && !showSuccess ? (
+        {ctx?.type === "UPGRADE" && !showSuccess ? (
            /* Payment Screen */
           <div className="max-w-2xl mx-auto">
             <PaymentStep
@@ -276,7 +279,7 @@ const UpgradeToSellerRequest = () => {
               productName={`Nâng cấp Seller – ${currentPlan.name}`}
               price={currentPlan.price}
               userRole="buyer"
-              upgradeMode
+              paymentType={"UPGRADE"}
             />
           </div>
 

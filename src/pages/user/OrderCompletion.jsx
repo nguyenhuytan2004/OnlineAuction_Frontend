@@ -75,6 +75,18 @@ const OrderCompletion = () => {
   };
 
   useEffect(() => {
+    if (!ctx || ctx.type !== "ORDER") return;
+    if (userRole !== "buyer") return;
+
+    const resultCode = searchParams.get("resultCode");
+    if (resultCode !== "0") return;
+
+    if (!order) {
+      setCurrentStep(2);
+    }
+  }, [searchParams, ctx, userRole, order]);
+
+  useEffect(() => {
     if (!appOrderId) return;
     if (!userRole) return;
 
@@ -114,7 +126,7 @@ const OrderCompletion = () => {
     loadStatus();
   }, [appOrderId, userRole, navigate]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (location.pathname === "/payment-result") {
       if (!ctx?.productId) {
         navigate("/", { replace: true });
@@ -126,16 +138,17 @@ const OrderCompletion = () => {
         { replace: true, state: ctx },
       );
     }
-  }, [location.pathname, location.search, ctx, navigate]);
+  }, [location.pathname, location.search, ctx, navigate]);*/
 
   useEffect(() => {
     if (userRole !== "buyer") return;
+    if (!ctx || ctx.type !== "ORDER") return;
+
     const resultCode = searchParams.get("resultCode");
-    if (resultCode === "0") {
-      setCompletedSteps((p) => (p.includes(1) ? p : [...p, 1]));
-      setCurrentStep(2);
-    }
-  }, [searchParams, userRole]);
+    if (resultCode !== "0") return;
+
+    setCompletedSteps((p) => (p.includes(1) ? p : [...p, 1]));
+  }, [searchParams, userRole, ctx]);
 
   useEffect(() => {
     if (!ctx) navigate("/", { replace: true });
@@ -172,11 +185,15 @@ const OrderCompletion = () => {
         amount: Number(amount),
         paymentRef: orderId,
       })
-      .then((data) => {
+      .then(async (data) => {
         if (data?.orderId) {
           sessionStorage.setItem("appOrderId", String(data.orderId));
           setAppOrderId(data.orderId);
+
+          const freshOrder = await orderService.getOrderByProductId(productId);
+          setOrder(freshOrder);
         }
+
         sessionStorage.setItem("orderCreated", "true");
       })
       .catch((err) => {
@@ -265,6 +282,7 @@ const OrderCompletion = () => {
             productName={productName}
             price={price}
             userRole={userRole}
+            paymentType={"ORDER"}
           />
         );
       case 2:
