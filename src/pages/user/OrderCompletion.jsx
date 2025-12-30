@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, CheckCircle2, MoveLeft } from "lucide-react";
+import { ChevronLeft, CheckCircle2, MoveLeft, XCircle } from "lucide-react";
 import OrderStepper from "../../components/orderCompletion/OrderStepper";
 import PaymentStep from "../../components/orderCompletion/PaymentStep";
 import ShippingAddressStep from "../../components/orderCompletion/ShippingAddressStep";
@@ -9,6 +9,7 @@ import ShippingInfoStep from "../../components/orderCompletion/ShippingInfoStep"
 import ConfirmationStep from "../../components/orderCompletion/ConfirmationStep";
 import { useSearchParams } from "react-router-dom";
 import orderService from "../../services/orderService";
+import { ROUTES } from "../../constants/routes";
 
 const OrderCompletion = () => {
   const location = useLocation();
@@ -26,6 +27,7 @@ const OrderCompletion = () => {
   const [currentStep, setCurrentStep] = useState(null);
   const [, setCompletedSteps] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showCanceled, setShowCanceled] = useState(false);
   const [appOrderId, setAppOrderId] = useState(
     Number(sessionStorage.getItem("appOrderId")),
   );
@@ -50,7 +52,7 @@ const OrderCompletion = () => {
     if (userRole === "seller") {
       if (status === "PAID" || status === "ON_DELIVERING") return 3;
       if (status === "COMPLETED") return "SUCCESS";
-      if (status === "CANCELLED") return "CANCELLED";
+      if (status === "CANCELED") return "CANCELED";
       return 3;
     }
 
@@ -67,7 +69,7 @@ const OrderCompletion = () => {
     }
 
     if (status === "COMPLETED") return "SUCCESS";
-    if (status === "CANCELLED") return "CANCELLED";
+    if (status === "CANCELED") return "CANCELED";
 
     return 1;
   };
@@ -88,7 +90,7 @@ const OrderCompletion = () => {
           return;
         }
 
-        if (step === "CANCELLED") {
+        if (step === "CANCELED") {
           alert("Đơn hàng đã bị hủy");
           navigate("/user/activity", { replace: true });
           return;
@@ -212,30 +214,38 @@ const OrderCompletion = () => {
   };
 
   useEffect(() => {
-    if (userRole === "seller") {
-      if (order?.status === "ON_DELIVERING" || order?.status === "COMPLETED") {
-        setShowSuccess(true);
-      }
-      setCurrentStep(3);
-    } else if (userRole === "buyer") {
-      switch (order?.status) {
-        case "WAIT_PAYMENT":
-          setCurrentStep(1);
-          break;
-        case "PAID":
-          if (order?.shippingAddress) {
-            setCurrentStep(4);
-          } else {
-            setCurrentStep(2);
-          }
-          break;
-        case "ON_DELIVERING":
-          setCurrentStep(4);
-          break;
-        case "COMPLETED":
+    if (order?.status === "CANCELED") {
+      setShowCanceled(true);
+      setCurrentStep(1);
+    } else {
+      if (userRole === "seller") {
+        if (
+          order?.status === "ON_DELIVERING" ||
+          order?.status === "COMPLETED"
+        ) {
           setShowSuccess(true);
-          setCurrentStep(4);
-          break;
+        }
+        setCurrentStep(3);
+      } else if (userRole === "buyer") {
+        switch (order?.status) {
+          case "WAIT_PAYMENT":
+            setCurrentStep(1);
+            break;
+          case "PAID":
+            if (order?.shippingAddress) {
+              setCurrentStep(4);
+            } else {
+              setCurrentStep(2);
+            }
+            break;
+          case "ON_DELIVERING":
+            setCurrentStep(4);
+            break;
+          case "COMPLETED":
+            setShowSuccess(true);
+            setCurrentStep(4);
+            break;
+        }
       }
     }
   }, [order?.shippingAddress, order?.status, userRole]);
@@ -331,6 +341,88 @@ const OrderCompletion = () => {
             <div className="flex gap-4 relative z-10 justify-center">
               <Link to="/">
                 <button className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
+                  Về trang chủ
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showCanceled) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-12 flex items-center justify-center">
+        <div className="max-w-2xl w-full">
+          <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 rounded-3xl border border-slate-700/50 p-12 shadow-2xl relative overflow-hidden text-center">
+            {/* Decorative corners */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-red-500/20 to-transparent rounded-bl-full"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-red-500/20 to-transparent rounded-tr-full"></div>
+
+            {/* Canceled Icon */}
+            <div className="relative z-10 flex justify-center my-8">
+              <XCircle className="w-20 h-20 text-red-500 animate-bounce" />
+            </div>
+
+            {/* Canceled Message */}
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-500 mb-4 font-['Playfair_Display'] relative z-10">
+              Đơn hàng đã hủy
+            </h1>
+
+            <div className="text-lg text-gray-300 mb-8 font-['Montserrat'] relative z-10 py-4">
+              {userRole === "buyer" ? (
+                <div>
+                  <p>Đơn hàng của bạn đã bị hủy</p>
+                  <p>Vui lòng liên hệ người bán để biết chi tiết</p>
+                </div>
+              ) : (
+                <div>
+                  <p>Đơn hàng đã được hủy</p>
+                  <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-8 p-6 bg-gradient-to-br from-red-900/30 to-red-800/20 rounded-xl border border-red-500/50 relative z-10">
+              <h3 className="text-red-300 font-semibold mb-4 font-['Montserrat']">
+                Thông tin đơn hàng
+              </h3>
+              <div className="space-y-2 text-left">
+                <div className="flex justify-between">
+                  <span className="text-gray-400 font-['Montserrat']">
+                    Sản phẩm:
+                  </span>
+                  <span className="text-white font-semibold font-['Montserrat']">
+                    {productName}
+                  </span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-red-500/30">
+                  <span className="text-gray-400 font-['Montserrat']">
+                    Giá:
+                  </span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-500 font-bold font-['Montserrat']">
+                    {price}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 relative z-10 justify-center">
+              <Link
+                to={`${
+                  userRole === "buyer"
+                    ? `${ROUTES.PROFILE}/activity`
+                    : `${ROUTES.PROFILE}/product-management`
+                }`}
+              >
+                <button className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
+                  {userRole === "buyer" ? "Xem hoạt động" : "Quản lý sản phẩm"}
+                </button>
+              </Link>
+              <Link to="/">
+                <button className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
                   Về trang chủ
                 </button>
               </Link>
