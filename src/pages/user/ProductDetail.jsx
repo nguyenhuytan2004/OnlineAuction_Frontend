@@ -559,7 +559,7 @@ const ProductDetail = () => {
                       state: {
                         productId: product.productId,
                         productName: product.productName,
-                        price: formatters.formatCurrency(product.currentPrice),
+                        price: product.currentPrice,
                         userRole: isCurrentUserWinner ? "buyer" : "seller",
                       },
                     },

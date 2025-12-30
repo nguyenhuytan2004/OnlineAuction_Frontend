@@ -65,9 +65,12 @@ const orderService = {
     }
   },
 
-  cancelOrderByProduct: async (productId) => {
+  cancelOrder: async (data) => {
+    console.log("Cancel order data:", data);
     try {
-      await apiClient.patch(`/auction-results/product/${productId}/cancel`);
+      await apiClient.patch(`${API_ENDPOINTS.ORDERS}/${data.orderId}/cancel`, {
+        reason: JSON.stringify(data.reason),
+      });
     } catch (error) {
       console.error("Cancel order error:", error);
       throw error;

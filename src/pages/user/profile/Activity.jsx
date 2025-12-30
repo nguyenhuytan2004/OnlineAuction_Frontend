@@ -260,9 +260,6 @@ const Activity = () => {
                                 <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
                                   Đánh giá
                                 </th>
-                                <th className="px-6 py-4 text-center text-sm font-bold text-slate-300 uppercase tracking-wider">
-                                  Thanh toán
-                                </th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-700/50">
@@ -332,33 +329,6 @@ const Activity = () => {
                                       </button>
                                     </div>
                                   </td>
-                                  {product.paymentStatus === "PAID" ? (
-                                    <td className="px-6 py-4 text-center">
-                                      <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-indigo-800 text-indigo-300 group relative cursor-not-allowed">
-                                        Đã thanh toán
-                                      </span>
-                                    </td>
-                                  ) : (
-                                    <td className="px-6 py-4 text-center">
-                                      <div className="flex items-center justify-center gap-2">
-                                        <Link
-                                          to={`${ROUTES.PRODUCT}/${product.productId}/order-completion`}
-                                          state={{
-                                            productId: product.productId,
-                                            productName: product.productName,
-                                            price: formatters.formatCurrency(
-                                              product.currentPrice,
-                                            ),
-                                            userRole: "buyer",
-                                          }}
-                                        >
-                                          <button className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-bold rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-indigo-500/30 group relative">
-                                            Thanh toán
-                                          </button>
-                                        </Link>
-                                      </div>
-                                    </td>
-                                  )}
                                 </tr>
                               ))}
                             </tbody>

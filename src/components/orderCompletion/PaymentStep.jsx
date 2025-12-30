@@ -3,8 +3,15 @@ import { Link } from "react-router-dom";
 import { AlertCircle, Check, CheckCircle2Icon } from "lucide-react";
 import paymentService from "../../services/paymentService";
 import { ROUTES } from "../../constants/routes";
+import formatters from "../../utils/formatters";
 
-const PaymentStep = ({ productId, productName, price, userRole, paymentType }) => {
+const PaymentStep = ({
+  productId,
+  productName,
+  price,
+  userRole,
+  paymentType,
+}) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -12,7 +19,7 @@ const PaymentStep = ({ productId, productName, price, userRole, paymentType }) =
     try {
       setIsLoading(true);
 
-      const amount = parsePriceToNumber(price);
+      const amount = parsePriceToNumber(1000);
 
       const paymentContext = {
         type: paymentType,
@@ -23,10 +30,7 @@ const PaymentStep = ({ productId, productName, price, userRole, paymentType }) =
         createdAt: Date.now(),
       };
 
-      sessionStorage.setItem(
-        "paymentContext",
-        JSON.stringify(paymentContext)
-      );
+      sessionStorage.setItem("paymentContext", JSON.stringify(paymentContext));
 
       const res = await paymentService.createMomoPayment({
         amount,
@@ -78,7 +82,7 @@ const PaymentStep = ({ productId, productName, price, userRole, paymentType }) =
     {
       id: "vnpay",
       name: "VNPay-QR",
-      logo: "https://play-lh.googleusercontent.com/2WHgcuwhtbmfrDEF-D-lYQ4sAk0TlI-aFtqx7lJXK5KV7f8smnofaedP_Opcd3edR2c=w600-h300-pc0xffffff-pd",
+      logo: "https://vinadesign.vn/uploads/images/2023/05/vnpay-logo-vinadesign-25-12-57-55.jpg",
       color: "from-indigo-600 to-indigo-700",
       bgColor: "from-indigo-900/30 to-indigo-800/20",
       borderColor: "border-indigo-500/50",
@@ -114,7 +118,7 @@ const PaymentStep = ({ productId, productName, price, userRole, paymentType }) =
               Số tiền thanh toán:
             </span>
             <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-['Montserrat']">
-              {price}
+              {formatters.formatCurrency(price)}
             </span>
           </div>
         </div>
@@ -188,7 +192,7 @@ const PaymentStep = ({ productId, productName, price, userRole, paymentType }) =
       {/* Action Buttons */}
       <div className="flex gap-4">
         <Link
-          to={`${ROUTES.PRODUCT}/${productId}`}
+          to={productId ? `${ROUTES.PRODUCT}/${productId}` : ROUTES.HOME}
           className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat'] text-center"
         >
           Hủy

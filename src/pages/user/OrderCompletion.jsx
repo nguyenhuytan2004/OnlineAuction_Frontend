@@ -270,7 +270,11 @@ const OrderCompletion = () => {
   const renderStepContent = () => {
     if (userRole === "seller") {
       return currentStep === 3 ? (
-        <ShippingInfoStep onNext={handleNextStep} order={order} />
+        <ShippingInfoStep
+          onNext={handleNextStep}
+          order={order}
+          onCancel={handleAfterCancelOrder}
+        />
       ) : null;
     }
 
@@ -292,6 +296,10 @@ const OrderCompletion = () => {
       default:
         return null;
     }
+  };
+
+  const handleAfterCancelOrder = () => {
+    setShowCanceled(true);
   };
 
   if (!currentStep) {
@@ -357,6 +365,17 @@ const OrderCompletion = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-4 relative z-10 justify-center">
+              <Link
+                to={`${
+                  userRole === "buyer"
+                    ? `${ROUTES.PROFILE}/activity`
+                    : `${ROUTES.PROFILE}/product-management`
+                }`}
+              >
+                <button className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
+                  {userRole === "buyer" ? "Xem hoạt động" : "Quản lý sản phẩm"}
+                </button>
+              </Link>
               <Link to="/">
                 <button className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
                   Về trang chủ
@@ -435,12 +454,12 @@ const OrderCompletion = () => {
                     : `${ROUTES.PROFILE}/product-management`
                 }`}
               >
-                <button className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
+                <button className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
                   {userRole === "buyer" ? "Xem hoạt động" : "Quản lý sản phẩm"}
                 </button>
               </Link>
               <Link to="/">
-                <button className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
+                <button className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat']">
                   Về trang chủ
                 </button>
               </Link>

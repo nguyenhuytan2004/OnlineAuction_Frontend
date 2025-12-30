@@ -15,19 +15,16 @@ import {
 } from "lucide-react";
 
 const UpgradeToSellerRequest = () => {
-
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
 
   const [selectedPlan, setSelectedPlan] = useState("basic");
   const [upgradeStatus, setUpgradeStatus] = useState("NONE");
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [ctx, setCtx] = useState(() =>
-    JSON.parse(sessionStorage.getItem("paymentContext") || "null")
+    JSON.parse(sessionStorage.getItem("paymentContext") || "null"),
   );
   const [showSuccess, setShowSuccess] = useState(false);
-
 
   useEffect(() => {
     const paid = sessionStorage.getItem("sellerUpgradePaid");
@@ -38,6 +35,11 @@ const UpgradeToSellerRequest = () => {
     }
 
     fetchUpgradeStatus();
+
+    return () => {
+      sessionStorage.removeItem("paymentContext");
+      sessionStorage.removeItem("upgradeCreated");
+    };
   }, []);
 
   const plans = {
@@ -70,7 +72,6 @@ const UpgradeToSellerRequest = () => {
   const paymentDeadline = new Date();
   paymentDeadline.setDate(paymentDeadline.getDate() + currentPlan.duration);
 
-
   /* ======================
      GUARD: NO CONTEXT (SAU REDIRECT)
   ======================= */
@@ -92,19 +93,17 @@ const UpgradeToSellerRequest = () => {
 
     if (sessionStorage.getItem("upgradeCreated") === "true") return;
 
-    bidService.createSellerUpgradeRequest()
+    bidService
+      .createSellerUpgradeRequest()
       .then(() => {
         sessionStorage.setItem("upgradeCreated", "true");
         sessionStorage.removeItem("sellerUpgradePaid");
         fetchUpgradeStatus();
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Create upgrade request failed", err);
       });
-
   }, [loadingStatus, upgradeStatus]);
-
-
 
   /* ======================
      CLEAN SESSION WHEN DONE
@@ -130,7 +129,6 @@ const UpgradeToSellerRequest = () => {
       setLoadingStatus(false);
     }
   };
-
 
   /* ======================
      SUCCESS SCREEN
@@ -169,10 +167,7 @@ const UpgradeToSellerRequest = () => {
       price: currentPlan.price,
     };
 
-    sessionStorage.setItem(
-      "paymentContext",
-      JSON.stringify(payload)
-    );
+    sessionStorage.setItem("paymentContext", JSON.stringify(payload));
     setCtx(payload);
   };
 
@@ -192,7 +187,8 @@ const UpgradeToSellerRequest = () => {
             Yêu cầu đang được duyệt
           </h2>
           <p className="text-slate-300 mb-6">
-            Yêu cầu nâng cấp Seller của bạn đang được xử lý.<br />
+            Yêu cầu nâng cấp Seller của bạn đang được xử lý.
+            <br />
             Vui lòng chờ trong vòng 24 giờ.
           </p>
           <button
@@ -214,7 +210,8 @@ const UpgradeToSellerRequest = () => {
             Bạn đã là Seller
           </h2>
           <p className="text-slate-300 mb-6">
-            Tài khoản của bạn đã được nâng cấp thành Seller, hãy đăng nhập lại nhé.
+            Tài khoản của bạn đã được nâng cấp thành Seller, hãy đăng nhập lại
+            nhé.
           </p>
           <button
             onClick={() => navigate("/seller/dashboard")}
@@ -232,11 +229,11 @@ const UpgradeToSellerRequest = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-slate-900 p-10 rounded-2xl border border-red-500 text-center">
           <h2 className="text-2xl font-bold text-red-400 mb-4">
-            Yêu cầu bị từ chối 
+            Yêu cầu bị từ chối
           </h2>
           <p className="text-slate-300 mb-6">
-            Yêu cầu nâng cấp Seller trước đó không được chấp thuận.
-            Bạn có thể gửi lại yêu cầu mới.
+            Yêu cầu nâng cấp Seller trước đó không được chấp thuận. Bạn có thể
+            gửi lại yêu cầu mới.
           </p>
           <button
             onClick={() => setUpgradeStatus("NONE")}
@@ -272,7 +269,7 @@ const UpgradeToSellerRequest = () => {
         </div>
 
         {ctx?.type === "UPGRADE" && !showSuccess ? (
-           /* Payment Screen */
+          /* Payment Screen */
           <div className="max-w-2xl mx-auto">
             <PaymentStep
               productId={null}
@@ -282,10 +279,8 @@ const UpgradeToSellerRequest = () => {
               paymentType={"UPGRADE"}
             />
           </div>
-
-          
         ) : (
-         <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-8">
             {/* Plan Selection */}
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-8 border border-slate-700/50">
