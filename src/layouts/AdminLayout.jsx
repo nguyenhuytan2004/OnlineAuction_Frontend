@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   X,
+  Boxes,
 } from "lucide-react";
 
 import { ROUTES } from "../constants/routes";
@@ -60,7 +61,7 @@ const AdminLayout = () => {
     },
     {
       label: "Quản Lý Sản Phẩm",
-      icon: Package,
+      icon: Boxes,
       path: ROUTES.ADMIN_PRODUCTS,
     },
     {

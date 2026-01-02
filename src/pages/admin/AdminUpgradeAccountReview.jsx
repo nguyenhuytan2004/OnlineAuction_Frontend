@@ -131,38 +131,38 @@ const AdminUpgradeAccountReview = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchPendingRequests = async () => {
-    try {
-      const res = await adminSellerUpgradeService.getPendingRequests();
-
-      console.log("RAW RESPONSE:", res); // ← sẽ là array
-
-      const raw = Array.isArray(res) ? res : [];
-
-      const normalized = raw.map((r) => ({
-        id: r.requestId,
-        requestId: r.requestId,
-        userId: r.userId,
-        name: r.userFullName,
-        email: r.userEmail,
-        status: r.status,
-        requestDate: r.requestAt,
-        participationCount: 0,
-        winCount: 0,
-        avgRating: 0,
-        reason: r.comments ?? "",
-        phone: "N/A",
-        location: "N/A",
-      }));
-
-      setUpgradeRequests(normalized);
-    } catch (error) {
-      console.error(error);
-      notify.error("Không thể tải danh sách yêu cầu");
-    }
-  };
-
   useEffect(() => {
+    const fetchPendingRequests = async () => {
+      try {
+        const res = await adminSellerUpgradeService.getPendingRequests();
+
+        console.log("RAW RESPONSE:", res); // ← sẽ là array
+
+        const raw = Array.isArray(res) ? res : [];
+
+        const normalized = raw.map((r) => ({
+          id: r.requestId,
+          requestId: r.requestId,
+          userId: r.userId,
+          name: r.userFullName,
+          email: r.userEmail,
+          status: r.status,
+          requestDate: r.requestAt,
+          participationCount: 0,
+          winCount: 0,
+          avgRating: 0,
+          reason: r.comments ?? "",
+          phone: "N/A",
+          location: "N/A",
+        }));
+
+        setUpgradeRequests(normalized);
+      } catch (error) {
+        console.error(error);
+        notify.error("Không thể tải danh sách yêu cầu");
+      }
+    };
+
     fetchPendingRequests();
   }, []);
 
@@ -212,7 +212,6 @@ const AdminUpgradeAccountReview = () => {
     }
   };
 
-
   const RatingBadge = ({ rating }) => (
     <div className="flex items-center gap-1">
       <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
@@ -250,7 +249,8 @@ const AdminUpgradeAccountReview = () => {
                 : `Yêu cầu chờ xét duyệt: ${upgradeRequests.length}`}
             </p>
             <p className="text-blue-200/80 text-sm">
-              Vui lòng kiểm tra thông tin người dùng trước khi duyệt hoặc từ chối
+              Vui lòng kiểm tra thông tin người dùng trước khi duyệt hoặc từ
+              chối
             </p>
           </div>
         </div>
@@ -260,9 +260,12 @@ const AdminUpgradeAccountReview = () => {
             const participation = request.participationCount ?? 0;
             const win = request.winCount ?? 0;
             const winRate =
-              participation > 0 ? ((win / participation) * 100).toFixed(1) : "0.0";
+              participation > 0
+                ? ((win / participation) * 100).toFixed(1)
+                : "0.0";
 
-            const rawDate = request.requestDate ?? request.createdAt ?? request.createdTime;
+            const rawDate =
+              request.requestDate ?? request.createdAt ?? request.createdTime;
             const dateLabel = rawDate
               ? new Date(rawDate).toLocaleDateString("vi-VN")
               : "N/A";
@@ -290,7 +293,9 @@ const AdminUpgradeAccountReview = () => {
                             Chờ xét duyệt
                           </span>
                         </div>
-                        <p className="text-sm text-slate-400">{request.email}</p>
+                        <p className="text-sm text-slate-400">
+                          {request.email}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right text-sm text-slate-500">
@@ -341,11 +346,15 @@ const AdminUpgradeAccountReview = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-slate-500">Lượt thắng</span>
-                          <span className="font-bold text-emerald-400">{win}</span>
+                          <span className="font-bold text-emerald-400">
+                            {win}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-slate-500">Tỷ lệ thắng</span>
-                          <span className="font-bold text-slate-100">{winRate}%</span>
+                          <span className="font-bold text-slate-100">
+                            {winRate}%
+                          </span>
                         </div>
                         <div className="pt-2 border-t border-slate-700 flex justify-between items-center">
                           <span className="text-slate-500">Xếp hạng</span>

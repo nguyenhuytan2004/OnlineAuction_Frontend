@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PaymentStep from "../../components/orderCompletion/PaymentStep";
 import bidService from "../../services/bidService";
 import { Toaster } from "react-hot-toast";
@@ -14,6 +14,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import { useAuth } from "../../hooks/useAuth";
+import { ROUTES } from "../../constants/routes";
+
 const UpgradeToSellerRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,6 +28,8 @@ const UpgradeToSellerRequest = () => {
     JSON.parse(sessionStorage.getItem("paymentContext") || "null"),
   );
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     const paid = sessionStorage.getItem("sellerUpgradePaid");
@@ -202,7 +207,7 @@ const UpgradeToSellerRequest = () => {
     );
   }
 
-  if (upgradeStatus === "APPROVED") {
+  if (user.role === "SELLER") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-slate-900 p-10 rounded-2xl border border-emerald-500 text-center">
@@ -213,12 +218,11 @@ const UpgradeToSellerRequest = () => {
             Tài khoản của bạn đã được nâng cấp thành Seller, hãy đăng nhập lại
             nhé.
           </p>
-          <button
-            onClick={() => navigate("/seller/dashboard")}
-            className="bg-emerald-500 text-black px-6 py-3 rounded-xl font-semibold"
-          >
-            Vào trang Seller
-          </button>
+          <Link to={`${ROUTES.PROFILE}/product-management`}>
+            <button className="bg-emerald-500 text-black px-6 py-3 rounded-xl font-semibold">
+              Quản lý sản phẩm
+            </button>
+          </Link>
         </div>
       </div>
     );

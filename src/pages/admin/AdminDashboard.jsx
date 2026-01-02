@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 
 import adminDashboardService from "../../services/adminDashboardService";
+import { ROUTES } from "../../constants/routes";
+import { Link } from "react-router-dom";
 
 // Stat Card Component
 const StatCard = ({ icon: Icon, label, value, subtext, color }) => (
@@ -125,42 +127,21 @@ const LineChart = ({ data, valueKey }) => {
     return <p className="text-slate-500">Không có dữ liệu</p>;
   }
 
-  if (data.length === 1) {
-    return (
-      <div className="text-slate-400 text-sm">
-        {data[0].month}: {(data[0][valueKey] ?? 0).toLocaleString()}
-      </div>
-    );
-  }
-
   const values = data.map((d) => d[valueKey] ?? 0);
   const maxValue = Math.max(...values, 1);
 
   const points = data.map((item, idx) => {
-    const x = (idx / (data.length - 1)) * 100;
+    const x = data.length === 1 ? 50 : (idx / (data.length - 1)) * 100;
     const y = 100 - (item[valueKey] / maxValue) * 80;
     return { x, y, value: item[valueKey] };
   });
-
-  if (!data || data.length === 0) {
-    return <p className="text-slate-500">Không có dữ liệu</p>;
-  }
-
-  if (data.length === 1) {
-    return (
-      <div className="text-slate-400 text-sm">
-        {data[0].month}: {data[0].revenue.toLocaleString()}
-      </div>
-    );
-  }
-
 
   return (
     <>
       <style>{`
         @keyframes drawLine {
           from {
-            stroke-dashoffset: ${pathLength};
+            stroke-dashoffset: 100;
           }
           to {
             stroke-dashoffset: 0;
@@ -211,8 +192,9 @@ const LineChart = ({ data, valueKey }) => {
           fill="none"
           stroke="url(#gradient)"
           strokeWidth="2"
+          pathLength="100"
           style={{
-            strokeDasharray: pathLength,
+            strokeDasharray: 100,
             animation: `drawLine 1.5s ease-out forwards`,
           }}
         />
@@ -255,8 +237,6 @@ const LineChart = ({ data, valueKey }) => {
   );
 };
 
-
-
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [statsData, setStatsData] = useState(null);
@@ -274,6 +254,8 @@ const AdminDashboard = () => {
       try {
         const data = await adminDashboardService.getDashboard();
         const { overview, charts } = data;
+
+        console.log("Dashboard data:", data);
 
         // ===== OVERVIEW =====
         setStatsData({
@@ -459,14 +441,19 @@ const AdminDashboard = () => {
               <h3 className="font-bold text-slate-100">Top Sản Phẩm</h3>
             </div>
             <p className="text-lg font-bold text-slate-100 mb-2 truncate">
-              {statsData.topProduct}
+              {statsData.topProduct.productName}
             </p>
             <p className="text-sm text-slate-400">
               Sản phẩm được quan tâm nhất
             </p>
-            <button className="mt-4 w-full px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 text-cyan-300 text-sm font-semibold rounded-lg transition-colors">
-              Xem Chi Tiết
-            </button>
+            <Link
+              target="_blank"
+              to={`${ROUTES.PRODUCT}/${statsData.topProduct.productId}`}
+            >
+              <button className="mt-4 w-full px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 text-cyan-300 text-sm font-semibold rounded-lg transition-colors">
+                Xem Chi Tiết
+              </button>
+            </Link>
           </div>
 
           <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700/50 hover:border-slate-600 transition-all duration-300">
