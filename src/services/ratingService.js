@@ -36,6 +36,19 @@ const ratingService = {
     }
   },
 
+  getRatingsByReviewee: async (revieweeId) => {
+    try {
+      const ratings = await apiClient.get(
+        `${API_ENDPOINTS.RATINGS}/reviewee/${revieweeId}`,
+      );
+
+      return ratings;
+    } catch (error) {
+      console.error("Get ratings by reviewee error:", error);
+      throw error;
+    }
+  },
+
   updateRating: async (updateRatingData) => {
     try {
       const updatedRating = await apiClient.patch(

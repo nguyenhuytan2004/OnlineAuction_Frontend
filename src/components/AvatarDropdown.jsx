@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import helpers from "../utils/helpers";
+import { ROUTES } from "../constants/routes";
 
 const AvatarDropdown = () => {
   const { user, role, logout } = useAuth();
@@ -85,35 +86,35 @@ const AvatarDropdown = () => {
   const menuItems = [
     ...sellerMenuItems,
     {
-      to: "/profile/activity",
+      to: `${ROUTES.PROFILE}/activity`,
       icon: Zap,
       label: "Hoạt động",
       description: "Sản phẩm đang tham gia, đã thắng",
       color: "amber",
     },
     {
-      to: "/profile/favorite",
+      to: `${ROUTES.PROFILE}/favorite`,
       icon: Heart,
       label: "Yêu thích",
       description: "Sản phẩm yêu thích",
       color: "red",
     },
     {
-      to: "/profile/rating",
+      to: `${ROUTES.PROFILE}/rating`,
       icon: Star,
       label: "Đánh giá",
       description: "Đánh giá nhận được",
       color: "green",
     },
     {
-      to: "/profile/account",
+      to: `${ROUTES.PROFILE}/account`,
       icon: User,
       label: "Tài khoản",
       description: "Cập nhật thông tin",
       color: "blue",
     },
     {
-      to: "/profile/change-password",
+      to: `${ROUTES.PROFILE}/change-password`,
       icon: Shield,
       label: "Đổi mật khẩu",
       description: "Bảo mật tài khoản",

@@ -39,7 +39,7 @@ const ProductManagement = () => {
 
   const { user: seller } = useAuth();
   const isSellerExpired = useMemo(
-    () => new Date(seller?.sellerExpiresAt) > new Date(),
+    () => new Date(seller?.sellerExpiresAt) < new Date(),
     [seller],
   );
 

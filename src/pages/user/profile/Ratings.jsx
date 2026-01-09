@@ -11,6 +11,8 @@ import {
 import userProfileService from "../../../services/userProfileService";
 import formatters from "../../../utils/formatters";
 import helpers from "../../../utils/helpers";
+import { useLocation } from "react-router-dom";
+import ratingService from "../../../services/ratingService";
 
 /**
  * Component hiển thị đánh giá nhận được từ người khác
@@ -25,11 +27,20 @@ const Ratings = () => {
     percentage: 0,
   });
 
+  const location = useLocation();
+
   useEffect(() => {
     const loadRatings = async () => {
       setLoading(true);
       try {
-        const data = await userProfileService.getRatings();
+        let data;
+        if (!location.state?.userId) {
+          data = await userProfileService.getRatings();
+        } else {
+          data = await ratingService.getRatingsByReviewee(
+            location.state.userId,
+          );
+        }
         setRatings(data);
         calculateStats(data);
       } catch (error) {
@@ -40,7 +51,7 @@ const Ratings = () => {
     };
 
     loadRatings();
-  }, []);
+  }, [location.state?.userId]);
 
   const calculateStats = (ratingsData) => {
     if (!ratingsData || ratingsData.length === 0) {
@@ -86,10 +97,14 @@ const Ratings = () => {
             <Star className="w-12 h-12 text-green-400 fill-green-400/30" />
             <div>
               <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 mb-2 tracking-tight">
-                Đánh Giá Của Tôi
+                {location.state?.fullName
+                  ? `Đánh Giá Của ${location.state.fullName}`
+                  : "Đánh Giá Của Tôi"}
               </h1>
               <p className="text-slate-300 font-semibold tracking-wide">
-                Xem các đánh giá bạn nhận được từ người bán
+                {location.state?.fullName
+                  ? `Xem tất cả đánh giá mà ${location.state.fullName} đã nhận được`
+                  : "Xem tất cả đánh giá mà bạn đã nhận được"}
               </p>
             </div>
           </div>

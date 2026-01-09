@@ -328,6 +328,21 @@ const ProductList = () => {
     });
   };
 
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setSelectedCategory(0);
+    setCurrentPage(1);
+    setCurrentSort("");
+    setCurrentKeyword("");
+    setSearchParams({
+      page: 1,
+      sort: "",
+      category: 0,
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-16">
       <div className="container mx-auto px-8">
@@ -502,17 +517,7 @@ const ProductList = () => {
 
                 {/* Reset Filters Button */}
                 <button
-                  onClick={() => {
-                    setSelectedCategory(0);
-                    setCurrentPage(1);
-                    setCurrentSort("");
-                    setCurrentKeyword("");
-                    setSearchParams({
-                      page: 1,
-                      sort: "",
-                      category: 0,
-                    });
-                  }}
+                  onClick={handleResetFilters}
                   className="group w-full px-5 py-3.5 bg-gradient-to-r from-slate-800 to-slate-700 text-slate-200 rounded-xl hover:from-orange-600 hover:to-orange-700 hover:text-white transition-all duration-300 font-black text-sm shadow-lg hover:shadow-orange-500/50 border border-slate-700 hover:border-orange-500 uppercase tracking-wider flex items-center justify-center gap-2"
                 >
                   <svg

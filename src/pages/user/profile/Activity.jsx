@@ -4,6 +4,7 @@ import { TrendingUp, Trophy, Package, Zap, Star } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import Tooltip from "../../../components/common/Tooltip";
 import { notify } from "../../../utils/toast";
+import { useAuth } from "../../../hooks/useAuth";
 
 import userProfileService from "../../../services/userProfileService";
 import ratingService from "../../../services/ratingService";
@@ -26,6 +27,7 @@ const Activity = () => {
   const [wonProducts, setWonProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadData = async () => {
@@ -111,6 +113,25 @@ const Activity = () => {
         notify.error("Đánh giá người bán thất bại, vui lòng thử lại");
       }
     }
+  };
+
+  // Component to display product card with status tag
+  const ProductCardWithTag = ({ product }) => {
+    const isCurrentUserBidding = product.highestBidder?.userId === user?.userId;
+
+    return (
+      <div className="relative group">
+        <ProductCard product={product} />
+        {/* Status Tag */}
+        <div className="absolute top-3 left-3 z-10">
+          {isCurrentUserBidding && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg shadow-amber-500/30 border border-amber-400/50">
+              Đang giữ giá
+            </span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -220,7 +241,7 @@ const Activity = () => {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {participatingProducts.map((product) => (
-                          <ProductCard
+                          <ProductCardWithTag
                             key={product.productId}
                             product={product}
                           />
