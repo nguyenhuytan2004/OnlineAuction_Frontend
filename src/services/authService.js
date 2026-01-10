@@ -52,12 +52,13 @@ export const authService = {
     }
   },
 
-  login: async (email, password) => {
+  login: async (email, password, captcha) => {
     try {
       const endpoint = `${API_ENDPOINTS.AUTH}/login`;
       const response = await apiClient.post(endpoint, {
         email,
         password,
+        captcha,
       });
 
       // Lưu token

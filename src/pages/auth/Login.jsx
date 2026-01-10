@@ -4,9 +4,11 @@ import { ROUTES } from "../../constants/routes";
 import authService from "../../services/authService";
 import { useForm } from "react-hook-form";
 import helpers from "../../utils/helpers";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Login = () => {
   const [generalError, setGeneralError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const navigate = useNavigate();
   const {
     register,
@@ -21,14 +23,26 @@ const Login = () => {
 
   const handleSubmit = async (data) => {
     try {
-      const { user } = await authService.login(data.email, data.password);
+
+      if (!captchaToken) {
+        setGeneralError("Vui lòng xác nhận captcha");
+        return;
+      }
+
+      const { user } = await authService.login(
+        data.email,
+        data.password,
+        captchaToken
+      );
+
       if (user.role === "ADMIN") {
         navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
       } else {
         navigate(ROUTES.HOME, { replace: true });
       }
+
     } catch (error) {
-      setGeneralError(error || "Đăng nhập thất bại");
+      setGeneralError(error?.message || "Đăng nhập thất bại");
     }
   };
 
@@ -172,6 +186,11 @@ const Login = () => {
             <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
           </div>
 
+          <ReCAPTCHA
+            sitekey="6LcPT0YsAAAAAMkgm_dhM05o1A2WL0TFbys1HjZW"
+            onChange={(token) => setCaptchaToken(token)}
+            className="mt-4 flex justify-center"
+          />
           {/* Submit Button */}
           <button
             type="submit"
