@@ -126,20 +126,6 @@ const OrderCompletion = () => {
     loadStatus();
   }, [appOrderId, userRole, navigate]);
 
-  /*useEffect(() => {
-    if (location.pathname === "/payment-result") {
-      if (!ctx?.productId) {
-        navigate("/", { replace: true });
-        return;
-      }
-
-      navigate(
-        `/products/${ctx.productId}/order-completion${location.search}`,
-        { replace: true, state: ctx },
-      );
-    }
-  }, [location.pathname, location.search, ctx, navigate]);*/
-
   useEffect(() => {
     if (userRole !== "buyer") return;
     if (!ctx || ctx.type !== "ORDER") return;

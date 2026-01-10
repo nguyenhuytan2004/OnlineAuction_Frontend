@@ -19,7 +19,7 @@ const PaymentStep = ({
     try {
       setIsLoading(true);
 
-      const amount = parsePriceToNumber(1000);
+      const amount = parsePriceToNumber(price);
 
       const paymentContext = {
         type: paymentType,

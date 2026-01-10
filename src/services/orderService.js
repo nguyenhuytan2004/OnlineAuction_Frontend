@@ -58,7 +58,7 @@ const orderService = {
         amount,
         paymentRef,
       });
-      return res.data;
+      return res;
     } catch (error) {
       console.error("Pay and create order error:", error);
       throw error;
