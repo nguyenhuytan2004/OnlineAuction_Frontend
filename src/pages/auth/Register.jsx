@@ -4,9 +4,11 @@ import { ROUTES } from "../../constants/routes";
 import authService from "../../services/authService";
 import { useForm } from "react-hook-form";
 import helpers from "../../utils/helpers";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Register = () => {
   const [generalError, setGeneralError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const navigate = useNavigate();
   const {
     register,
@@ -25,14 +27,25 @@ const Register = () => {
 
   const handleSubmit = async (data) => {
     try {
+      if (!captchaToken) {
+        setGeneralError("Vui lòng xác nhận captcha");
+        return;
+      }
+      
       await authService.register({
         fullName: data.fullName,
         email: data.email,
         password: data.password,
+        captchaToken
       });
       navigate(ROUTES.VERIFY_EMAIL, { state: { email: data.email } });
     } catch (error) {
-      setGeneralError(error || "Lỗi đăng ký");
+      setGeneralError(
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        error.message ||
+        "Lỗi đăng ký"
+      );
     }
   };
 
@@ -202,6 +215,12 @@ const Register = () => {
             <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent flex-1"></div>
           </div>
 
+          <ReCAPTCHA
+            sitekey="6LcPT0YsAAAAAMkgm_dhM05o1A2WL0TFbys1HjZW"
+            onChange={(token) => setCaptchaToken(token)}
+            className="mt-4 flex justify-center"
+          />
+          <div className="pt-4"></div>
           {/* Submit Button */}
           <button
             type="submit"

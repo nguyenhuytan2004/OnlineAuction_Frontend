@@ -9,6 +9,7 @@ export const authService = {
         fullName: userData.fullName,
         email: userData.email,
         password: userData.password,
+        captcha: userData.captcha,
       });
 
       return response;
