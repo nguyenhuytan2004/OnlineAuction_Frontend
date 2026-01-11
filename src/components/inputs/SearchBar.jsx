@@ -252,19 +252,17 @@ const SearchBar = () => {
 
                         {/* Product Info */}
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-slate-100 font-bold line-clamp-2 text-sm mb-2 mr-10 group-hover:text-amber-100 transition-colors duration-300">
-                            {product.productName}
-                          </h4>
-                          <div className="flex items-center justify-between">
-                            <p className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-black text-sm">
-                              {formatters.formatCurrency(product.currentPrice)}
-                            </p>
+                          <h4 className="text-slate-100 font-bold line-clamp-2 text-sm group-hover:text-amber-100 transition-colors duration-300">
                             {isNew && (
-                              <span className="inline-block px-2 py-0.5 text-xs font-semibold text-amber-800 bg-amber-200 rounded-full">
+                              <span className="inline-block px-2 py-0.5 m-1 text-xs font-semibold text-amber-800 bg-amber-200 rounded-full">
                                 Mới
                               </span>
                             )}
-                          </div>
+                            {product.productName}
+                          </h4>
+                          <p className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 font-black text-sm">
+                            {formatters.formatCurrency(product.currentPrice)}
+                          </p>
                         </div>
                       </button>
                     );

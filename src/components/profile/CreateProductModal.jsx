@@ -25,6 +25,14 @@ const AddAdditionalImageModal = ({ isOpen, onClose, onAdd, existingUrls }) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [loadError, setLoadError] = useState("");
 
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
   const validateAndPreviewUrl = (url) => {
     setImageUrl(url);
     setLoadError("");
@@ -97,6 +105,7 @@ const AddAdditionalImageModal = ({ isOpen, onClose, onAdd, existingUrls }) => {
               Đường dẫn ảnh (URL)
             </label>
             <input
+              ref={inputRef}
               type="url"
               placeholder="https://example.com/image.jpg"
               value={imageUrl}
@@ -166,6 +175,7 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
   const [additionalImageUrls, setAdditionalImageUrls] = useState([]);
   const [productDescription, setProductDescription] = useState("");
   const [autoRenewal, setAutoRenewal] = useState(false);
+  const [allowUnratedBidder, setAllowUnratedBidder] = useState(false);
   const [isAddImageModalOpen, setIsAddImageModalOpen] = useState(false);
 
   const categoryRef = useRef(null);
@@ -187,6 +197,7 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
       buyNowPrice: "",
       description: "",
       autoRenewal: false,
+      allowUnratedBidder: false,
     },
   });
 
@@ -284,6 +295,7 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
     setAdditionalImageUrls([]);
     setProductDescription("");
     setAutoRenewal(false);
+    setAllowUnratedBidder(false);
     setIsAddImageModalOpen(false);
     reset();
     onClose();
@@ -295,6 +307,7 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
       stepPrice,
       additionalImageUrls,
       autoRenewal,
+      allowUnratedBidder,
       ...rest
     } = data;
     const formData = {
@@ -305,6 +318,7 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
       startPrice: startingPrice,
       priceStep: stepPrice,
       isAutoRenew: autoRenewal,
+      allowUnratedBidder: allowUnratedBidder,
     };
 
     await onSubmit(formData);
@@ -712,6 +726,7 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
                 checked={autoRenewal}
                 onChange={(e) => {
                   setAutoRenewal(e.target.checked);
+                  setValue("autoRenewal", e.target.checked);
                 }}
                 className="w-4 h-4 rounded accent-amber-600 cursor-pointer"
               />
@@ -723,6 +738,43 @@ const CreateProductModal = ({ isOpen, onClose, onSubmit }) => {
               Nếu bật, sản phẩm sẽ tự động gia hạn thêm 10 phút mỗi khi có lượt
               đấu giá mới trước khi kết thúc 5 phút.
             </p>
+          </div>
+
+          {/* Allow Unrated Bidders Option */}
+          <div className="bg-slate-800/30 border border-slate-700 rounded-lg p-4 space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={allowUnratedBidder}
+                onChange={(e) => {
+                  setAllowUnratedBidder(e.target.checked);
+                  setValue("allowUnratedBidder", e.target.checked);
+                }}
+                className="w-4 h-4 rounded accent-amber-600 cursor-pointer"
+              />
+              <span className="font-semibold text-slate-100">
+                Cho phép Bidder chưa được đánh giá tham gia
+              </span>
+            </label>
+            <div className="ml-7 space-y-2">
+              <p className="text-xs text-slate-400">
+                <span className="font-semibold text-slate-300">
+                  Điều kiện mặc định:
+                </span>{" "}
+                Hệ thống chỉ cho phép Bidder có điểm đánh giá ≥ 80% tham gia đấu
+                giá.
+              </p>
+              <p className="text-xs text-slate-400">
+                <span className="font-semibold text-slate-300">Ví dụ:</span>{" "}
+                Bidder được đánh giá 10 lần (8 dương, 2 âm) = 80% → Được phép ra
+                giá.
+              </p>
+              <p className="text-xs text-slate-400">
+                <span className="font-semibold text-slate-300">Nếu bật:</span>{" "}
+                Cho phép Bidder chưa từng được đánh giá (chưa có lịch sử giao
+                dịch) tham gia đấu giá sản phẩm này.
+              </p>
+            </div>
           </div>
 
           {/* Info Box */}
