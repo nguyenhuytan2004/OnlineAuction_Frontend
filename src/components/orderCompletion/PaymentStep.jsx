@@ -1,54 +1,44 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { AlertCircle, Check, CheckCircle2Icon } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { AlertCircle, Check } from "lucide-react";
 import paymentService from "../../services/paymentService";
 import { ROUTES } from "../../constants/routes";
 import formatters from "../../utils/formatters";
 
 const PaymentStep = ({
+  userId,
   productId,
   productName,
   price,
-  userRole,
   paymentType,
+  onPaymentSuccess, // Callback khi thanh toán thành công
+  onPaymentError, // Callback khi thanh toán thất bại
 }) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
 
-  const handlePayment = async () => {
-    try {
-      setIsLoading(true);
+  /**
+   * Kiểm tra nếu đây là callback từ PayOS
+   * PayOS trả về: ?code=00 (thành công) hoặc khác
+   */
+  useEffect(() => {
+    const code = searchParams.get("code");
+    const cancel = searchParams.get("cancel");
+    const status = searchParams.get("status");
 
-      const amount = parsePriceToNumber(price);
-
-      const paymentContext = {
-        type: paymentType,
-        productId,
-        productName,
-        price: amount,
-        userRole,
-        createdAt: Date.now(),
-      };
-
-      sessionStorage.setItem("paymentContext", JSON.stringify(paymentContext));
-
-      const res = await paymentService.createMomoPayment({
-        amount,
-        orderInfo: `Thanh toán ${productName}`,
-      });
-
-      if (!res?.payUrl) {
-        throw new Error("Không nhận được payUrl từ MoMo");
+    // Nếu có code, có nghĩa là đang về từ PayOS callback
+    if (!code) return;
+    if (code === "00" && cancel === "false" && status === "PAID") {
+      onPaymentSuccess();
+    } else {
+      // Thanh toán thất bại
+      const errorMessage = `Thanh toán thất bại (Mã lỗi: ${code})`;
+      if (onPaymentError) {
+        onPaymentError(errorMessage);
       }
-
-      window.location.href = res.payUrl;
-    } catch (err) {
-      console.error("Init payment failed", err);
-      alert("Không thể khởi tạo thanh toán MoMo");
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [searchParams, onPaymentSuccess, onPaymentError]);
 
   const parsePriceToNumber = (price) => {
     if (typeof price === "number") return price;
@@ -58,6 +48,50 @@ const PaymentStep = ({
     }
 
     return 0;
+  };
+
+  const handlePayment = async () => {
+    try {
+      setIsLoading(true);
+
+      const amount = parsePriceToNumber(10000);
+
+      const res =
+        selectedPayment === "momo"
+          ? await paymentService.createMomoPayment({
+              amount,
+              orderInfo: `Thanh toán ${productName}`,
+            })
+          : await paymentService.createPayOSPayment({
+              orderName: `Thanh toán ${productName}`,
+              description: ``,
+              amount,
+              userId,
+              type: paymentType,
+              productId,
+              returnUrl: `${window.location.origin}/upgrade-to-seller`,
+              cancelUrl: `${window.location.origin}/upgrade-to-seller`,
+            });
+
+      if (!res?.checkoutUrl) {
+        throw new Error(
+          "Không nhận được checkoutUrl từ phương thức thanh toán",
+        );
+      }
+
+      // Redirect đến màn hình thanh toán của nhà cung cấp dịch vụ
+      window.location.href = res.checkoutUrl;
+    } catch (err) {
+      console.error("Init payment failed", err);
+      const errorMsg = err?.message || "Không thể khởi tạo thanh toán";
+      if (onPaymentError) {
+        onPaymentError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const paymentMethods = [
@@ -71,13 +105,13 @@ const PaymentStep = ({
       description: "Thanh toán qua ví MoMo",
     },
     {
-      id: "zalopay",
-      name: "ZaloPay",
-      logo: "https://cdn.tgdd.vn/2020/04/GameApp/image-180x180.png",
+      id: "payos",
+      name: "PayOS",
+      logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzyLwczXxezKsQjX4t5uvXGWDvlwwOwuX-1A&s",
       color: "from-blue-600 to-blue-700",
       bgColor: "from-blue-900/30 to-blue-800/20",
       borderColor: "border-blue-500/50",
-      description: "Thanh toán qua ví ZaloPay",
+      description: "Thanh toán qua ví PayOS",
     },
     {
       id: "vnpay",
@@ -191,13 +225,26 @@ const PaymentStep = ({
 
       {/* Action Buttons */}
       <div className="flex gap-4">
-        <Link
-          to={productId ? `${ROUTES.PRODUCT}/${productId}` : ROUTES.HOME}
-          className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat'] text-center"
-        >
-          Hủy
-        </Link>
-        {selectedPayment !== "momo" ? (
+        {paymentType === "UPGRADE" ? (
+          <button
+            onClick={() => {
+              if (onPaymentError) {
+                onPaymentError("Hủy thanh toán");
+              }
+            }}
+            className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat'] text-center"
+          >
+            Quay Lại
+          </button>
+        ) : (
+          <Link
+            to={productId ? `${ROUTES.PRODUCT}/${productId}` : ROUTES.HOME}
+            className="flex-1 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg font-['Montserrat'] text-center"
+          >
+            Hủy
+          </Link>
+        )}
+        {selectedPayment !== "momo" && selectedPayment !== "payos" ? (
           <button
             disabled
             className={`flex-1 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 hover:from-amber-500 hover:to-orange-400 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover:scale-105 shadow-2xl hover:shadow-amber-500/50 font-['Montserrat'] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}

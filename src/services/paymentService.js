@@ -9,7 +9,7 @@ const paymentService = {
         {
           orderId,
           amount,
-        }
+        },
       );
       return res;
     } catch (error) {
@@ -19,10 +19,33 @@ const paymentService = {
   },
 
   createMomoPayment: async ({ amount, orderInfo }) => {
-    const res = await apiClient.post(
-      "/payments/momo/create",
-      { amount, orderInfo }
-    );
+    const res = await apiClient.post("/payments/momo/create", {
+      amount,
+      orderInfo,
+    });
+    return res;
+  },
+
+  createPayOSPayment: async ({
+    orderName,
+    description,
+    amount,
+    userId,
+    type,
+    productId,
+    returnUrl,
+    cancelUrl,
+  }) => {
+    const res = await apiClient.post("/payment/payos/create-payment-link", {
+      orderName,
+      description,
+      amount,
+      userId,
+      type,
+      productId,
+      returnUrl,
+      cancelUrl,
+    });
     return res;
   },
 };

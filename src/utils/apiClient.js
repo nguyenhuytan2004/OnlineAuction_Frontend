@@ -20,9 +20,9 @@ class ApiClient {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken && isTokenExpired(accessToken)) {
       try {
-        await this.refreshAccessToken();
+        await authService.refreshAccessToken();
       } catch (err) {
-        this.logout();
+        authService.logout();
         throw err;
       }
     }
