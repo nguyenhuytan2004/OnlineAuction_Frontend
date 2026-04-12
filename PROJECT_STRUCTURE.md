@@ -1,49 +1,202 @@
-# 🌟 Cấu Trúc Dự Án OnlineAuction_Frontend (React + Vite + TypeScript/JSX)
+# Cấu Trúc Dự Án OnlineAuction_Frontend (Phạm vi Custom)
 
-Cấu trúc này được xây dựng dựa trên nguyên tắc **Tách biệt Mối quan tâm (Separation of Concerns)**, giúp tăng cường khả năng mở rộng, dễ bảo trì và dễ dàng cho các nhà phát triển mới tiếp cận dự án.
-
----
-
-## 🛠️ I. Các Tệp Cấu hình & Gốc
-
-| Tệp/Thư mục          | Chức năng Cốt lõi                     | Giải thích chi tiết                                                                                                                                                       | Ví dụ Cụ thể trong Dự án Đấu giá                                                                                        |
-| :------------------- | :------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------- |
-| `index.html`         | **HTML Gốc (Entry HTML)**             | Tệp HTML duy nhất được trình duyệt tải. Nó chứa thẻ `<div id="root">` nơi ứng dụng React được gắn vào.                                                                    | Chứa `<div id="root"></div>` và liên kết với file JavaScript chính.                                                     |
-| `package.json`       | **Quản lý Phụ thuộc**                 | Định nghĩa các thư viện cần thiết (`dependencies`), các công cụ cho quá trình phát triển (`devDependencies`), và các lệnh script (`scripts`) để chạy, build, và kiểm thử. | Lệnh chạy: `"dev": "vite"`. Phụ thuộc: `"react"`, `"tailwindcss"`, `"axios"`.                                           |
-| `vite.config.js`     | **Cấu hình Build Tool**               | Thiết lập các tùy chỉnh cho Vite. Chủ yếu dùng để cấu hình plugins (như `@vitejs/plugin-react`), và thiết lập Alias đường dẫn (ví dụ: `@/src`).                           | Thiết lập Alias: `alias: {'@/': path.resolve(__dirname, './src/')}`.                                                    |
-| `tailwind.config.js` | **Cấu hình Tailwind**                 | Tùy chỉnh theme mặc định của Tailwind (màu sắc, phông chữ, breakpoints). Quan trọng nhất là định nghĩa `content` để Tailwind chỉ tạo ra CSS cần thiết.                    | `content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"]`. Thêm màu tùy chỉnh: `colors: { 'primary-blue': '#1DA1F2' }`. |
-| `eslint.config.js`   | **Kiểm tra Chất lượng Code (Linter)** | Xác định các quy tắc code style, cú pháp, và các biện pháp phòng ngừa lỗi. Giúp duy trì tính nhất quán và chất lượng code cao trong đội ngũ.                              | Quy tắc: `semi: ['error', 'always']` (luôn dùng dấu chấm phẩy), cấm sử dụng `console.log` trong production.             |
-| `public/`            | **Tài sản Tĩnh**                      | Chứa các file mà bạn muốn được sao chép trực tiếp vào thư mục build mà không thông qua quá trình xử lý của Vite (transpilation/bundling).                                 | `favicon.ico`, logo công ty, file `manifest.json`.                                                                      |
+Tài liệu này chỉ mô tả các thư mục/file bạn đã tự xây dựng trong dự án.
+Các thành phần mặc định từ create vite không nằm trong phạm vi chi tiết ở đây.
 
 ---
 
-## 🧱 II. Thư mục `src/` (Code Nguồn)
+## 1. Tệp/Thư mục gốc do dự án bổ sung
 
-### 1. **Giao Diện Người Dùng (UI/Views)**
+| Tệp/Thư mục             | Vai trò                                                   |
+| :---------------------- | :-------------------------------------------------------- |
+| `AVATAR_DROPDOWN.md`    | Tài liệu mô tả thiết kế/hành vi dropdown avatar.          |
+| `PROJECT_STRUCTURE.md`  | Tài liệu cấu trúc dự án (file hiện tại).                  |
+| `README.md`             | Tài liệu tổng quan và hướng dẫn chạy dự án.               |
+| `.vscode/settings.json` | Thiết lập riêng cho workspace khi làm việc trong VS Code. |
+| `public/assets/`        | Vùng chứa asset tĩnh của dự án (fonts/icons/images).      |
 
-| Thư mục/Tệp           | Chức năng Cốt lõi              | Giải thích chi tiết                                                                                                               | Ví dụ Cụ thể trong Dự án Đấu giá                                                                                             |
-| :-------------------- | :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
-| `pages/`              | **Components Cấp cao (Views)** | Đại diện cho một trang hoặc một route cụ thể. Chúng là nơi chứa logic nghiệp vụ chính của trang, gọi hooks và components nhỏ hơn. | `pages/AuctionDetail.tsx`: Chịu trách nhiệm lấy dữ liệu chi tiết phiên đấu giá, hiển thị thông tin sản phẩm và form đặt giá. |
-| `pages/auth/`         | **Trang Xác thực**             | Gom nhóm các trang liên quan đến việc xác thực người dùng.                                                                        | `Login.tsx` (Trang đăng nhập), `Register.tsx` (Trang đăng ký).                                                               |
-| `layouts/`            | **Components Bố cục**          | Components bao bọc (wrapper) xác định cấu trúc chung của ứng dụng (Header, Footer, Sidebar). Chúng đảm bảo UI thống nhất.         | `UserLayout.tsx`: Bọc các trang, chứa component `<Navbar />` và `<Footer />` cố định.                                        |
-| `components/`         | **Components Tái sử dụng**     | Các thành phần nhỏ, độc lập, có thể được sử dụng lại ở nhiều nơi.                                                                 | `Card.tsx`, `Badge.tsx`, `Pagination.tsx`.                                                                                   |
-| `components/buttons/` | **Components Nút bấm**         | Các biến thể của nút bấm được định nghĩa rõ ràng về style và hành vi cơ bản (ví dụ: loading state).                               | `PrimaryButton.tsx`, `BidButton.tsx` (Chỉ lo về UI, không lo logic đặt giá).                                                 |
-| `App.jsx`             | **Root Component & Routing**   | Component gốc (Root Component). Nơi thiết lập React Router và các Providers cần thiết.                                            | Định tuyến: `<Route path="/" element={<HomePage />} />`, `<Route path="/auctions/:id" element={<AuctionDetail />} />`.       |
-| `main.jsx`            | **Entry Point (Khởi động)**    | Nơi React được render vào DOM. Thường dùng để bọc ứng dụng bằng các Provider toàn cục (Router, Context, Redux Store).             | `ReactDOM.createRoot(document.getElementById('root')).render(<App />)`.                                                      |
+Lưu ý:
 
-### 2. **Logic & API**
+- `public/assets/fonts/` và `public/assets/icons/` đã được tạo thư mục (đang để sẵn cho mở rộng).
+- `public/assets/images/` hiện có logo dự án.
 
-| Thư mục/Tệp    | Chức năng Cốt lõi          | Giải thích chi tiết                                                                                                                         | Ví dụ Cụ thể trong Dự án Đấu giá                                                            |
-| :------------- | :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------ |
-| `services/`    | **Logic Tương tác API**    | Chứa các hàm giao tiếp với Backend API, được tách biệt theo tính năng (ví dụ: tất cả API liên quan đến người dùng nằm trong `authService`). | `auctionService.ts` có hàm: `const getAuctions = () => apiClient.get('/auctions');`.        |
-| `utils/`       | **Hàm Tiện ích (Helpers)** | Chứa các hàm hỗ trợ chung, không có sự phụ thuộc vào React hoặc nghiệp vụ cụ thể.                                                           | `formatters.ts` có hàm: `formatCurrency(amount)`.                                           |
-| `apiClient.js` | **Client API Cơ sở**       | Cấu hình instance Axios/Fetch duy nhất, xử lý việc gắn **Authorization Token** vào tất cả các yêu cầu và xử lý các lỗi HTTP chung.          | Cấu hình Axios: `axios.create({ baseURL: 'https://api.daugiatructuyen.com/v1' })`.          |
-| `constants/`   | **Hằng số Dữ liệu**        | Chứa các giá trị cố định, không thay đổi, giúp tránh hardcoding.                                                                            | `routes.js`: Định nghĩa `const HOME_ROUTE = '/'`, `const AUCTION_DETAIL = '/auctions/:id'`. |
+---
 
-### 3. **Trạng thái & Kiểu dữ liệu (TypeScript)**
+## 2. Cây cấu trúc custom chính
 
-| Thư mục/Tệp             | Chức năng Cốt lõi                              | Giải thích chi tiết                                                                                                                      | Ví dụ Cụ thể trong Dự án Đấu giá                                                                                     |
-| :---------------------- | :--------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
-| `hooks/`                | **Custom React Hooks**                         | Logic tái sử dụng được viết dưới dạng hàm bắt đầu bằng `use...`. Chức năng là tách biệt logic trạng thái/side effects khỏi Component UI. | `useFetch.ts` (quản lý trạng thái loading/error khi gọi API), `useAuth.ts` (lấy dữ liệu người dùng từ Auth Context). |
-| `context/`              | **Quản lý Trạng thái Global**                  | Sử dụng Context API của React để quản lý trạng thái chung cần thiết ở nhiều component (thay vì Prop Drilling).                           | `AuthContext.jsx`: Cung cấp hàm `login`, `logout` và trạng thái `currentUser` cho toàn bộ ứng dụng.                  |
-| `types/` **(Nên thêm)** | **Định nghĩa Kiểu dữ liệu (Interfaces/Types)** | **Rất quan trọng với TypeScript.** Chứa các định nghĩa kiểu cho các đối tượng dữ liệu, Props của Component, và cấu trúc phản hồi API.    | `interface AuctionItem { id: string; title: string; currentPrice: number; }`.                                        |
+```text
+public/
+	assets/
+		fonts/
+		icons/
+		images/
+			logo-transparent.png
+			logo.png
+
+src/
+	components/
+		admin/
+		buttons/
+		common/
+			BackgroundDecoration.jsx
+			CustomDropdown.jsx
+			Tooltip.jsx
+		inputs/
+			SearchBar.jsx
+		orderCompletion/
+			ConfirmationStep.jsx
+			OrderStepper.jsx
+			PaymentStep.jsx
+			ShippingAddressStep.jsx
+			ShippingInfoStep.jsx
+		profile/
+			AddDescriptionModal.jsx
+			BuyerRatingModal.jsx
+			CancelTransactionModal.jsx
+			CreateProductModal.jsx
+		AvatarDropdown.jsx
+		BackgroundDecoration.jsx
+		ChatFloatingButton.jsx
+		ChatModal.jsx
+		ConversationListModal.jsx
+		ProductCard.jsx
+		ProductCard_LessInfo.jsx
+
+	constants/
+		api.js
+		routes.js
+
+	hooks/
+		useAuction.js
+		useAuth.js
+		useBid.js
+		useChat.js
+		usePrivateNotification.js
+		useQnA.js
+		useTokenStatus.js
+		useUpgradeSeller.js
+		useWebSocket.js
+
+	layouts/
+		AdminLayout.jsx
+		AuthLayout.jsx
+		UserLayout.jsx
+
+	pages/
+		admin/
+			AdminCategoryManagement.jsx
+			AdminDashboard.jsx
+			AdminProductManagement.jsx
+			AdminUpgradeAccountReview.jsx
+			AdminUserManagement.jsx
+		auth/
+			EmailVerification.jsx
+			ForgotPassword.jsx
+			Login.jsx
+			Register.jsx
+			ResetPassword.jsx
+		user/
+			profile/
+				AccountSettings.jsx
+				Activity.jsx
+				ChangePassword.jsx
+				Favorites.jsx
+				ProductManagement.jsx
+				Ratings.jsx
+			Home.jsx
+			OrderCompletion.jsx
+			PaymentResultRedirect.jsx
+			ProductDetail.jsx
+			ProductList.jsx
+			UpgradeToSellerRequest.jsx
+		NotFound.jsx
+
+	routes/
+		AdminRouter.jsx
+		AuthRouter.jsx
+		UserRouter.jsx
+
+	services/
+		adminDashboardService.js
+		adminSellerUpgradeService.js
+		adminUserService.js
+		auctionService.js
+		authService.js
+		bidService.js
+		categoryService.js
+		chatService.js
+		favouriteService.js
+		orderService.js
+		paymentService.js
+		productService.js
+		ratingService.js
+		userProfileService.js
+		userService.js
+		websocketService.js
+
+	utils/
+		apiClient.js
+		formatters.js
+		helpers.js
+		toast.js
+		tokenUtils.js
+		validators.js
+```
+
+---
+
+## 3. Vai trò theo module trong src
+
+### 3.1 components/
+
+- Chứa UI tái sử dụng và modal theo nghiệp vụ.
+- `common/`: nhóm component nền tảng dùng lại ở nhiều trang (`CustomDropdown`, `Tooltip`, ...).
+- `orderCompletion/`: từng step cho quy trình hoàn tất đơn hàng.
+- `profile/`: modal phục vụ quản lý hồ sơ, đánh giá, hủy giao dịch, tạo sản phẩm.
+- `admin/`, `buttons/`: thư mục đã được tạo để tách domain, hiện chưa có file.
+
+### 3.2 constants/
+
+- `api.js`: tập trung endpoint/key liên quan API.
+- `routes.js`: định nghĩa path/route constant để tránh hard-code.
+
+### 3.3 hooks/
+
+- Tập trung custom hook theo từng domain nghiệp vụ: auth, auction, bid, chat, notification, websocket, nâng cấp seller...
+- Mục tiêu: gom logic state + side effects ra khỏi component trang.
+
+### 3.4 layouts/
+
+- Chia layout theo vai trò người dùng (`AdminLayout`, `AuthLayout`, `UserLayout`).
+- Dùng để giữ cấu trúc giao diện thống nhất giữa các nhóm trang.
+
+### 3.5 pages/
+
+- `admin/`: trang quản trị danh mục, sản phẩm, tài khoản, dashboard.
+- `auth/`: luồng xác thực và khôi phục mật khẩu.
+- `user/`: trang người dùng cuối (home, product list/detail, order completion, upgrade seller, ...).
+- `user/profile/`: cụm trang quản lý tài khoản cá nhân và hoạt động.
+
+### 3.6 routes/
+
+- Tách router theo domain truy cập: admin, auth, user.
+- Giúp App-level routing rõ ràng và dễ bảo trì hơn.
+
+### 3.7 services/
+
+- Mỗi service đại diện một nhóm API nghiệp vụ riêng (auth, auction, bid, order, payment, chat, rating, admin...).
+- Giảm phụ thuộc trực tiếp giữa UI và lớp gọi API.
+
+### 3.8 utils/
+
+- Nhóm hàm dùng chung không phụ thuộc UI: client API base, formatter, helper, toast, token, validator.
+
+---
+
+## 4. Ghi chú đồng bộ tài liệu
+
+Khi thêm module mới, nên cập nhật theo thứ tự:
+
+1. Thêm vào cây thư mục ở mục 2.
+2. Cập nhật mô tả module ở mục 3.
+3. Nếu có domain mới lớn (ví dụ notifications, realtime dashboard), tách thêm một subsection riêng để tránh file tài liệu bị mơ hồ.

@@ -104,7 +104,7 @@ const UpgradeToSellerRequest = () => {
             productId={null}
             productName={`Nâng cấp Seller – ${currentPlan.name}`}
             price={currentPlan.price}
-            paymentType="UPGRADE_SELLER"
+            paymentType="UPGRADE"
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentError={handlePaymentError}
           />

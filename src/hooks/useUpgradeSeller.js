@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import bidService from "../services/bidService";
+import auctionService from "../services/auctionService";
 
 /**
  * Hook quản lý luồng nâng cấp Seller
@@ -50,7 +50,7 @@ const useUpgradeSeller = () => {
    */
   const fetchUpgradeStatus = useCallback(async () => {
     try {
-      const res = await bidService.getSellerUpgradeStatus();
+      const res = await auctionService.getSellerUpgradeStatus();
       setUpgradeStatus(res.status); // PENDING | APPROVED | REJECTED
       return res.status;
     } catch (err) {
@@ -123,7 +123,7 @@ const useUpgradeSeller = () => {
       setError(null);
 
       // Tạo seller upgrade request trên backend
-      await bidService.createSellerUpgradeRequest();
+      await auctionService.createSellerUpgradeRequest();
 
       // Fetch lại trạng thái - sẽ thay đổi từ NONE → PENDING
       const status = await fetchUpgradeStatus();
@@ -145,6 +145,7 @@ const useUpgradeSeller = () => {
    * Xử lý khi thanh toán bị từ chối hoặc lỗi
    */
   const handlePaymentError = useCallback((errorMessage) => {
+    console.error("Payment error", errorMessage);
     setError(errorMessage);
     setState("IDLE");
     setPaymentData(null);

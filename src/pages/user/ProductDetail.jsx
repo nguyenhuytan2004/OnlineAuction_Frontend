@@ -29,6 +29,7 @@ import { useBid } from "../../hooks/useBid";
 import { useQnA } from "../../hooks/useQnA";
 import { useAuth } from "../../hooks/useAuth";
 import { usePrivateNotification } from "../../hooks/usePrivateNotification";
+import auctionService from "../../services/auctionService";
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -137,7 +138,7 @@ const ProductDetail = () => {
 
     setBlockLoading(true);
     try {
-      await bidService.blockBidder(
+      await auctionService.blockBidder(
         productId,
         selectedBidder.userId,
         blockReason,
@@ -206,7 +207,7 @@ const ProductDetail = () => {
       if (!isAuthenticated || !productId || isCurrentUserSeller) return;
 
       try {
-        const blocked = await bidService.checkBlocking(productId);
+        const blocked = await auctionService.checkBlocking(productId);
         setIsBlocked(blocked);
       } catch (error) {
         console.error("Failed to check blocking status:", error);
@@ -495,10 +496,10 @@ const ProductDetail = () => {
             notification.type === "success"
               ? "bg-gradient-to-br from-emerald-900/95 via-emerald-800/95 to-emerald-900/95 border-emerald-500/50 shadow-emerald-500/30"
               : notification.type === "info"
-              ? "bg-gradient-to-br from-blue-900/95 via-blue-800/95 to-blue-900/95 border-blue-500/50 shadow-blue-500/30"
-              : notification.type === "warning"
-              ? "bg-gradient-to-br from-yellow-900/95 via-yellow-800/95 to-yellow-900/95 border-yellow-500/50 shadow-yellow-500/30"
-              : "bg-gradient-to-br from-red-900/95 via-red-800/95 to-red-900/95 border-red-500/50 shadow-red-500/30"
+                ? "bg-gradient-to-br from-blue-900/95 via-blue-800/95 to-blue-900/95 border-blue-500/50 shadow-blue-500/30"
+                : notification.type === "warning"
+                  ? "bg-gradient-to-br from-yellow-900/95 via-yellow-800/95 to-yellow-900/95 border-yellow-500/50 shadow-yellow-500/30"
+                  : "bg-gradient-to-br from-red-900/95 via-red-800/95 to-red-900/95 border-red-500/50 shadow-red-500/30"
           } text-white`}
         >
           {notification.type === "success" ? (
