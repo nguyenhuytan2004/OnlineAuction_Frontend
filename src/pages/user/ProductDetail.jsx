@@ -705,7 +705,13 @@ const ProductDetail = () => {
               </div>
               {/* Action Buttons */}
               <div className="flex gap-4 flex-grow items-center relative z-10">
-                {!isAuthenticated ? (
+                {!product.isActive ? (
+                  <div className="flex-1 p-4 bg-gradient-to-r from-slate-900/80 to-slate-800/60 border border-slate-700/50 rounded-xl">
+                    <p className="text-gray-400 font-semibold font-['Montserrat'] flex justify-center text-center gap-2">
+                      Phiên đấu giá đã kết thúc
+                    </p>
+                  </div>
+                ) : !isAuthenticated ? (
                   <>
                     <Link
                       to={ROUTES.LOGIN}

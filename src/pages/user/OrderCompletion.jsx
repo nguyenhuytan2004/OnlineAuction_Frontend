@@ -272,7 +272,7 @@ const OrderCompletion = () => {
             productName={productName}
             price={price}
             userRole={userRole}
-            paymentType={"ORDER"}
+            paymentType={"PURCHASE_PRODUCT"}
           />
         );
       case 2:

@@ -145,7 +145,7 @@ const useUpgradeSeller = () => {
    * Xử lý khi thanh toán bị từ chối hoặc lỗi
    */
   const handlePaymentError = useCallback((errorMessage) => {
-    console.error("Payment error", errorMessage);
+    console.error("Payment error: ", errorMessage);
     setError(errorMessage);
     setState("IDLE");
     setPaymentData(null);

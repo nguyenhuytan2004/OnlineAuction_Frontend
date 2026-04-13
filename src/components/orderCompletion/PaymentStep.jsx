@@ -82,7 +82,7 @@ const PaymentStep = ({
       // Redirect đến màn hình thanh toán của nhà cung cấp dịch vụ
       window.location.href = res.checkoutUrl;
     } catch (err) {
-      console.error("Init payment failed", err);
+      console.error("Init payment failed: ", err);
       const errorMsg = err?.message || "Không thể khởi tạo thanh toán";
       if (onPaymentError) {
         onPaymentError(errorMsg);
@@ -225,7 +225,7 @@ const PaymentStep = ({
 
       {/* Action Buttons */}
       <div className="flex gap-4">
-        {paymentType === "UPGRADE" ? (
+        {paymentType === "UPGRADE_SELLER" ? (
           <button
             onClick={() => {
               if (onPaymentError) {
