@@ -5,7 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
   CheckCircle,
@@ -73,6 +73,7 @@ const ProductDetail = () => {
   const descriptionRef = useRef(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { isAuthenticated, user } = useAuth();
 
@@ -649,7 +650,11 @@ const ProductDetail = () => {
                 <button
                   onClick={() => {
                     if (!isAuthenticated) {
-                      navigate(ROUTES.LOGIN);
+                      navigate(ROUTES.LOGIN, {
+                        state: {
+                          returnUrl: location.pathname + location.search,
+                        },
+                      });
                       return;
                     }
                     handleClickFavoriteProduct(product.productId, !isFavorited);
@@ -700,7 +705,17 @@ const ProductDetail = () => {
               </div>
               {/* Action Buttons */}
               <div className="flex gap-4 flex-grow items-center relative z-10">
-                {isBlocked ? (
+                {!isAuthenticated ? (
+                  <>
+                    <Link
+                      to={ROUTES.LOGIN}
+                      state={{ returnUrl: location.pathname + location.search }}
+                      className="flex items-center gap-2 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-4 px-6 rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105 font-['Montserrat'] border border-blue-400/20 mx-auto"
+                    >
+                      Đăng nhập để đặt giá
+                    </Link>
+                  </>
+                ) : isBlocked ? (
                   <div className="flex-1 p-4 bg-gradient-to-r from-red-900/30 via-orange-900/20 to-red-900/30 border border-red-500/50 rounded-xl">
                     <p className="text-red-200 font-semibold font-['Montserrat'] flex justify-center text-center gap-2">
                       Bạn không thể đấu giá sản phẩm này
@@ -722,29 +737,15 @@ const ProductDetail = () => {
                   <>
                     <button
                       onClick={() => {
-                        if (!isAuthenticated) {
-                          navigate(ROUTES.LOGIN);
-                          return;
-                        }
-                        if (
-                          product.buyNowPrice &&
-                          isEligible &&
-                          !isAuctionEnded
-                        ) {
+                        if (product.buyNowPrice && isEligible) {
                           setShowBuyNowModal(true);
                         }
                       }}
                       disabled={
-                        (!product.buyNowPrice ||
-                          !isEligible ||
-                          isAuctionEnded) &&
-                        isAuthenticated
+                        (!product.buyNowPrice || !isEligible) && isAuthenticated
                       }
                       className={`flex-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 hover:from-red-500 hover:to-red-400 text-white font-bold py-4 px-6 rounded-xl shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 font-['Montserrat'] border border-red-400/20 ${
-                        (!product.buyNowPrice ||
-                          !isEligible ||
-                          isAuctionEnded) &&
-                        isAuthenticated
+                        (!product.buyNowPrice || !isEligible) && isAuthenticated
                           ? "opacity-40 cursor-not-allowed grayscale"
                           : ""
                       }`}
@@ -755,21 +756,13 @@ const ProductDetail = () => {
                     </button>
                     <button
                       onClick={() => {
-                        if (!isAuthenticated) {
-                          navigate(ROUTES.LOGIN);
-                          return;
-                        }
-                        if (connected && isEligible && !isAuctionEnded) {
+                        if (connected && isEligible) {
                           setShowBidModal(true);
                         }
                       }}
-                      disabled={
-                        (!connected || !isEligible || isAuctionEnded) &&
-                        isAuthenticated
-                      }
+                      disabled={(!connected || !isEligible) && isAuthenticated}
                       className={`flex-1 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 hover:from-amber-500 hover:to-orange-400 text-white font-bold py-4 px-6 rounded-xl shadow-2xl hover:shadow-orange-500/50 transition-all duration-300 hover:scale-105 font-['Montserrat'] border border-amber-400/20 ${
-                        (!connected || !isEligible || isAuctionEnded) &&
-                        isAuthenticated
+                        (!connected || !isEligible) && isAuthenticated
                           ? "opacity-40 cursor-not-allowed grayscale"
                           : ""
                       }`}
