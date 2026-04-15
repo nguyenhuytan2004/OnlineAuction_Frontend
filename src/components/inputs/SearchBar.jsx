@@ -207,10 +207,18 @@ const SearchBar = () => {
                         new Date(product.createdAt).getTime() <
                       60 * 60 * 1000; // 1 hour
                     return (
-                      <button
+                      <div
                         key={product.productId}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleSelectProduct(product.productId)}
-                        className="w-full px-5 py-4 hover:bg-slate-800/70 transition-all duration-300 text-left border-b border-slate-700/50 last:border-b-0 flex gap-4 animate-in fade-in slide-in-from-left-4 group relative"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSelectProduct(product.productId);
+                          }
+                        }}
+                        className="w-full px-5 py-4 hover:bg-slate-800/70 transition-all duration-300 text-left border-b border-slate-700/50 last:border-b-0 flex gap-4 animate-in fade-in slide-in-from-left-4 group relative cursor-pointer"
                         style={{
                           animationDelay: `${index * 50}ms`,
                         }}
@@ -264,7 +272,7 @@ const SearchBar = () => {
                             {formatters.formatCurrency(product.currentPrice)}
                           </p>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

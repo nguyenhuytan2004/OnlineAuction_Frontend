@@ -100,7 +100,6 @@ const StopModal = ({
 const DetailModal = ({ isOpen, product, onClose }) => {
   if (!isOpen || !product) return null;
 
-  console.log("Product detail:", product);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div className="bg-gradient-to-br from-slate-950 via-slate-800 to-slate-950 rounded-3xl w-full max-w-2xl border border-slate-700/50 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
@@ -203,7 +202,7 @@ const DetailModal = ({ isOpen, product, onClose }) => {
                 Người Thắng Giá
               </p>
               <p className="text-sm font-bold text-slate-200">
-                {product.highestBidder || "Chưa có"}
+                {product.highestBidder?.fullName || "Chưa có"}
               </p>
             </div>
             <div className="bg-slate-800/40 rounded-xl border border-slate-700/50 p-5">
@@ -330,8 +329,8 @@ const AdminProductManagement = () => {
             filterStatus === "Tất cả"
               ? "all"
               : filterStatus === "Hoạt động"
-              ? "active"
-              : "inactive",
+                ? "active"
+                : "inactive",
           page: currentPage - 1,
           size: 5,
         };
@@ -582,8 +581,8 @@ const AdminProductManagement = () => {
                             {product.isActive
                               ? "Hoạt động"
                               : new Date(product.endTime) > new Date()
-                              ? "Dừng hoạt động"
-                              : "Đã kết thúc"}
+                                ? "Dừng hoạt động"
+                                : "Đã kết thúc"}
                           </span>
                         </td>
                         <td className="px-6 py-4">
